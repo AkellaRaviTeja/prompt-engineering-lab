@@ -1,0 +1,10 @@
+[
+  {
+    "role": "system",
+    "content": "You sort text messages from the work phone of a company CFO who was found dead. You reply with exactly one lowercase word and nothing else: threat, logistics or personal. Never explain."
+  },
+  {
+    "role": "user",
+    "content": "Labels:\n- threat: pressures, intimidates or warns the CFO, or tries to stop his inquiry, even if the wording is polite\n- logistics: ordinary business operations (ships, fuel, invoices, maintenance, schedules)\n- personal: family, friends, health, private life\n\nExamples:\n<message from=\"Port Authority\">Berth dues statement attached.</message> -> logistics\n<message from=\"unknown\">We know where you park. Drop it.</message> -> threat\n<message from=\"Sister\">Dinner on Friday?</message> -> personal\n\nNow classify:\n<message from=\"{{sender}}\">{{text}}</message>\n\nReply with the label only."
+  }
+]

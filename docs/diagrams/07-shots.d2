@@ -1,0 +1,45 @@
+direction: down
+zero: "ZERO-SHOT" {
+  grid-columns: 3
+  horizontal-gap: 60
+  style.fill: "#fdfaf3"
+  t: "System: task + label definitions" {style.fill: "#ffe8b3"}
+  q: "User: message to classify" {style.fill: "#d9ecff"}
+  a: "Assistant: ?" {style.fill: "#ffffff"}
+  t -> q -> a
+}
+one: "ONE-SHOT" {
+  grid-columns: 4
+  horizontal-gap: 60
+  style.fill: "#fdfaf3"
+  t: "System: task + labels" {style.fill: "#ffe8b3"}
+  e1: "M16 -> threat" {style.fill: "#ffd6d6"}
+  q: "User: message" {style.fill: "#d9ecff"}
+  a: "Assistant: ?" {style.fill: "#ffffff"}
+  t -> e1 -> q -> a
+}
+few: "FEW-SHOT (six examples as chat turns, labels interleaved)" {
+  grid-columns: 9
+  horizontal-gap: 40
+  style.fill: "#fdfaf3"
+  t: "System:\ntask + labels" {style.fill: "#ffe8b3"}
+  e1: "M03\nthreat" {style.fill: "#ffd6d6"}
+  e2: "M02\nlogistics" {style.fill: "#d9ecff"}
+  e3: "M01\npersonal" {style.fill: "#dff5df"}
+  e4: "M12\nthreat" {style.fill: "#ffd6d6"}
+  e5: "M04\nlogistics" {style.fill: "#d9ecff"}
+  e6: "M05\npersonal\n(last: recency\npulls hardest)" {style.fill: "#dff5df"; style.stroke-width: 3}
+  q: "User:\nmessage" {style.fill: "#d9ecff"}
+  a: "Assistant:\n?" {style.fill: "#ffffff"}
+  t -> e1 -> e2 -> e3 -> e4 -> e5 -> e6 -> q -> a
+}
+risks: "What examples also teach, whether you meant it or not" {
+  shape: page
+  style.fill: "#ffffff"
+  grid-columns: 2
+  a: "BALANCE\n4 threats out of 6 examples\nteaches 'threats are common'"
+  b: "ORDER\nthe last example pulls\nborderline answers to its label"
+  c: "FORMAT\nanswers copy the examples' shape,\ngood and bad"
+  d: "FRAMING\none word like 'murdered' in the task\nshifts every answer"
+}
+zero -> one -> few -> risks: {style.opacity: 0.3}

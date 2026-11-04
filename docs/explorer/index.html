@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sampling Explorer</title>
+<style>
+  :root {
+    --bg: #faf8f4; --panel: #ffffff; --ink: #1f2937; --muted: #6b7280; --line: #e5e7eb;
+    --raw: #d1d5db; --keep: #b45309; --cut: #f3f4f6; --focus: #92400e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111418; --panel: #1a1f26; --ink: #e5e7eb; --muted: #9ca3af; --line: #2b323c;
+      --raw: #3b4452; --keep: #f59e0b; --cut: #20262e; --focus: #fbbf24;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111418; --panel: #1a1f26; --ink: #e5e7eb; --muted: #9ca3af; --line: #2b323c;
+    --raw: #3b4452; --keep: #f59e0b; --cut: #20262e; --focus: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .grid { display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+  label { display: block; font-weight: 600; margin-top: 14px; }
+  label:first-child { margin-top: 0; }
+  .val { float: right; font-variant-numeric: tabular-nums; color: var(--focus); }
+  input[type=range], select { width: 100%; margin-top: 6px; accent-color: var(--keep); }
+  select { padding: 6px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; }
+  .hint { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+  button { margin-top: 18px; width: 100%; padding: 9px; font-weight: 600; cursor: pointer;
+           background: var(--keep); color: #fff; border: 0; border-radius: 6px; }
+  .chain { font-size: 13px; color: var(--muted); margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .chain b { color: var(--ink); }
+  .row { display: grid; grid-template-columns: 130px 1fr 56px 44px; align-items: center; gap: 8px;
+         padding: 3px 0; font-variant-numeric: tabular-nums; }
+  .tok { font-family: ui-monospace, "Fira Code", monospace; font-size: 13px; overflow: hidden;
+         text-overflow: ellipsis; white-space: nowrap; }
+  .track { position: relative; height: 18px; background: var(--cut); border-radius: 3px; }
+  .rawbar { position: absolute; inset: 0 auto 0 0; background: var(--raw); border-radius: 3px; }
+  .finbar { position: absolute; inset: 4px auto 4px 0; background: var(--keep); border-radius: 2px; transition: width .15s; }
+  .pct { text-align: right; }
+  .hits { text-align: right; color: var(--muted); font-size: 13px; }
+  .cut .tok { color: var(--muted); text-decoration: line-through; }
+  .legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); margin-bottom: 10px; flex-wrap: wrap; }
+  .sw { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; }
+  .summary { margin-top: 12px; font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Sampling explorer</h1>
+  <p class="sub">A real next-token distribution captured from LANTERN (qwen3:1.7b). Move the dials and watch
+    which tokens can still be drawn. Chapter 05 of the Prompt Engineering Lab.</p>
+  <div class="grid">
+    <section class="panel" aria-label="Controls">
+      <label for="dist">Distribution</label>
+      <select id="dist"></select>
+      <p class="hint" id="distTitle"></p>
+
+      <label for="temp">Temperature <span class="val" id="tempV"></span></label>
+      <input id="temp" type="range" min="0" max="2" step="0.05" value="1">
+      <p class="hint">Divides every score by T. Below 1 sharpens, above 1 flattens. 0 means always take the top token.</p>
+
+      <label for="k">top_k <span class="val" id="kV"></span></label>
+      <input id="k" type="range" min="1" max="20" step="1" value="20">
+      <p class="hint">Keep only the k most likely tokens.</p>
+
+      <label for="p">top_p <span class="val" id="pV"></span></label>
+      <input id="p" type="range" min="0.05" max="1" step="0.01" value="1">
+      <p class="hint">Keep the smallest set whose probabilities add up to p.</p>
+
+      <button id="draw" type="button">Draw 100 tokens</button>
+      <div class="chain"><b>Order in llama.cpp (Ollama):</b> top_k, then top_p, then temperature, then one random draw.
+        Truncation looks at the raw probabilities; temperature only reshapes what survives.</div>
+    </section>
+    <section class="panel" aria-label="Distribution">
+      <div class="legend">
+        <span><span class="sw" style="background:var(--raw)"></span>raw probability from the model</span>
+        <span><span class="sw" style="background:var(--keep)"></span>probability after the sampler</span>
+        <span>struck through: cannot be drawn</span>
+        <span>&middot; marks a space inside the token</span>
+      </div>
+      <div id="rows"></div>
+      <div class="summary" id="summary"></div>
+    </section>
+  </div>
+</main>
+<script src="data.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const D = window.DISTRIBUTIONS || {};
+  let hits = {};
+
+  for (const [key, d] of Object.entries(D)) {
+    const o = document.createElement("option");
+    o.value = key; o.textContent = d.title; $("dist").appendChild(o);
+  }
+
+  const show = (t) => {
+    if (/^_+$/.test(t.trim())) return "(blank ____)";
+    // Show spaces as a middle dot: most tokens carry their leading space.
+    return JSON.stringify(t).slice(1, -1).replace(/ /g, "\u00b7") || "(empty)";
+  };
+
+  function chain(tokens, T, k, p) {
+    const raw = tokens.map(([t, lp]) => ({ t, raw: Math.exp(lp) }));
+    const total = raw.reduce((s, x) => s + x.raw, 0);
+    raw.forEach((x) => (x.raw /= total));
+    const sorted = [...raw].sort((a, b) => b.raw - a.raw);
+    const keep = new Set();
+    let acc = 0;
+    for (let i = 0; i < Math.min(k, sorted.length); i++) {
+      keep.add(sorted[i].t); acc += sorted[i].raw;
+      if (acc >= p) break;
+    }
+    let fin;
+    if (T === 0) {
+      fin = raw.map((x) => (x.t === sorted[0].t ? 1 : 0));
+    } else {
+      const s = raw.map((x) => (keep.has(x.t) ? Math.log(x.raw) / T : -Infinity));
+      const m = Math.max(...s);
+      const e = s.map((v) => (v === -Infinity ? 0 : Math.exp(v - m)));
+      const z = e.reduce((a, b) => a + b, 0);
+      fin = e.map((v) => v / z);
+    }
+    return raw.map((x, i) => ({ ...x, fin: fin[i], kept: T === 0 ? fin[i] > 0 : keep.has(x.t) }));
+  }
+
+  function render() {
+    const d = D[$("dist").value];
+    if (!d) { $("rows").textContent = "No data. Run: make charts"; return; }
+    const T = +$("temp").value, k = +$("k").value, p = +$("p").value;
+    $("tempV").textContent = T.toFixed(2); $("kV").textContent = k; $("pV").textContent = p.toFixed(2);
+    $("distTitle").textContent = `Prompt ends with "${d.title}" (${d.model})`;
+    const rows = chain(d.tokens, T, k, p);
+    $("rows").innerHTML = rows.map((r) => `
+      <div class="row ${r.kept ? "" : "cut"}">
+        <span class="tok" title="${show(r.t)}">${show(r.t)}</span>
+        <span class="track"><span class="rawbar" style="width:${(r.raw * 100).toFixed(1)}%"></span>
+          <span class="finbar" style="width:${(r.fin * 100).toFixed(1)}%"></span></span>
+        <span class="pct">${(r.fin * 100).toFixed(1)}%</span>
+        <span class="hits">${hits[r.t] ? "x" + hits[r.t] : ""}</span>
+      </div>`).join("");
+    const n = rows.filter((r) => r.kept).length;
+    const top = rows.reduce((a, b) => (b.fin > a.fin ? b : a));
+    $("summary").textContent = `${n} of ${rows.length} tokens can be drawn. ` +
+      `The favourite ${show(top.t)} is drawn ${(top.fin * 100).toFixed(1)}% of the time.`;
+  }
+
+  function draw() {
+    const d = D[$("dist").value]; if (!d) return;
+    const rows = chain(d.tokens, +$("temp").value, +$("k").value, +$("p").value);
+    hits = {};
+    for (let i = 0; i < 100; i++) {
+      let r = Math.random(), acc = 0;
+      for (const x of rows) { acc += x.fin; if (r <= acc) { hits[x.t] = (hits[x.t] || 0) + 1; break; } }
+    }
+    render();
+  }
+
+  ["dist", "temp", "k", "p"].forEach((id) => $(id).addEventListener("input", () => { hits = {}; render(); }));
+  $("draw").addEventListener("click", draw);
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+direction: down
+title: "One window holds the prompt and the answer" {near: top-center; shape: text; style.font-size: 22}
+
+small: "num_ctx = 2,048 (Reyes's notes: 6,370 tokens)" {
+  grid-columns: 3
+  grid-gap: 0
+  dropped: "DROPPED silently\n~5,300 tokens\nentries 1 to 31, including 6 February" {width: 420; style.fill: "#ffd6d6"; style.stroke-dash: 4}
+  kept: "kept\n1,026 tokens\nlast entries + question" {width: 160; style.fill: "#d9ecff"}
+  answer: "room for\nthe answer" {width: 120; style.fill: "#dff5df"}
+}
+
+big: "num_ctx = 8,192: everything fits, but attention is not even" {
+  grid-columns: 5
+  grid-gap: 0
+  start: "start\nread well" {width: 120; style.fill: "#ffe8b3"}
+  m1: "middle\nread poorly" {width: 150; style.fill: "#f6f1e6"}
+  needle: "6 Feb:\n'Northwind is\nnot a vendor'" {width: 130; style.fill: "#f6f1e6"; style.stroke: "#b45309"; style.stroke-width: 3}
+  m2: "middle\nread poorly" {width: 150; style.fill: "#f6f1e6"}
+  end: "end + question\nread well" {width: 150; style.fill: "#ffe8b3"}
+}
+
+fix: "Fix: four chunks of ~1,700 tokens, one question each.\nThe line is near the start of chunk 2, and it is found." {shape: page; style.fill: "#dff5df"}
+small -> big -> fix

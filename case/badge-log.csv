@@ -1,0 +1,12 @@
+time,badge_id,holder,door,direction,result
+22:41:07,B-1102,T. Reyes,ADMIN-MAIN,out,granted
+22:43:55,B-1102,T. Reyes,ADMIN-MAIN,in,granted
+23:02:18,B-0417,I. Petrov,NORTH-YARD,in,granted
+23:12:40,B-1102,T. Reyes,ADMIN-MAIN,out,granted
+23:13:31,B-1102,T. Reyes,STAIR-C-TOP,in,granted
+23:28:44,B-0417,I. Petrov,NORTH-YARD,out,granted
+23:30:00,SYSTEM,auto-lock,STAIR-C-BOTTOM,lock,armed
+23:31:02,B-0733,R. Malhotra,ADMIN-MAIN,out,granted
+23:36:15,OVR-AUD-02,override code,STAIR-C-BOTTOM,in,granted
+23:47:09,B-0733,R. Malhotra,GATE-2-PED,out,granted
+23:58:30,B-0733,R. Malhotra,GATE-2-PED,in,granted

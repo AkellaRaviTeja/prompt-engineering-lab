@@ -1,0 +1,17 @@
+# Ollama in a container. CPU by default; see docker-compose.gpu.yml for NVIDIA GPUs.
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: pel-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    environment:
+      # One model in memory at a time keeps the lab usable on a 16 GB laptop.
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_KEEP_ALIVE: "10m"
+    restart: unless-stopped
+
+volumes:
+  ollama:

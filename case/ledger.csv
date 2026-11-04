@@ -1,0 +1,30 @@
+date,payee,description,amount_kbd,reference,status
+2026-01-07,Bayline IT,IT services,1595.20,PAY-1171,approved
+2026-01-07,Kestrel Fuel Supply,Marine gas oil,37032.20,PAY-1779,approved
+2026-01-10,Harbour Cleaning Services,Cleaning,17662.50,PAY-1851,approved
+2026-01-13,Meridian Crane Hire,Crane hire,17965.50,PAY-1923,approved
+2026-01-14,Seaward Insurance,Cargo insurance premium,8659.50,PAY-1328,approved
+2026-01-18,Northwind Freight Ltd,"Freight coordination services, January lot",62500.00,NW-0388,approved
+2026-01-21,Gulf Tug Services,Tug assistance,22989.00,PAY-1185,approved
+2026-01-22,Gulf Tug Services,"Tug assistance, 6 movements, Pier 9",14820.00,GTS-1182,approved
+2026-01-23,Gulf Tug Services,Tug assistance,30374.50,PAY-1577,approved
+2026-01-30,Kestrel Fuel Supply,"Marine gas oil, 41,000 litres",38140.50,KFS-7710,approved
+2026-02-05,Gulf Tug Services,Tug assistance,6767.50,PAY-2387,approved
+2026-02-07,Meridian Crane Hire,Crane hire,7104.20,PAY-2995,approved
+2026-02-08,Bayline IT,IT services,25926.50,PAY-2697,approved
+2026-02-09,Northwind Freight Ltd,"Freight coordination services, February lot",71200.00,NW-0402,approved
+2026-02-17,Harbour Cleaning Services,Cleaning,19336.20,PAY-2360,approved
+2026-02-17,Meridian Crane Hire,"Mobile crane, 4 days, reefer stack repairs",22600.00,MCH-0291,approved
+2026-02-18,Kestrel Bay Water,Utilities,13603.50,PAY-2563,approved
+2026-02-20,Gulf Tug Services,Tug assistance,39506.20,PAY-2748,approved
+2026-02-21,Kestrel Bay Water,Utilities,7086.20,PAY-2803,approved
+2026-02-27,Harbour Cleaning Services,"Office and amenities cleaning, February",3180.00,HCS-0554,approved
+2026-03-02,Gulf Tug Services,Tug assistance,11498.20,PAY-3521,approved
+2026-03-03,Northwind Freight Ltd,"Freight coordination services, March lot (expedited)",9400.00,NW-0419,approved
+2026-03-05,Seaward Insurance,Cargo insurance premium,30341.20,PAY-3600,approved
+2026-03-06,Bayline IT,"Network switch replacement, Pier 9 admin",5450.00,BIT-3307,approved
+2026-03-06,Kestrel Bay Water,Utilities,32676.50,PAY-3547,approved
+2026-03-09,Seaward Insurance,Cargo insurance premium,11934.20,PAY-3495,approved
+2026-03-11,Gulf Tug Services,Tug assistance,10291.50,PAY-3820,approved
+2026-03-11,Seaward Insurance,Cargo insurance premium,7116.50,PAY-3585,approved
+2026-03-12,Gulf Tug Services,Tug assistance,35356.20,PAY-3195,approved

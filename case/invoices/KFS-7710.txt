@@ -1,0 +1,17 @@
+KESTREL FUEL SUPPLY
+Unit 3, Fuel Jetty, Kestrel Bay
+ar@kestrelfuel.example
+VAT registration: KB-745795
+
+INVOICE KFS-7710
+Date: 2026-01-30
+Bill to: Halcyon Maritime Logistics, Pier 9 Administration, Kestrel Bay
+Attention: Accounts Payable (T. Reyes)
+
+Description                                              Amount
+Marine gas oil, 41,000 litres                            38,140.50
+
+Total due: 38,140.50
+Currency: KBD (Kestrel Bay dollar)
+Payment terms: 14 days
+Remit to: Account 20-551-7120, Kestrel Bay Savings

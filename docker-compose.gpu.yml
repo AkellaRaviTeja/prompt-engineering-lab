@@ -1,0 +1,11 @@
+# Overlay for NVIDIA GPUs. Needs the NVIDIA Container Toolkit on the host.
+# Use with: make up-gpu
+services:
+  ollama:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

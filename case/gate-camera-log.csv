@@ -1,0 +1,7 @@
+time,camera,event,detail
+23:29:50,CAM-HUT-EXT,person,figure in hi-vis enters supervisor hut
+23:36:40,CAM-HUT-EXT,person,figure in hi-vis visible through hut window
+23:44:12,CAM-HUT-EXT,person,figure in hi-vis leaves hut walking north toward reefer stacks
+23:47:20,CAM-GATE-2,vehicle,grey saloon exits staff car park; partial plate KB 7?4 ?LR
+23:51:05,CAM-STAIR-C,none,camera offline since 14 March 21:10 (maintenance ticket MT-5521)
+23:59:02,CAM-GATE-2,vehicle,grey saloon enters staff car park; partial plate KB 7?4 ?LR

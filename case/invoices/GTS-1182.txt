@@ -1,0 +1,17 @@
+GULF TUG SERVICES
+12 Breakwater Road, Kestrel Bay
+billing@gulftug.example
+VAT registration: KB-212017
+
+INVOICE GTS-1182
+Date: 2026-01-22
+Bill to: Halcyon Maritime Logistics, Pier 9 Administration, Kestrel Bay
+Attention: Accounts Payable (T. Reyes)
+
+Description                                              Amount
+Tug assistance, 6 movements, Pier 9                      14,820.00
+
+Total due: 14,820.00
+Currency: KBD (Kestrel Bay dollar)
+Payment terms: 14 days
+Remit to: Account 20-114-0093, Kestrel Bay Savings

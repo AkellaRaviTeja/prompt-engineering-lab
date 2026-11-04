@@ -1,0 +1,6 @@
+[
+  {
+    "role": "user",
+    "content": "Is this message a threat, logistics or personal?\n\n{{sender}}: {{text}}"
+  }
+]

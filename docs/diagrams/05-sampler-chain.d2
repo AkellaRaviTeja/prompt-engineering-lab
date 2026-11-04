@@ -1,0 +1,11 @@
+direction: right
+title: "From scores to one token: the sampler chain in Ollama (llama.cpp)" {near: top-center; shape: text; style.font-size: 22}
+
+model: "Model\nscores ~150,000\npossible tokens" {shape: hexagon; style.fill: "#2b3a55"; style.font-color: "#ffffff"}
+soft: "softmax\nscores to probabilities\ncompany 0.34 | ** 0.29 | fict 0.10 | ..." {style.fill: "#eeeeee"}
+k: "top_k = 40\nkeep the 40 most likely" {style.fill: "#ffe8b3"}
+p: "top_p = 0.9\nkeep the smallest set\nthat adds up to 0.9" {style.fill: "#ffe8b3"}
+t: "temperature T\ndivide log-probs by T\nT<1 sharpen, T>1 flatten" {style.fill: "#ffd6d6"}
+draw: "draw one token\nusing the seed\nT=0: just take the top" {style.fill: "#dff5df"}
+model -> soft -> k -> p -> t -> draw
+draw -> model: "append, repeat" {style.stroke-dash: 3}

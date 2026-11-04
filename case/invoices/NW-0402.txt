@@ -1,0 +1,16 @@
+NORTHWIND FREIGHT LTD
+PO Box 4471, Port Sabran
+accounts@northwind-freight.example
+
+INVOICE NW-0402
+Date: 2026-02-09
+Bill to: Halcyon Maritime Logistics, Pier 9 Administration, Kestrel Bay
+Attention: Accounts Payable (T. Reyes)
+
+Description                                              Amount
+Freight coordination services, February lot              71,200.00
+
+Total due: 71,200.00
+Currency: KBD (Kestrel Bay dollar)
+Payment terms: 14 days
+Remit to: Account 88-301-4471, Sabran Mercantile Bank

@@ -1,0 +1,32 @@
+direction: down
+q: "Question: does the record support 'walked straight to his car'?" {style.fill: "#ffe8b3"}
+styles: "Three ways to ask" {
+  grid-columns: 3
+  horizontal-gap: 40
+  direct: "DIRECT\n'yes'\none jump, nothing to audit\n(wrong)" {style.fill: "#ffd6d6"}
+  free: "STEP BY STEP\nthe model picks the steps\n918 tokens, wanders,\nright verdict, wrong reasons" {style.fill: "#d9ecff"}
+  set: "SET STEPS\nyou pick the steps\n215 tokens\nevery slip is visible" {style.fill: "#dff5df"}
+}
+trace: "What the set-steps run actually wrote" {
+  grid-rows: 2
+  grid-columns: 4
+  horizontal-gap: 30
+  vertical-gap: 30
+  s1: "1. ADMIN-MAIN out\n23:31:02\nCORRECT" {style.fill: "#dff5df"}
+  s2: "2. GATE-2-PED out\n23:47:09\nCORRECT" {style.fill: "#dff5df"}
+  s3: "3. minutes between\n16\nCORRECT" {style.fill: "#dff5df"}
+  s4: "4. walk admin to Gate 2\nwrote 16, evidence says 5\nWRONG" {style.fill: "#ffd6d6"; style.stroke-width: 3}
+  s5: "5. unaccounted\n0\nWRONG (inherited)" {style.fill: "#ffd6d6"}
+  s6: "6. stairwell route\n16\nWRONG (inherited)" {style.fill: "#ffd6d6"}
+  s7: "7. route fits?\nno\nWRONG (inherited)" {style.fill: "#ffd6d6"}
+  s8: "8. verdict\nnot supported\nright answer, broken road" {style.fill: "#fff3c4"}
+  s1 -> s2 -> s3 -> s4 -> s5 -> s6 -> s7 -> s8
+}
+fix: "Model reads, program reasons\nkeep steps 1 and 2 (the quotes), give the arithmetic to Python:\n47:09 - 31:02 = 16.1 min; 16.1 - 5 = 11.1 unaccounted; stairwell route 3 + 4 = 7 fits" {
+  shape: page
+  style.fill: "#ffffff"
+  style.stroke-width: 2
+}
+q -> styles
+styles -> trace: "set steps, as run"
+trace -> fix: "the fix for a small model"

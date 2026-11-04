@@ -1,0 +1,18 @@
+direction: down
+off: "think=False, max_tokens=700" {
+  grid-columns: 2
+  ans: "ANSWER tokens" {width: 300; style.fill: "#dff5df"}
+  free: "unused" {width: 400; style.fill: "#ffffff"; style.stroke-dash: 4}
+}
+small: "think=True, max_tokens=300" {
+  grid-columns: 1
+  th: "THINKING tokens ... cut off at 300\nanswer never starts" {width: 700; style.fill: "#f0d9ff"}
+}
+big: "think=True, max_tokens=4000" {
+  grid-columns: 3
+  th: "THINKING tokens (hidden reasoning)" {width: 450; style.fill: "#f0d9ff"}
+  ans: "ANSWER" {width: 150; style.fill: "#dff5df"}
+  free: "unused" {width: 100; style.fill: "#ffffff"; style.stroke-dash: 4}
+}
+off -> small: "turn thinking on" {style.stroke-dash: 4}
+small -> big: "raise the budget" {style.stroke-dash: 4}

@@ -1,0 +1,17 @@
+BAYLINE IT
+22 Harbour Road, Kestrel Bay
+support@bayline.example
+VAT registration: KB-783715
+
+INVOICE BIT-3307
+Date: 2026-03-06
+Bill to: Halcyon Maritime Logistics, Pier 9 Administration, Kestrel Bay
+Attention: Accounts Payable (T. Reyes)
+
+Description                                              Amount
+Network switch replacement, Pier 9 admin                 5,450.00
+
+Total due: 5,450.00
+Currency: KBD (Kestrel Bay dollar)
+Payment terms: 14 days
+Remit to: Account 20-662-3307, Harbour Commercial

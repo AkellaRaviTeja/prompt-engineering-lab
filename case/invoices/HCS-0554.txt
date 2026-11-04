@@ -1,0 +1,17 @@
+HARBOUR CLEANING SERVICES
+8 Quay Street, Kestrel Bay
+office@harbourclean.example
+VAT registration: KB-891890
+
+INVOICE HCS-0554
+Date: 2026-02-27
+Bill to: Halcyon Maritime Logistics, Pier 9 Administration, Kestrel Bay
+Attention: Accounts Payable (T. Reyes)
+
+Description                                              Amount
+Office and amenities cleaning, February                  3,180.00
+
+Total due: 3,180.00
+Currency: KBD (Kestrel Bay dollar)
+Payment terms: 14 days
+Remit to: Account 20-338-0554, Kestrel Bay Savings

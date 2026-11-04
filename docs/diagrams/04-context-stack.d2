@@ -1,0 +1,17 @@
+direction: right
+title: "The briefing: what goes into one call, in order" {near: top-center; shape: text; style.font-size: 22}
+
+window: "Context window (num_ctx 8,192 tokens)" {
+  grid-columns: 1
+  grid-gap: 6
+  style.fill: "#fdfaf3"
+  s: "<|im_start|>system\nStanding orders  ~73 tokens" {style.fill: "#ffe8b3"}
+  u1: "<|im_start|>user\nCase summary  ~358\nEvidence: 3 invoices  ~539\nEvidence: Reyes 6 Feb  ~126" {style.fill: "#d9ecff"}
+  h: "<|im_start|>assistant / user\nConversation so far  ~55" {style.fill: "#eeeeee"}
+  q: "<|im_start|>user\nThe question + /no_think  ~26" {style.fill: "#d9ecff"}
+  a: "<|im_start|>assistant\n<think></think>\nAnswer: up to 800 reserved" {style.fill: "#dff5df"}
+  free: "free  ~6,200" {style.fill: "#ffffff"; style.stroke-dash: 4}
+}
+
+code: "Facts code can compute\n(totals, dates, counts)" {shape: hexagon; style.fill: "#2b3a55"; style.font-color: "#ffffff"}
+code -> window: "computed in code, then inserted\ninto the user turn as a\n<computed> block"

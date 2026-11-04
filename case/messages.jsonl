@@ -1,0 +1,48 @@
+{"id": "M01", "time": "2026-03-01 08:12", "from": "Ana (wife)", "text": "Don't forget Leo's parents evening at 6. He's nervous about maths.", "label": "personal"}
+{"id": "M02", "time": "2026-03-01 09:40", "from": "Gulf Tug dispatch", "text": "Two tugs confirmed for Mardale Star, Pier 9, 14:00.", "label": "logistics"}
+{"id": "M03", "time": "2026-03-01 22:15", "from": "unknown +88 301", "text": "You asked about Northwind. Some questions are expensive.", "label": "threat"}
+{"id": "M04", "time": "2026-03-02 07:55", "from": "R. Malhotra", "text": "Berthing plan for next week is on the shared drive.", "label": "logistics"}
+{"id": "M05", "time": "2026-03-02 12:30", "from": "Ana (wife)", "text": "Mum says lunch Sunday, she's making the fish stew you like.", "label": "personal"}
+{"id": "M06", "time": "2026-03-02 18:02", "from": "Kestrel Fuel", "text": "Delivery of 41,000 L MGO rescheduled to Thursday.", "label": "logistics"}
+{"id": "M07", "time": "2026-03-03 06:48", "from": "unknown +88 301", "text": "The March invoice will be paid on time. Make sure of it.", "label": "threat"}
+{"id": "M08", "time": "2026-03-03 10:10", "from": "S. Clarke", "text": "Audit file is closed. Thanks for your help with the vendor samples.", "label": "logistics"}
+{"id": "M09", "time": "2026-03-03 19:44", "from": "Leo", "text": "Dad can you pick me up from football at 7", "label": "personal"}
+{"id": "M10", "time": "2026-03-04 08:30", "from": "Facilities", "text": "Lift maintenance on Pier 9 admin, Wednesday 08:00 to 18:00.", "label": "logistics"}
+{"id": "M11", "time": "2026-03-04 13:05", "from": "E. Voss", "text": "Board pack due 10 April. Let me know if you need more time on vendors.", "label": "logistics"}
+{"id": "M12", "time": "2026-03-04 21:50", "from": "unknown +88 301", "text": "Your son plays on the Harbour Road pitch on Tuesdays. Nice team.", "label": "threat"}
+{"id": "M13", "time": "2026-03-05 07:15", "from": "Ana (wife)", "text": "Did you sleep at all? You were up at 3 again.", "label": "personal"}
+{"id": "M14", "time": "2026-03-05 09:22", "from": "Meridian Crane", "text": "Crane demob complete. Final invoice to follow.", "label": "logistics"}
+{"id": "M15", "time": "2026-03-05 11:47", "from": "Dr Hollis", "text": "Reminder: your appointment is moved to 18 March, 09:30.", "label": "personal"}
+{"id": "M16", "time": "2026-03-05 16:30", "from": "R. Malhotra", "text": "Can we talk before you take anything to Elena? Just us.", "label": "threat"}
+{"id": "M17", "time": "2026-03-06 08:05", "from": "Bayline IT", "text": "Switch replaced in admin comms room. Network back at 07:58.", "label": "logistics"}
+{"id": "M18", "time": "2026-03-06 14:14", "from": "unknown +88 301", "text": "Stop pulling files. People notice.", "label": "threat"}
+{"id": "M19", "time": "2026-03-06 20:01", "from": "Ana (wife)", "text": "Leo got a B in his maths test!! Call him.", "label": "personal"}
+{"id": "M20", "time": "2026-03-07 09:00", "from": "Port Authority", "text": "Berth dues statement for February attached.", "label": "logistics"}
+{"id": "M21", "time": "2026-03-07 10:36", "from": "D. Mensah (brother)", "text": "Still on for the match Saturday? I'll bring the kids.", "label": "personal"}
+{"id": "M22", "time": "2026-03-07 17:25", "from": "Gulf Tug dispatch", "text": "Weather hold likely from 13 March. Will confirm.", "label": "logistics"}
+{"id": "M23", "time": "2026-03-08 11:11", "from": "unknown +88 301", "text": "Accidents happen on piers. Especially at night.", "label": "threat"}
+{"id": "M24", "time": "2026-03-08 15:40", "from": "Ana (wife)", "text": "Please tell me what is going on. You're scaring me.", "label": "personal"}
+{"id": "M25", "time": "2026-03-09 08:20", "from": "Harbour Cleaning", "text": "February invoice HCS-0554 sent to accounts.", "label": "logistics"}
+{"id": "M26", "time": "2026-03-09 12:00", "from": "S. Clarke", "text": "Tomas, a friendly word. Reopening closed samples helps nobody. Let's have a coffee.", "label": "threat"}
+{"id": "M27", "time": "2026-03-09 18:45", "from": "Leo", "text": "can we get pizza friday", "label": "personal"}
+{"id": "M28", "time": "2026-03-10 07:30", "from": "R. Malhotra", "text": "Mardale Star and Coral Bay held outside breakwater from 14th. Weather.", "label": "logistics"}
+{"id": "M29", "time": "2026-03-10 09:15", "from": "Seaward Insurance", "text": "Q1 cargo premium renewal attached for signature.", "label": "logistics"}
+{"id": "M30", "time": "2026-03-10 22:40", "from": "unknown +88 301", "text": "Last time I ask nicely.", "label": "threat"}
+{"id": "M31", "time": "2026-03-11 08:02", "from": "Ana (wife)", "text": "I called the school, Leo is fine. Love you.", "label": "personal"}
+{"id": "M32", "time": "2026-03-11 10:50", "from": "Kestrel Fuel", "text": "Thursday delivery confirmed, Fuel Jetty, 06:00.", "label": "logistics"}
+{"id": "M33", "time": "2026-03-11 13:33", "from": "E. Voss", "text": "Heard you were in the archive room. Anything I should know?", "label": "logistics"}
+{"id": "M34", "time": "2026-03-11 19:20", "from": "D. Mensah (brother)", "text": "You sounded off on the phone. Want to grab a drink?", "label": "personal"}
+{"id": "M35", "time": "2026-03-12 07:45", "from": "Facilities", "text": "Stair C camera offline from 14 March for maintenance, ticket MT-5521.", "label": "logistics"}
+{"id": "M36", "time": "2026-03-12 11:05", "from": "R. Malhotra", "text": "I can explain the Sabran trips. Don't put it in writing.", "label": "threat"}
+{"id": "M37", "time": "2026-03-12 16:16", "from": "Dr Hollis", "text": "Your blood pressure results are back, please call the surgery.", "label": "personal"}
+{"id": "M38", "time": "2026-03-12 21:58", "from": "unknown +88 301", "text": "Saturday. Pier 9. Come alone and bring nothing.", "label": "threat"}
+{"id": "M39", "time": "2026-03-13 08:40", "from": "Gulf Tug dispatch", "text": "Weather hold confirmed. No movements 14 March.", "label": "logistics"}
+{"id": "M40", "time": "2026-03-13 12:12", "from": "Ana (wife)", "text": "Anniversary dinner Saturday still? I booked the place by the lighthouse.", "label": "personal"}
+{"id": "M41", "time": "2026-03-13 14:50", "from": "Port Authority", "text": "Harbour master notice: breakwater closed to traffic 14 March.", "label": "logistics"}
+{"id": "M42", "time": "2026-03-13 20:30", "from": "Leo", "text": "love you dad", "label": "personal"}
+{"id": "M43", "time": "2026-03-14 08:00", "from": "R. Malhotra", "text": "Staying late tonight for the berthing plan. You?", "label": "logistics"}
+{"id": "M44", "time": "2026-03-14 10:25", "from": "Bayline IT", "text": "Scheduled backup of finance server tonight 23:00 to 01:00.", "label": "logistics"}
+{"id": "M45", "time": "2026-03-14 15:03", "from": "unknown +88 301", "text": "Stairwell C. 23:30.", "label": "threat"}
+{"id": "M46", "time": "2026-03-14 18:10", "from": "Ana (wife)", "text": "Home late again? I'll leave dinner in the oven.", "label": "personal"}
+{"id": "M47", "time": "2026-03-14 21:44", "from": "S. Clarke", "text": "Are you still at the office?", "label": "threat"}
+{"id": "M48", "time": "2026-03-14 22:47", "from": "Ana (wife)", "text": "Call me when you're on your way.", "label": "personal"}

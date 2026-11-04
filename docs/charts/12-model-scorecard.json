@@ -1,0 +1,29 @@
+[
+  {
+    "model": "qwen3:0.6b",
+    "accuracy": 0.6875,
+    "extraction_ok": false,
+    "latency_s": 0.2462682158125,
+    "tokens_per_s": 77.92918592997609,
+    "memory_gb": 1.532367993,
+    "cold_start_s": 1.8639235099981306
+  },
+  {
+    "model": "qwen3:1.7b",
+    "accuracy": 0.6875,
+    "extraction_ok": true,
+    "latency_s": 0.3716945175625,
+    "tokens_per_s": 31.771553453085613,
+    "memory_gb": 2.427715583,
+    "cold_start_s": 2.5697756949957693
+  },
+  {
+    "model": "qwen3:4b",
+    "accuracy": 0.8125,
+    "extraction_ok": true,
+    "latency_s": 0.9928667351875,
+    "tokens_per_s": 15.104688709358475,
+    "memory_gb": 3.888675552,
+    "cold_start_s": 4.36812314898998
+  }
+]

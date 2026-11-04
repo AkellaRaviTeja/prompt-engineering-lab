@@ -1,0 +1,13 @@
+direction: down
+prompt: "One prompt, five parts" {
+  style.fill: "#fdfaf3"
+  task: "TASK\nBuild a timeline of 23:00 to 23:59" {style.fill: "#ffe8b3"}
+  context: "CONTEXT\n<statement> Petrov's statement </statement>" {style.fill: "#d9ecff"}
+  rules: "RULES\nQuote word for word. Mark ~approximate times.\nList unexplained gaps." {style.fill: "#ffd6d6"}
+  format: "FORMAT\nHH:MM | event | quote" {style.fill: "#dff5df"}
+  examples: "EXAMPLES (optional)\nOne or two worked answers\nsee chapter 07" {style.fill: "#eeeeee"; style.stroke-dash: 4}
+  task -> context -> rules -> format -> examples: {style.opacity: 0.4}
+}
+model: "LANTERN\nqwen3:1.7b" {shape: hexagon; style.fill: "#2b3a55"; style.font-color: "#ffffff"}
+answer: "Checkable answer\n23:30 | back at hut | \"I went back to the supervisor's hut\"\n~23:40 | hears a bang | \"At about twenty to twelve I heard a bang\"\n23:52 | finds Reyes | \"I found Mr Reyes at the bottom\"" {shape: page; style.fill: "#ffffff"}
+prompt -> model -> answer

@@ -1,0 +1,16 @@
+direction: down
+fail: "A test fails" {shape: oval; style.fill: "#ffd6d6"}
+q1: "Does it fail on EVERY model\nand every prompt, the same way?" {shape: diamond; style.fill: "#ffe8b3"}
+q2: "Is the expected value\ncorrect at its source?" {shape: diamond; style.fill: "#ffe8b3"}
+q3: "Does a better prompt\nfix it on the same model?" {shape: diamond; style.fill: "#ffe8b3"}
+data: "BAD DATA\nthe reference record is wrong\n(NW-0419)" {style.fill: "#2b3a55"; style.font-color: "#ffffff"}
+test: "BAD TEST\nassertion too strict or wrong" {style.fill: "#d9ecff"}
+prompt: "BAD PROMPT\nfix, version, re-run" {style.fill: "#dff5df"}
+model: "MODEL LIMIT\nbigger model or narrower task" {style.fill: "#eeeeee"}
+fail -> q1
+q1 -> q2: yes
+q1 -> q3: no
+q2 -> data: no
+q2 -> test: "yes: check the assertion"
+q3 -> prompt: yes
+q3 -> model: no

@@ -1,0 +1,19 @@
+direction: right
+config: "promptfooconfig.yaml" {
+  shape: page
+  style.fill: "#fdfaf3"
+}
+prompts: "PROMPTS (4)\nextract-invoice\nclassify-v1\nclassify-v2\nevidence-rules" {style.fill: "#ffe8b3"}
+providers: "PROVIDERS (2)\nollama qwen3:1.7b\nollama qwen3:0.6b" {style.fill: "#d9ecff"}
+tests: "TESTS (23)\nvars + asserts\nfiltered by prompt label" {style.fill: "#dff5df"}
+config -> prompts
+config -> providers
+config -> tests
+matrix: "Matrix of runs\nprovider x prompt x matching test\n2 x (8 + 12 + 12 + 3) = 70 cells" {shape: rectangle; style.fill: "#ffffff"; style.stroke-width: 3}
+prompts -> matrix
+providers -> matrix
+tests -> matrix
+asserts: "ASSERTIONS per cell\nis-json | javascript | contains | icontains | llm-rubric" {style.fill: "#ffd6d6"}
+matrix -> asserts
+out: "Results\nCLI summary + output/results.json\n+ web viewer (make eval-view)" {shape: cylinder; style.fill: "#2b3a55"; style.font-color: "#ffffff"}
+asserts -> out

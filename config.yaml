@@ -1,0 +1,37 @@
+# LANTERN configuration. Every lesson reads this file.
+# Environment variables override it: LANTERN_PROVIDER, LANTERN_MODEL, OLLAMA_HOST.
+
+provider: ollama            # ollama | anthropic | openai | gemini
+
+ollama:
+  host: http://localhost:11434
+
+# The three models on the LANTERN workstation. Same family, three sizes,
+# so lesson 12 can compare size without changing anything else.
+models:
+  default: qwen3:1.7b
+  small: qwen3:0.6b
+  large: qwen3:4b
+
+# Defaults for every call. Lessons override these on purpose to show what each one does.
+generation:
+  temperature: 0.2
+  top_k: 40
+  top_p: 0.9
+  seed: 7
+  num_ctx: 8192             # context window Ollama allocates, in tokens
+  max_tokens: 800
+  think: false              # Qwen3 thinking mode; lesson 10 turns it on
+
+# Cloud providers, used only when you switch `provider` and set a key in .env.
+# Evidence never goes to these in the story; in the lab they are for comparison.
+cloud:
+  anthropic:
+    model: claude-sonnet-5-5
+  openai:
+    model: gpt-5-mini
+  gemini:
+    model: gemini-2.5-flash
+
+# Where lessons save terminal screenshots when run with --shot.
+screenshots_dir: docs/screenshots

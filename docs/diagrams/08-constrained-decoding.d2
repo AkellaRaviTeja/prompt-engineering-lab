@@ -1,0 +1,14 @@
+direction: down
+schema: "Pydantic model\nInvoice(total_kbd: float, category: Literal[...], vat_number: str | None)" {style.fill: "#ffe8b3"}
+grammar: "Ollama compiles the JSON schema\ninto a grammar" {style.fill: "#fdfaf3"}
+step: "Decoding step: the model has written\n{\"invoice_id\": \"NW-0419\", ..., \"total_kbd\": ___" {style.fill: "#d9ecff"}
+cand: "Candidate next tokens" {
+  style.fill: "#ffffff"
+  a: "9   p=0.41  allowed" {style.fill: "#dff5df"}
+  b: "\"   p=0.33  BLOCKED: a float cannot start with a quote" {style.fill: "#ffd6d6"}
+  c: "KBD p=0.15  BLOCKED: not a number" {style.fill: "#ffd6d6"}
+  d: "```  p=0.06  BLOCKED: not JSON" {style.fill: "#ffd6d6"}
+}
+out: "Sampler renormalises over allowed tokens only\n-> 94000.0" {style.fill: "#dff5df"}
+check: "Pydantic validates the result\n(shape is guaranteed, truth is not:\ncompare against the source document)" {shape: page; style.fill: "#ffffff"}
+schema -> grammar -> step -> cand -> out -> check

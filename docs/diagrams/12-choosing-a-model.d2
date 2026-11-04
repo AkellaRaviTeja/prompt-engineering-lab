@@ -1,0 +1,23 @@
+direction: down
+need: "1. What does the case need?" {
+  grid-columns: 3
+  style.fill: "#fdfaf3"
+  a: "Task difficulty\nsort messages or reason about an alibi?"
+  b: "Latency budget\nbefore the morning briefing?"
+  c: "Privacy\nevidence never leaves the building"
+  d: "Context length\n40 pages of notes?"
+  e: "Features\nJSON schema, tools, thinking"
+  f: "Licence and cost\nhardware, memory, tokens"
+}
+shortlist: "2. Shortlist" {
+  grid-columns: 4
+  style.fill: "#d9ecff"
+  s: "qwen3:0.6b\n0.5 GB file" {style.fill: "#ffffff"}
+  m: "qwen3:1.7b\n1.4 GB file" {style.fill: "#ffffff"}
+  l: "qwen3:4b\n2.5 GB file" {style.fill: "#ffffff"}
+  cloud: "frontier cloud model\nsynthetic data only" {style.fill: "#eeeeee"; style.stroke-dash: 4}
+}
+test: "3. Measure on YOUR tasks\naccuracy | latency | tokens/s | memory | cold start" {style.fill: "#ffe8b3"}
+choose: "4. Choose per task and record why\nbulk triage: small enough to be fast\nkey findings: the most accurate" {shape: page; style.fill: "#dff5df"}
+need -> shortlist -> test -> choose
+choose -> test: "re-run on every model or prompt change" {style.stroke-dash: 3}

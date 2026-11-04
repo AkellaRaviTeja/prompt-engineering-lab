@@ -1,0 +1,21 @@
+direction: right
+brittle: "Brittle prompt (v1)" {
+  style.fill: "#ffd6d6"
+  q1: "/no_think\nmodel-specific control token"
+  q2: "\"world's greatest detective\"\n\"take a deep breath\""
+  q3: "\"a nice list\"\nformat by vibes"
+  q4: "regex parser tuned to one\nmodel's habits"
+}
+robust: "Contract prompt (v2)" {
+  style.fill: "#dff5df"
+  r1: "settings in the request\n(think: false), not the text"
+  r2: "task + rules + delimiters"
+  r3: "JSON schema via\nstructured output"
+  r4: "versioned file + changelog"
+}
+swap: "Model swap\n(new family, new habits)" {shape: hexagon; style.fill: "#2b3a55"; style.font-color: "#ffffff"}
+eval: "Eval suite\n(chapter 14)" {shape: cylinder; style.fill: "#ffe8b3"}
+brittle -> swap: "silent breakage" {style.stroke: "#c0392b"}
+robust -> swap
+swap -> eval: "every prompt re-run"
+eval -> robust: "pass: ship\nfail: new version" {style.stroke-dash: 3}

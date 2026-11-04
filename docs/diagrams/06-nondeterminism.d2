@@ -1,0 +1,18 @@
+direction: right
+title: "Why temperature 0 is not a guarantee" {near: top-center; shape: text; style.font-size: 22}
+
+prompt: "Identical prompt\nidentical settings\nT = 0" {shape: page; style.fill: "#ffffff"}
+server: "Serving stack" {
+  direction: down
+  style.fill: "#fdfaf3"
+  batch: "batched with other requests?" {style.fill: "#ffe8b3"}
+  cache: "prefix from cache or fresh?" {style.fill: "#ffe8b3"}
+  kernel: "which kernel, which sum order?" {style.fill: "#ffe8b3"}
+}
+logits: "Scores differ in the\nlast few digits\n15.2041733 vs 15.2041729" {style.fill: "#eeeeee"}
+tie: "Near tie at one position?" {shape: diamond; style.fill: "#ffd6d6"}
+same: "Same answer" {style.fill: "#dff5df"}
+diverge: "Different token,\nthen a different path\n227,700 vs 255,700" {style.fill: "#ffd6d6"}
+prompt -> server -> logits -> tie
+tie -> same: "no"
+tie -> diverge: "yes"

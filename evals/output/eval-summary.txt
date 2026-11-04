@@ -1,0 +1,19 @@
+promptfoo eval (exit code 100, 15.0 min)
+Running 70 test cases (up to 1 at a time)...
+Grouping model-graded assertions by provider to minimize local-model reload overhead.
+✓ Eval complete (ID: eval-SJK-2026-11-04T09:40:43)
+» View results: promptfoo view
+» Share with your team: https://promptfoo.app
+» Feedback: https://promptfoo.dev/feedback
+Total Tokens: 17,969
+Provider: 17,495 (13,454 prompt, 4,041 completion)
+Grading: 474 (414 prompt, 60 completion)
+Providers:
+ollama:chat:qwen3:1.7b: 9,580 (35 requests; 6,727 prompt, 2,853 completion)
+ollama:chat:qwen3:0.6b: 7,915 (35 requests; 6,727 prompt, 1,188 completion)
+Results:
+✓ 34 passed (48.57%)
+✗ 36 failed (51.43%)
+0 errors (0%)
+Duration: 14m 55s (concurrency: 1)
+Writing output to output/results.json

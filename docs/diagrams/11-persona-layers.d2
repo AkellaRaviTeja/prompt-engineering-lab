@@ -1,0 +1,15 @@
+direction: right
+model: "Model weights\n(what it knows: fixed)" {shape: cylinder; style.fill: "#2b3a55"; style.font-color: "#ffffff"}
+evidence: "Evidence in the prompt\n(what it can see: fixed)" {shape: page; style.fill: "#d9ecff"}
+persona: "Persona in the system prompt" {
+  style.fill: "#fdfaf3"
+  hale: "Hale: attack the inferences" {style.fill: "#ffd6d6"}
+  acct: "Accountant: follow the money" {style.fill: "#dff5df"}
+  voss: "Voss: stay inside her statement" {style.fill: "#ffe8b3"}
+}
+changes: "A persona CHANGES\nfocus, tone, vocabulary,\nwhat counts as important" {shape: page; style.fill: "#dff5df"}
+same: "A persona DOES NOT change\nknowledge, arithmetic,\nor whether a fact is true" {shape: page; style.fill: "#ffd6d6"}
+model -> persona
+evidence -> persona
+persona -> changes
+persona -> same

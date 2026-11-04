@@ -1,0 +1,40 @@
+# promptfoo eval suite for LANTERN. Run from the repo root with `make eval`,
+# then `make eval-view` to open the results in the browser.
+description: "Case File 01: can LANTERN's prompts be trusted in court?"
+
+# Every prompt has a label. Each test says which prompts it applies to,
+# so one file can hold three suites without mixing them up.
+prompts:
+  - id: file://prompts/extract-invoice.json
+    label: extract-invoice
+  - id: file://prompts/classify-v1.json
+    label: classify-v1
+  - id: file://prompts/classify-v2.json
+    label: classify-v2
+  - id: file://prompts/evidence-rules.json
+    label: evidence-rules
+
+# Two LANTERN models. Same settings for both, so the only variable is the model.
+providers:
+  - id: ollama:chat:qwen3:1.7b
+    label: qwen3-1.7b
+    config: &settings
+      temperature: 0
+      seed: 7
+      num_predict: 300
+      num_ctx: 8192
+      think: false
+  - id: ollama:chat:qwen3:0.6b
+    label: qwen3-0.6b
+    config: *settings
+
+tests:
+  - file://tests/extraction.yaml
+  - file://tests/classification.yaml
+  - file://tests/rules.yaml
+
+evaluateOptions:
+  # One request at a time: LANTERN's Ollama keeps one model in memory.
+  maxConcurrency: 1
+
+outputPath: output/results.json

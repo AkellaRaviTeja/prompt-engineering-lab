@@ -1,0 +1,10 @@
+[
+  {
+    "role": "system",
+    "content": "You extract fields from supplier invoices for a police financial inquiry. Reply with JSON only, no prose and no code fences."
+  },
+  {
+    "role": "user",
+    "content": "Extract these fields from the invoice:\n- invoice_id: string, the code printed after the word INVOICE, without the word itself (for example NW-0001)\n- vendor: string, the supplier's name from the letterhead at the top\n- date: string, YYYY-MM-DD\n- total: number, the total due, without currency or thousands separators\n\n<invoice>\n{{invoice}}\n</invoice>\n\nReply with the JSON object only."
+  }
+]

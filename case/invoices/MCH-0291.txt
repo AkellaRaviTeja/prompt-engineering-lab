@@ -1,0 +1,17 @@
+MERIDIAN CRANE HIRE
+40 Dock Lane, Kestrel Bay
+invoices@meridiancrane.example
+VAT registration: KB-836714
+
+INVOICE MCH-0291
+Date: 2026-02-17
+Bill to: Halcyon Maritime Logistics, Pier 9 Administration, Kestrel Bay
+Attention: Accounts Payable (T. Reyes)
+
+Description                                              Amount
+Mobile crane, 4 days, reefer stack repairs               22,600.00
+
+Total due: 22,600.00
+Currency: KBD (Kestrel Bay dollar)
+Payment terms: 14 days
+Remit to: Account 20-873-0291, Harbour Commercial
