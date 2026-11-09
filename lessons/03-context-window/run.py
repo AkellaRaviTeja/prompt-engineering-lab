@@ -83,7 +83,7 @@ for i in range(CHUNKS):
     found = "NOT FOUND" not in r.text
     reply(f"chunk {i + 1} of {CHUNKS}",
           r.text, meta=f"{r.prompt_tokens:,} tokens", style="green" if found else "dim")
-note("Four short prompts, each small enough to be read properly. This is the idea behind "
+note(f"{CHUNKS} short prompts, each small enough to be read properly. This is the idea behind "
      "map-reduce summarising and, in a later case file, retrieval.")
 
 your_turn(
