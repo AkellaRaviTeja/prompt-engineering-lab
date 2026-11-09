@@ -74,3 +74,13 @@ def test_case_files_load():
 def test_live_chat_answers():
     r = chat("Reply with the single word: ready", temperature=0, max_tokens=20)
     assert r.text and r.output_tokens > 0
+
+
+def test_every_lesson_has_a_concept_for_the_opening_panel():
+    from lantern import ui
+    from lantern.config import ROOT
+
+    numbers = sorted(p.name[:2] for p in (ROOT / "lessons").glob("[0-9][0-9]-*") if p.is_dir())
+    assert numbers, "no lessons found"
+    for n in numbers:
+        assert len(ui.concept(n)) > 20, n

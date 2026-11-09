@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 import sys
+from pathlib import Path
 
 from rich.console import Console
 from rich.markdown import Markdown
@@ -21,7 +22,7 @@ SHOT = "--shot" in sys.argv
 console = Console(record=SHOT, width=110 if SHOT else None)
 
 __all__ = ["Table", "chapter", "console", "evidence", "finding", "note", "reply", "save_shot",
-           "step"]
+           "step", "your_turn"]
 
 
 def _prose(text: str) -> str:
@@ -30,11 +31,53 @@ def _prose(text: str) -> str:
     return "\n\n".join(" ".join(line.strip() for line in p.splitlines()) for p in paras)
 
 
+def lesson_dir(number: str) -> Path:
+    """The folder of lesson `number`, e.g. lessons/01-prompt-engineering."""
+    matches = sorted((ROOT / "lessons").glob(f"{number}-*"))
+    if not matches:
+        raise LookupError(f"no lesson folder for chapter {number}")
+    return matches[0]
+
+
+def concept(number: str) -> str:
+    """The README's **Concept:** paragraph: what the lesson teaches, in a sentence or two."""
+    text = (lesson_dir(number) / "README.md").read_text(encoding="utf-8")
+    m = re.search(r"^\*\*Concept:\*\*(.+?)\n\s*\n", text, re.S | re.M)
+    if not m:
+        raise LookupError(f"lesson {number} README has no **Concept:** line")
+    line = _prose(m.group(1))
+    return line[0].upper() + line[1:]
+
+
 def chapter(number: str, title: str, scene: str) -> None:
-    """Open a lesson: the chapter title and the opening scene of the story."""
+    """Open a lesson: the title, what it teaches, the files that go with it, and the scene."""
+    folder = lesson_dir(number).relative_to(ROOT)
     console.print(Rule(f"[bold]Chapter {number}: {title}[/bold]", style="yellow"))
+    console.print(Panel(
+        f"[bold]You are learning:[/bold] {concept(number)}\n\n"
+        f"[bold]Read alongside:[/bold] {folder}/README.md (concept, diagrams, exercises)\n"
+        f"[bold]The code that runs:[/bold] {folder}/run.py (the prompts live here; "
+        "the exercises ask you to edit them)\n\n"
+        "[dim]The story below is the setting. LANTERN is the local model; the case files are "
+        "the text you send it.[/dim]",
+        title="What this lesson is for", border_style="blue", padding=(1, 2)))
     console.print(Panel(_prose(scene), title="Case File 01: The Pier 9 Ledger",
                         border_style="yellow", padding=(1, 2)))
+
+
+def your_turn(number: str, check: list[str], exercises: list[str]) -> None:
+    """Close the run: what to check in the replies above, and what to change and rerun."""
+    folder = lesson_dir(number).relative_to(ROOT)
+    lines = ["[bold]Check the replies above:[/bold]"]
+    lines += [f"  {i}. {c}" for i, c in enumerate(check, 1)]
+    lines += ["", f"[bold]Then change something and rerun[/bold] "
+              f"([cyan]make lesson N={number}[/cyan]):"]
+    lines += [f"  {i}. {e}" for i, e in enumerate(exercises, 1)]
+    lines += ["", f"[dim]More detail: 'Try this' in {folder}/README.md. "
+              f"Undo your edits with: git checkout {folder}/run.py[/dim]"]
+    console.print()
+    console.print(Panel("\n".join(lines), title="[bold]Your turn[/bold]", border_style="blue",
+                        padding=(1, 2)))
 
 
 def step(title: str) -> None:
