@@ -65,7 +65,7 @@ Work through the chapters in order. The story only makes sense that way, and so 
 |---|---|---|
 | Docker, CPU | `make up` | Default. Works everywhere Docker does. |
 | Docker, NVIDIA GPU | `make up-gpu` | Needs the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/). Much faster. |
-| Native Ollama | install from [ollama.com](https://ollama.com/download), then `ollama serve` | Uses your GPU (NVIDIA, AMD or Apple silicon) without Docker. `make models` detects it. |
+| Native Ollama | install from [ollama.com](https://ollama.com/download), then `ollama serve` | Uses your GPU (NVIDIA, AMD or Apple silicon) without Docker. `make setup` and `make up` see it already answering and skip Docker, and `make models` pulls through it. |
 
 Check everything at any time with `make doctor`.
 
