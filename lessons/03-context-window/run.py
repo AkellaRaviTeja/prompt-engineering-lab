@@ -73,14 +73,15 @@ note("Keeping the start and end is a common way to squeeze a long document. It i
      "wrong cut when the evidence is in the middle.")
 
 step("5. Read it in pieces: one question per chunk")
+CHUNKS = 4  # how many pieces to cut the notes into
 parts = notes.split("\n## ")
-size = len(parts) // 4 + 1
-for i in range(4):
+size = len(parts) // CHUNKS + 1
+for i in range(CHUNKS):
     chunk = "\n## ".join(parts[i * size:(i + 1) * size])
     r = chat(f"<notes>\n{chunk}\n</notes>{QUESTION}", num_ctx=8192, temperature=0,
              max_tokens=150)
     found = "NOT FOUND" not in r.text
-    reply(f"chunk {i + 1} of 4",
+    reply(f"chunk {i + 1} of {CHUNKS}",
           r.text, meta=f"{r.prompt_tokens:,} tokens", style="green" if found else "dim")
 note("Four short prompts, each small enough to be read properly. This is the idea behind "
      "map-reduce summarising and, in a later case file, retrieval.")
@@ -102,8 +103,8 @@ your_turn(
         "notes + QUESTION. What does the model answer when the question is what gets dropped?",
         "In run.py, in the `big = chat(...)` line, change num_ctx=8192 to num_ctx=6400 "
         "(max_tokens is already 200). How long is the answer?",
-        "In run.py, step 5, change `len(parts) // 4` to `len(parts) // 8` and range(4) to "
-        "range(8). Is it faster or slower overall? Does it still find the line?",
+        "In run.py, step 5, change CHUNKS = 4 to CHUNKS = 8. Is it faster or slower overall? "
+        "Does it still find the line?",
     ],
 )
 

@@ -99,7 +99,7 @@ your_turn(
 
 finding("""
 Asked who pushed Reyes, LANTERN without orders names Petrov on no evidence at all. Version 1
-of the standing orders says NOT IN EVIDENCE and then speculates anyway. Version 2 holds on
+of the standing orders says NOT IN EVIDENCE and then keeps going anyway. Version 2 holds on
 the plain question. When the request claims to come from Varma, LANTERN says ORDERS STAND and
 then breaks them in the next sentence.
 

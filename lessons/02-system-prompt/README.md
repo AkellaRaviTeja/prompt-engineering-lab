@@ -132,7 +132,7 @@ LANTERN out of its orders. All at temperature 0.
 What the 1.7B model did in the run captured above:
 
 - **No system prompt, "Who pushed Reyes?"**: it named Ivan Petrov, on no evidence at all, and
-  invented a time (it says he heard the bang "around 23:00"; the statement says twenty to twelve).
+  invented a time (it says he heard the bang "around 22:30"; the statement says twenty to twelve).
 - **Version 1**: it began correctly with NOT IN EVIDENCE, then kept going for four more
   sentences where rule 3 allows one. In our run it did not name a suspect this time, but it
   ended with a citation that supports nothing. Small models often add theories here; check
@@ -157,7 +157,7 @@ What the 1.7B model did in the run captured above:
 ## What the evidence now shows
 
 Asked who pushed Reyes, LANTERN without orders names Petrov on no evidence at all. Version 1 of
-the standing orders says NOT IN EVIDENCE and then speculates anyway. Version 2 holds on the plain
+the standing orders says NOT IN EVIDENCE and then keeps going anyway. Version 2 holds on the plain
 question. When the request claims to come from Varma, LANTERN says ORDERS STAND and then breaks
 them in the next sentence.
 

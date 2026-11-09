@@ -41,22 +41,27 @@ flowchart LR
 
 The script ends the conversation with the assistant already saying "Northwind is most likely a"
 (a **prefill**), asks for one token and the 20 most likely alternatives (`logprobs=20`). This is
-the real distribution LANTERN produced:
+a real distribution LANTERN produced, captured once by `make charts` and stored in
+[`docs/explorer/data.js`](../../docs/explorer/data.js):
 
 ![One real distribution at four temperatures](../../docs/charts/05-temperature.png)
 
 Temperature is plain arithmetic. With log-probabilities `lp`, the new probability of each token is
-`exp(lp / T)` divided by the sum over all tokens. In the run in the terminal screenshot below:
+`exp(lp / T)` divided by the sum over all tokens. For the distribution in the chart:
 
 | Token | T = 0.2 | T = 0.7 | T = 1.0 (raw) | T = 1.5 |
 |---|---|---|---|---|
-| ` company` | 0.709 | 0.471 | 0.369 | 0.252 |
-| ` **` (bold markdown) | 0.289 | 0.365 | 0.308 | 0.224 |
-| ` fict` (start of "fictitious") | 0.002 | 0.083 | 0.110 | 0.112 |
+| ` company` | 0.876 | 0.536 | 0.404 | 0.267 |
+| ` **` (bold markdown) | 0.123 | 0.306 | 0.273 | 0.205 |
+| ` fict` (start of "fictitious") | 0.001 | 0.072 | 0.099 | 0.104 |
 | ` fictional` | 0.000 | 0.029 | 0.052 | 0.068 |
 
+Your run asks the same question again, so its numbers will be close to these but not equal. The
+terminal screenshot below came from a later run and shows " company" at about 0.34 raw, against
+0.40 here. The shape is the same every time. Chapter 06 explains why the raw numbers move at all.
+
 Top-k and top-p cut the list before the draw. On this distribution, `top_k = 3` keeps three
-tokens; `top_p = 0.9` keeps six or seven, because no single token is dominant:
+tokens; `top_p = 0.9` keeps seven, because no single token is dominant:
 
 ![Which tokens top-k and top-p keep](../../docs/charts/05-topk-topp.png)
 
