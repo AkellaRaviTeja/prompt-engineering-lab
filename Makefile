@@ -4,6 +4,18 @@ SHELL := /bin/bash
 PROMPTFOO := npx --yes promptfoo@0.124.1
 MODELS := qwen3:1.7b qwen3:0.6b qwen3:4b
 OLLAMA_HOST ?= http://localhost:11434
+# A native install often sets OLLAMA_HOST without a scheme (127.0.0.1:11434); curl needs one.
+OLLAMA_URL := $(if $(findstring ://,$(OLLAMA_HOST)),$(OLLAMA_HOST),http://$(OLLAMA_HOST))
+# Start the container only when nothing answers at OLLAMA_URL yet. A native Ollama
+# (or the container from an earlier run) already holds port 11434, and a second bind fails.
+define start_ollama
+	@if curl -fsS -m 3 $(OLLAMA_URL)/api/version >/dev/null 2>&1; then \
+	   echo "up: Ollama already answers at $(OLLAMA_URL), using it and not starting Docker"; \
+	 elif ! command -v docker >/dev/null 2>&1; then \
+	   echo "up: nothing answers at $(OLLAMA_URL) and Docker is not installed."; \
+	   echo "    Install Docker, or start a native Ollama with \`ollama serve\`, then rerun."; exit 1; \
+	 else docker compose $(1) up -d; fi
+endef
 # Use the Docker container when it is running, otherwise a native `ollama` binary.
 # Recursive `=` so the check runs when a recipe uses it, after `up` has started the container.
 OLLAMA = $(shell docker ps --format '{{.Names}}' 2>/dev/null | grep -qx pel-ollama && echo "docker exec pel-ollama ollama" || echo ollama)
@@ -20,11 +32,11 @@ setup: install up models doctor ## One command: install, start Ollama, pull mode
 install: ## Install Python dependencies with uv
 	uv sync
 
-up: ## Start Ollama in Docker (CPU)
-	docker compose up -d
+up: ## Start Ollama in Docker (CPU), unless one is already running
+	$(call start_ollama,)
 
-up-gpu: ## Start Ollama in Docker with an NVIDIA GPU
-	docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+up-gpu: ## Start Ollama in Docker with an NVIDIA GPU, unless one is already running
+	$(call start_ollama,-f docker-compose.yml -f docker-compose.gpu.yml)
 
 down: ## Stop the Ollama container (models are kept in a volume)
 	docker compose down
