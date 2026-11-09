@@ -5,7 +5,8 @@ PROMPTFOO := npx --yes promptfoo@0.124.1
 MODELS := qwen3:1.7b qwen3:0.6b qwen3:4b
 OLLAMA_HOST ?= http://localhost:11434
 # Use the Docker container when it is running, otherwise a native `ollama` binary.
-OLLAMA := $(shell docker ps --format '{{.Names}}' 2>/dev/null | grep -qx pel-ollama && echo "docker exec pel-ollama ollama" || echo ollama)
+# Recursive `=` so the check runs when a recipe uses it, after `up` has started the container.
+OLLAMA = $(shell docker ps --format '{{.Names}}' 2>/dev/null | grep -qx pel-ollama && echo "docker exec pel-ollama ollama" || echo ollama)
 
 .PHONY: help setup install up up-gpu down models doctor lesson lessons shots charts diagrams \
         eval eval-view shots-promptfoo check lint test prose structure smoke clean
