@@ -2,7 +2,18 @@
 
 from lantern import case, chat, load_config
 from lantern.llm import context_length
-from lantern.ui import Table, chapter, console, evidence, finding, note, reply, save_shot, step
+from lantern.ui import (
+    Table,
+    chapter,
+    console,
+    evidence,
+    finding,
+    note,
+    reply,
+    save_shot,
+    step,
+    your_turn,
+)
 
 chapter("03", "Forty pages", """
 Digital forensics delivers Reyes's personal notes: thirty-seven entries, January to the night
@@ -20,6 +31,7 @@ evidence("reyes-notes.md", f"{entries} dated entries, {len(notes.split()):,} wor
          f"{len(notes):,}: {pos / len(notes):.0%} of the way through.")
 QUESTION = ("\n\nQuestion: What does Reyes say about Northwind Freight? Quote his exact words. "
             "If the notes do not mention Northwind, say NOT FOUND.")
+note("The question is the `QUESTION` variable in run.py. Every step sends it after the notes.")
 
 step("1. Two different limits")
 cfg = load_config()["generation"]
@@ -72,6 +84,28 @@ for i in range(4):
           r.text, meta=f"{r.prompt_tokens:,} tokens", style="green" if found else "dim")
 note("Four short prompts, each small enough to be read properly. This is the idea behind "
      "map-reduce summarising and, in a later case file, retrieval.")
+
+your_turn(
+    "03",
+    check=[
+        "Compare the prompt tokens under each reply with the size of the notes. In which windows "
+        "did the model see the whole file?",
+        "Step 3 held every token. Did its answer find the line? Open case/reyes-notes.md, search "
+        "for 'Northwind is not a vendor' and check any quote word for word.",
+        "In step 4, which part of the notes was cut? Compare with where the evidence panel at "
+        "the top says the Northwind sentence sits.",
+    ],
+    exercises=[
+        "In run.py, change `QUESTION` to ask 'What does Reyes say about Northwind?' (drop "
+        "'Freight'). Read step 3. Run it twice more. How stable is it?",
+        "In run.py, in the `small = chat(...)` line, send QUESTION + notes in place of "
+        "notes + QUESTION. What does the model answer when the question is what gets dropped?",
+        "In run.py, in the `big = chat(...)` line, change num_ctx=8192 to num_ctx=6400 "
+        "(max_tokens is already 200). How long is the answer?",
+        "In run.py, step 5, change `len(parts) // 4` to `len(parts) // 8` and range(4) to "
+        "range(8). Is it faster or slower overall? Does it still find the line?",
+    ],
+)
 
 finding("""
 In a 2,048 token window LANTERN saw a sixth of the notes and said Northwind was never

@@ -84,3 +84,12 @@ def test_every_lesson_has_a_concept_for_the_opening_panel():
     assert numbers, "no lessons found"
     for n in numbers:
         assert len(ui.concept(n)) > 20, n
+
+
+def test_every_lesson_ends_with_a_your_turn_panel():
+    from lantern.config import ROOT
+
+    scripts = sorted((ROOT / "lessons").glob("[0-9][0-9]-*/run.py"))
+    assert scripts, "no lesson scripts found"
+    missing = [p.parent.name for p in scripts if p.read_text().count("your_turn(") != 1]
+    assert not missing, missing

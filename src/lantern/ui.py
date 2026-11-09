@@ -73,8 +73,8 @@ def your_turn(number: str, check: list[str], exercises: list[str]) -> None:
     lines += ["", f"[bold]Then change something and rerun[/bold] "
               f"([cyan]make lesson N={number}[/cyan]):"]
     lines += [f"  {i}. {e}" for i, e in enumerate(exercises, 1)]
-    lines += ["", f"[dim]More detail: 'Try this' in {folder}/README.md. "
-              f"Undo your edits with: git checkout {folder}/run.py[/dim]"]
+    lines += ["", f"[dim]More detail: 'Try this' in {folder}/README.md. Undo an edit with "
+              "git checkout <file>, or set every change aside with git stash.[/dim]"]
     console.print()
     console.print(Panel("\n".join(lines), title="[bold]Your turn[/bold]", border_style="blue",
                         padding=(1, 2)))

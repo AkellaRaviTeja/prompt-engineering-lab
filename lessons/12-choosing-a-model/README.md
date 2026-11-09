@@ -120,9 +120,9 @@ In the run captured here (a laptop CPU, no GPU, nothing else using Ollama):
 
 | Model | Classify (16) | Extract NW-0402 | Latency per message | Tokens/s | Memory | Cold start |
 |---|---|---|---|---|---|---|
-| qwen3:0.6b | 69% | no | 0.25 s | 77.9 | 1.5 GB | 1.9 s |
-| qwen3:1.7b | 69% | yes | 0.37 s | 31.8 | 2.4 GB | 2.6 s |
-| qwen3:4b | 81% | yes | 0.99 s | 15.1 | 3.9 GB | 4.4 s |
+| qwen3:0.6b | 69% | no | 0.19 s | 84.7 | 1.5 GB | 1.8 s |
+| qwen3:1.7b | 69% | yes | 0.34 s | 33.1 | 2.4 GB | 2.5 s |
+| qwen3:4b | 81% | yes | 0.96 s | 14.8 | 3.9 GB | 4.4 s |
 
 What to read from it:
 
@@ -130,8 +130,10 @@ What to read from it:
   more right.
 - **The small model failed a different skill.** It put the vendor's name in `invoice_id`. One task
   is not enough to rank models.
-- **All three miss quiet threats.** No model here should sort threats without a person checking.
-- **Speed falls fast with size.** 4B generates about half as fast as 1.7B and a fifth as fast as
+- **Two of the three miss quiet threats.** 0.6B and 4B both missed M07 and M12. 1.7B caught every
+  threat but marked three harmless messages as threats. No model here should sort threats without
+  a person checking.
+- **Speed falls fast with size.** 4B generates about half as fast as 1.7B and a sixth as fast as
   0.6B, and needs 3.9 GB of memory once loaded. The file is 2.5 GB, and the context window and
   runtime take the rest.
 - **Latency is Ollama's own timing** (`total_duration` minus `load_duration`). The first version of
@@ -153,7 +155,7 @@ What to read from it:
 
 On these sixteen messages the small and medium models both score 69% and the large one 81%. The
 small model cannot reliably copy an invoice number into the right field. The most accurate costs
-about 2.7 times the medium model's time per message and 3.9 GB of memory, on a machine that runs
+about 2.8 times the medium model's time per message and 3.9 GB of memory, on a machine that runs
 everything else in the building. None of them sorts threats well enough to go unsupervised.
 
 You write the policy down for Hale: the medium model for bulk triage, the large one for findings

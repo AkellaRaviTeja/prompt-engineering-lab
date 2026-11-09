@@ -144,7 +144,8 @@ Mercantile Bank.
 
 LANTERN listed the invoices correctly. The total did not hold: the same tokens at temperature 0
 produced one figure through the chat endpoint and another through the raw text, and only the
-computed total is reliable. Varma looks at the token table longer than at the answer. "So this is
+computed total is reliable. It also wrote that Reyes put "Not a vendor" in the margin of an
+invoice; the briefing says the margin note was on a ledger page. Varma looks at the token table longer than at the answer. "So this is
 everything it knew. Good. Then everything it said can be checked."
 
 **Next:** [Chapter 05: Two kinds of question](../05-temperature-and-top-k/README.md)

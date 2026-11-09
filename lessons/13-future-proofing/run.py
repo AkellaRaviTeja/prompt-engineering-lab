@@ -5,7 +5,18 @@ import re
 from pathlib import Path
 
 from lantern import case, chat, load_config
-from lantern.ui import Table, chapter, console, evidence, finding, note, reply, save_shot, step
+from lantern.ui import (
+    Table,
+    chapter,
+    console,
+    evidence,
+    finding,
+    note,
+    reply,
+    save_shot,
+    step,
+    your_turn,
+)
 
 chapter("13", "The swap", """
 A memo from headquarters: next quarter every analysis workstation in the force moves to a new
@@ -93,6 +104,29 @@ note("v2 states a contract (schema, rules, delimiters) that any capable model ca
 note("A contract makes failures visible, not impossible: watch for extra rows on the small model.")
 note("The changelog in prompts/CHANGELOG.md records why each line changed. Read it.")
 note("What protects you on swap day is not the prompt. It is the eval that proves the prompt.")
+
+your_turn(
+    "13",
+    check=[
+        "Compare the 'parsed?' column with the v1 replies above. Is v1's answer wrong, or only in "
+        "a shape that `parse_v1` in run.py cannot read?",
+        "Read the 'rows that should not be there' column. Open those invoices in case/invoices/ "
+        "and check who issued each one.",
+        "Open lessons/13-future-proofing/prompts/v1.md, v2.md and CHANGELOG.md side by side. "
+        "Which v1 lines were removed, and what reason does the changelog give?",
+    ],
+    exercises=[
+        "Copy prompts/v2.md to prompts/v3.md, set `version: 3`, add the rule \"vendor must be "
+        "exactly 'Northwind Freight Ltd'\" and a v3 entry in prompts/CHANGELOG.md. In run.py, add "
+        "a `vendor` string to `SCHEMA`, load v3 with `load_prompt` and add a v3 row to the loop.",
+        "Set `provider: anthropic` (or openai, gemini) in config.yaml, with the key in .env and "
+        "`uv sync --extra cloud`. Both models then become the cloud model. Do v1 and v2 parse?",
+        "In run.py, change the regex in `parse_v1` so it also reads v1's bullet lines. Run it "
+        "again tomorrow. Does your fix still match?",
+        "Add /no_think to the start of the body in prompts/v2.md, after the front matter. Do the "
+        "qwen3:1.7b rows change? What would another model family make of it?",
+    ],
+)
 
 finding("""
 The three Northwind invoices total 227,700.00 KBD, each dated inside one of Malhotra's trips to

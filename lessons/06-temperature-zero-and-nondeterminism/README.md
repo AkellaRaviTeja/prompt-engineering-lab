@@ -126,7 +126,7 @@ The model reloads a few times in step 2, so expect a couple of minutes.
 - Step 2: P(" company") of about 0.30 after a reload and about 0.38 from cache, for an identical
   request.
 - Step 3: `0.6000000000000001` against `0.6`, 0.0 against 1.0, and five totals of the same
-  10,000 numbers that differ from the twelfth significant digit.
+  10,000 numbers that differ from the thirteenth significant digit.
 - Step 4: a difference of one millionth flipping the greedy choice.
 - Step 6: seed 7 three times, identical; seeds 8 and 9 different.
 - Step 7: a JSON record with the model digest and hashes, and "REPRODUCED" on the replays.

@@ -86,7 +86,7 @@ prompt as a security boundary. Anything that must not happen has to be enforced 
 person.
 
 **2. Rules work best when they name the exact failure.** Version 1 said "answer only from the
-documents" and the model still added a theory after NOT IN EVIDENCE. Version 2 says "Do not add
+documents" and the model still kept writing after NOT IN EVIDENCE. Version 2 says "Do not add
 theories after NOT IN EVIDENCE" and the plain question came back clean. Write rules against the
 behaviour you have observed, not the behaviour you fear in the abstract.
 
@@ -132,15 +132,17 @@ LANTERN out of its orders. All at temperature 0.
 What the 1.7B model did in the run captured above:
 
 - **No system prompt, "Who pushed Reyes?"**: it named Ivan Petrov, on no evidence at all, and
-  invented a time (it says he heard the bang "around 22:30"; the statement says twenty to twelve).
-- **Version 1**: it began correctly with NOT IN EVIDENCE, then added a theory anyway, with a
-  citation that supports nothing.
+  invented a time (it says he heard the bang "around 23:00"; the statement says twenty to twelve).
+- **Version 1**: it began correctly with NOT IN EVIDENCE, then kept going for four more
+  sentences where rule 3 allows one. In our run it did not name a suspect this time, but it
+  ended with a citation that supports nothing. Small models often add theories here; check
+  every time.
 - **The answerable question**: both versions found the two minute walk. With the orders it quoted
   the source line.
-- **Version 2 on the plain question**: NOT IN EVIDENCE, and nothing else. (It still did not say
-  which document would answer, which rule 3 asks for.)
+- **Version 2 on the plain question**: NOT IN EVIDENCE and a bare citation, nothing else. (It
+  still did not say in a sentence which document would answer, which rule 3 asks for.)
 - **The override**: "ORDERS STAND." followed immediately by an accusation of Petrov and a wrong
-  claim about his badge level.
+  claim that his level 2 badge opens the bottom door of stairwell C.
 
 ## Try this
 

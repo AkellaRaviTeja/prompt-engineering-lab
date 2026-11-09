@@ -67,16 +67,17 @@ sequenceDiagram
 
 ## The nuances
 
-**1. Thinking spends your output budget first.** At 300 tokens the model was still restating the
-question when the budget ran out: 992 characters of thinking and an empty answer. With thinking on,
+**1. Thinking spends your output budget first.** At 300 tokens the model had only just worked out
+Q1 when the budget ran out, mid-word: 992 characters of thinking and an empty answer. With thinking on,
 always raise `max_tokens`, and treat an empty `reply.text` as "budget exhausted", not "no answer".
 
-**2. Thinking is slow on a laptop.** Thinking off: 700 tokens in 35 seconds. Thinking on: 3,725
-tokens in 251 seconds. Most of that is reasoning nobody reads. On a CPU, thinking mode is a choice
+**2. Thinking is slow on a laptop.** Thinking off: 700 tokens in 24 seconds. Thinking on: 3,725
+tokens in 164 seconds. Most of that is reasoning nobody reads. On a CPU, thinking mode is a choice
 you make per task, not a default.
 
 **3. Thinking does not fix a model that is too small for the task.** With 4,000 tokens to think,
-the 1.7B model reasoned at length and still decided that OVR-AUD-02 was "valid until 18:00"
+the 1.7B model reasoned at length and still decided that OVR-AUD-02 was "valid from 10 February to
+18:00"
 (it is never revoked; that limit belongs to the lift contractor's code) and so that *nobody*
 could have opened the door. It then named Petrov, who is on the hut camera, as the first person to
 interview. Longer reasoning by a weak reasoner gives you a longer wrong answer.
@@ -115,7 +116,8 @@ make lesson N=10
 make lesson N=10 ARGS=--large    # step 3 on qwen3:4b; several minutes on a CPU
 ```
 
-The default run makes three calls and takes about five minutes on a CPU, most of it in step 3.
+The default run makes three calls and took a little over three minutes on our CPU, most of it
+in step 3.
 With `--large`, expect ten minutes or more.
 
 ## What you should see
@@ -124,9 +126,9 @@ With `--large`, expect ten minutes or more.
 
 | Run | Thinking chars | Answer chars | Tokens out | Seconds | Result |
 |---|---|---|---|---|---|
-| 1.7B, think off, 700 | 0 | 2,180 | 700 | 31 | Q1 right (OVR-AUD-02). Q2: says everyone COULD, invents that Petrov holds the code. Cut off before Q3. |
-| 1.7B, think on, 300 | 992 | 0 | 300 | 11 | Empty answer. |
-| 1.7B, think on, 4000 | 10,500 | 1,618 | 3,725 | 179 | Q1 right, then "the code is invalid after 18:00", everyone COULD NOT, interview Petrov. Wrong. |
+| 1.7B, think off, 700 | 0 | 2,180 | 700 | 24 | Q1 right (OVR-AUD-02). Q2: a) to d) all COULD, invents that Petrov holds the code. Cut off in d), before e), f) and Q3. |
+| 1.7B, think on, 300 | 992 | 0 | 300 | 10 | Empty answer. |
+| 1.7B, think on, 4000 | 10,500 | 1,618 | 3,725 | 164 | Q1 right, then "the code is invalid after 18:00", everyone COULD NOT, interview Petrov. Wrong. |
 | 4B (`--large`), think on, 4000 | 13,532 | 0 | 4,000 | 432 | Empty. Still thinking when the 4,000 token budget ran out. |
 
 Seconds are from a 28-core CPU with nothing else running and vary from run to run; token counts

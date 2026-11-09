@@ -3,7 +3,18 @@
 import re
 
 from lantern import case, chat
-from lantern.ui import Table, chapter, console, evidence, finding, note, reply, save_shot, step
+from lantern.ui import (
+    Table,
+    chapter,
+    console,
+    evidence,
+    finding,
+    note,
+    reply,
+    save_shot,
+    step,
+    your_turn,
+)
 
 chapter("09", "Sixteen minutes", """
 Raj Malhotra's statement is two paragraphs long and very calm. He left the administration
@@ -46,6 +57,8 @@ Work through these steps in order. Show each step on its own line.
 7. Is the step 6 sum smaller than the step 3 minutes? Answer yes or no.
 8. Verdict in one sentence: is "walked straight to his car" supported or not supported?""",
 }
+
+note("Each prompt is an entry in the `PROMPTS` dict in run.py. All share `material`.")
 
 results = {}
 for name, prompt in PROMPTS.items():
@@ -93,6 +106,28 @@ for name, r in results.items():
     cost.add_row(name, str(r.output_tokens), f"{r.seconds:.0f}")
 console.print(cost)
 note("Reasoning out loud costs tokens and time. It pays when each step can be checked.")
+
+your_turn(
+    "09",
+    check=[
+        "In the set steps reply, check steps 1 and 2 against the badge-log panel, then step 4 "
+        "against the walking times panel. Which step slips?",
+        "Where did the direct and step by step replies get their minutes? Compare them with the "
+        "table that Python filled in.",
+        "In the cost table, how many times more output tokens did step by step use than direct?",
+    ],
+    exercises=[
+        "In run.py, replace the `rows = ...` filter with `rows = badge`, and change "
+        "<badge_log rows=\"R. Malhotra only\"> to <badge_log> in `material`. "
+        "Which steps fail first?",
+        "In run.py, in the \"set steps\" prompt, change step 4 to 'Copy the line from "
+        "walking_times that mentions Gate 2 staff car park.' Does quoting fix it?",
+        "No edit: run LANTERN_MODEL=qwen3:4b make lesson N=09. Which set steps does the bigger "
+        "model get right?",
+        "In run.py, in the PROMPTS loop, add think=(name == \"direct\") to the chat(...) call and "
+        "raise max_tokens to 4000. Compare direct with step by step in the cost table.",
+    ],
+)
 
 finding("""
 Malhotra badged out of the administration building at 23:31 and out of Gate 2 at 23:47. Sixteen

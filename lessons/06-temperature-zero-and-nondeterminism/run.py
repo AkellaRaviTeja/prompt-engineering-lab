@@ -29,6 +29,7 @@ from lantern.ui import (  # noqa: E402
     reply,
     save_shot,
     step,
+    your_turn,
 )
 
 chapter("06", "The letter", """
@@ -159,6 +160,28 @@ replays = [chat(plate_prompt, **settings).text for _ in range(3)]
 ok = all(r == first.text for r in replays)
 reply("replayed 3 times from the record", "\n\n".join(replays),
       meta="REPRODUCED" if ok else "NOT REPRODUCED", style="green" if ok else "red")
+
+your_turn(
+    "06",
+    check=[
+        "In step 1, compare the five answers with the correct total printed under them. Same and "
+        "right are two separate questions.",
+        "In the step 2 table every request is identical. Which rows give the same probability, "
+        "and which differ?",
+        "In step 6, which seeds give identical text? In step 7, what does the replay panel say?",
+    ],
+    exercises=[
+        "In run.py, step 2, add the row ('back to num_ctx 4096', {'num_ctx': 4096}) at the end of "
+        "the `for label, kw in` tuple. Which value do you get?",
+        "No edit: run make lesson N=05, then make lesson N=06 straight after. Does step 1 still "
+        "give five identical answers?",
+        "In run.py, step 7, change 'temperature': 0 to 0.8 in `settings`. Is it still REPRODUCED? "
+        "Why, given the seed?",
+        "With a key in .env and uv sync --extra cloud done, change range(5) to range(10) in the "
+        "`answers` line and run LANTERN_PROVIDER=anthropic make lesson N=06. Count the distinct "
+        "answers in step 1. Step 2 needs Ollama, so the run stops there.",
+    ],
+)
 
 finding("""
 Hale is half right. On this workstation, at temperature 0, the same question can come back

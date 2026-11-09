@@ -10,7 +10,17 @@ from collections import defaultdict
 
 from lantern import load_config
 from lantern.config import ROOT
-from lantern.ui import Table, chapter, console, evidence, finding, note, save_shot, step
+from lantern.ui import (
+    Table,
+    chapter,
+    console,
+    evidence,
+    finding,
+    note,
+    save_shot,
+    step,
+    your_turn,
+)
 
 chapter("14", "Proven, not demonstrated", """
 The case conference is in nine days. Everything LANTERN has produced so far will be put in front
@@ -83,6 +93,33 @@ stats = data["results"]["stats"]
 note(f"Overall: {stats['successes']} passed, {stats['failures']} failed, "
      f"{stats.get('errors', 0)} errors.")
 note("Open the full results with `make eval-view` (http://localhost:15500).")
+
+your_turn(
+    "14",
+    check=[
+        "In the matrix, compare classify-v1 with classify-v2 on the same model. Then open "
+        "evals/prompts/classify-v1.json and evals/prompts/classify-v2.json. Which lines could "
+        "explain the gap?",
+        "Find the extract-invoice cells that failed. Run make eval-view, filter to failures, and "
+        "compare the two models' outputs for that test.",
+        "Open evals/tests/rules.yaml. Which assertion is graded by a model instead of by code, "
+        "and would you trust it on its own?",
+    ],
+    exercises=[
+        "In evals/promptfooconfig.yaml, under `providers:`, add `- id: ollama:chat:qwen3:4b` "
+        "with `label: qwen3-4b` and `config: *settings`. Compare the extra minutes with the "
+        "extra passes.",
+        "Add finance to the label list in evals/prompts/classify-v1.json and "
+        "evals/prompts/classify-v2.json. In `classification_tests()` in evals/build_tests.py, "
+        "add a test whose `label` var is finance. What does v1 do with it?",
+        "In `extraction_tests()` in evals/build_tests.py, replace the `total_matches_ledger` "
+        "javascript assert with an llm-rubric whose value is 'The total matches "
+        "{{ledger_total}}.' Compare the run time and the grader's mistakes.",
+        "In evals/tests/extraction.yaml, delete `prompts:` and `- extract-invoice` from the "
+        "extract NW-0402 test. Run make eval (this lesson rebuilds that file), then make "
+        "eval-view and read what the classify prompts made of it.",
+    ],
+)
 
 finding("""
 The suite runs end to end and every result is stored with its prompt, model, settings and

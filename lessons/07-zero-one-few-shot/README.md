@@ -69,8 +69,8 @@ flowchart TB
 ## The nuances
 
 **1. Measure, do not assume.** Few-shot is often described as "better". On this phone, with this
-model, the clear-example few-shot prompt tied with zero-shot at 83% and cost three times the
-tokens per message. The only way to know whether examples help is to score both on held-out data.
+model, the clear-example few-shot prompt scored 86% against zero-shot's 83%. Three points better,
+at three times the tokens per message. The only way to know whether examples help is to score both on held-out data.
 
 **2. The framing is an example too.** The "primed" prompt differs from the plain zero-shot prompt by
 one word: "a *murdered* company executive's work phone". That word took the model from 4 threat
@@ -127,15 +127,16 @@ On our run (qwen3:1.7b, CPU, temperature 0):
 | zero-shot, primed | 0 | 61% | 21 | 106 |
 | zero-shot | 0 | 83% | 4 | 105 |
 | one-shot | 1 | 75% | 3 | 138 |
-| few-shot, clear examples | 6 | 83% | 7 | 319 |
+| few-shot, clear examples | 6 | 86% | 7 | 319 |
 | few-shot, boundary only | 6 | 64% | 0 | 320 |
 
-The plain zero-shot prompt missed four of the eight threats and filed them as logistics. Three come
-from the +88 301 number, including "Accidents happen on piers. Especially at night." and
-"Stairwell C. 23:30."; the fourth is Clarke's M47. It also filed Leo's "can we get pizza friday"
-and a doctor's message about blood pressure results as logistics. A model that sorts 83% correctly can still miss the
-four messages that matter most, which is why the confusion table matters more than the headline
-number.
+The confusion table is for the best prompt, few-shot with clear examples. It still missed two of
+the eight threats. Malhotra's "I can explain the Sabran trips. Don't put it in writing." went to
+logistics, and Clarke's M47 went to personal. It also filed Ana's "Leo got a B in his maths test!!
+Call him." as a threat, and his brother's plan for Saturday's match and a doctor's message about
+blood pressure results as logistics. The plain zero-shot prompt labelled only 4 messages as
+threats, against Okafor's 8. A model that sorts 86% correctly can still miss the messages that
+matter most, which is why the confusion table matters more than the headline number.
 
 ## Try this
 

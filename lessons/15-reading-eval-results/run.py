@@ -5,7 +5,18 @@ from collections import defaultdict
 
 from lantern import case, chat
 from lantern.config import ROOT
-from lantern.ui import Table, chapter, console, evidence, finding, note, reply, save_shot, step
+from lantern.ui import (
+    Table,
+    chapter,
+    console,
+    evidence,
+    finding,
+    note,
+    reply,
+    save_shot,
+    step,
+    your_turn,
+)
 
 chapter("15", "The test that would not pass", """
 It is past midnight and the EOW is empty except for you and the hum of LANTERN. The eval results
@@ -129,6 +140,32 @@ if modify.split(",")[0].split()[1] not in r.text:
          "neighbouring row. Quote-checking catches what fluency hides.")
 note("An account is not a person. The log shows the pk.dsouza login was used. It does not "
      "show who typed the password. LANTERN's wording blurs that; your report must not.")
+
+your_turn(
+    "15",
+    check=[
+        "In the metric table, which metric is furthest from full marks, and which prompt do its "
+        "tests use?",
+        "In the failing-tests table, find the row marked 'every cell, same answer'. Compare that "
+        "answer with case/invoices/NW-0419.txt and the case/ledger.csv row above. Which one "
+        "disagrees with the others?",
+        "Check LANTERN's audit-log reply against case/evidence-store-audit.csv. Is each timestamp "
+        "on the line it describes? Does the log show a person, or a login?",
+    ],
+    exercises=[
+        "No edit: run make eval-view, open http://localhost:15500 and set the display filter to "
+        "failures only. Sort each failure into the three patterns in the table above.",
+        "Write evals/prompts/classify-v3.json that fixes one v1-only failure. Add it under "
+        "`prompts:` in evals/promptfooconfig.yaml with `label: classify-v3`, add classify-v3 to "
+        "the `prompts` list in `classification_tests()` in evals/build_tests.py, then run make "
+        "lesson N=14 and this lesson. Did anything else break?",
+        "In `extraction_tests()` in evals/build_tests.py, set `total = 94000.0` when `ref` is "
+        "NW-0419, instead of the ledger's `amount_kbd`. Run make lesson N=14, then this lesson. "
+        "What has the suite stopped telling you?",
+        "No edit: open case/evidence-store-audit.csv and read every line, not only the 'modify' "
+        "one. What else in it should worry you?",
+    ],
+)
 
 finding("""
 The ledger was seized on 31 March. At 02:47 on 3 April, an account called pk.dsouza changed one

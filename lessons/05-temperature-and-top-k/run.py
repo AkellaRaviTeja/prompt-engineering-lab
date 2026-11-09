@@ -27,6 +27,7 @@ from lantern.ui import (  # noqa: E402
     reply,
     save_shot,
     step,
+    your_turn,
 )
 
 chapter("05", "Two kinds of question", """
@@ -120,6 +121,27 @@ for T, seed in ((0.2, 1), (0.2, 2), (1.3, 1), (1.3, 2)):
     reply(f"T={T}, seed {seed}", out.text, style="green" if T < 1 else "yellow")
 note("At T=0.2 the two seeds give near identical lists. At T=1.3 they diverge: "
      "different leads, and more nonsense to filter.")
+
+your_turn(
+    "05",
+    check=[
+        "In the step 1 table, how much does the top token get, and how close is the second? "
+        "Follow that token across the step 2 columns.",
+        "In step 4, count the distinct first words at each temperature. Where does the count jump?",
+        "In step 5, do all three replies give the same plate and owner? Check them against the "
+        "vehicles in case/site-facts.md.",
+    ],
+    exercises=[
+        "No edit: open docs/explorer/index.html in a browser. Set T = 0.05, draw 100 tokens, then "
+        "T = 2. How many distinct tokens appear?",
+        "In the explorer, set top_p = 0.5 on the Northwind distribution. How many tokens survive? "
+        "Then switch to the plate distribution.",
+        "In run.py, in `leads_q`, change 'List three short, distinct hypotheses' to 'List ten "
+        "distinct hypotheses' and raise max_tokens=160 to 400. Compare T=0.2 with your earlier "
+        "T=1.3 lists.",
+        "In run.py, step 4, change top_k=40 to top_k=1. Why is every answer at T=1.5 now the same?",
+    ],
+)
 
 finding("""
 The camera's partial plate KB 7?4 ?LR matches one registered vehicle in the Gate 2 car park:

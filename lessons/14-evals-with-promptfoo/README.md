@@ -175,7 +175,7 @@ it.
 
 ![Chapter 14 terminal output](../../docs/screenshots/14-evals-with-promptfoo.png)
 
-In the run captured here (CPU only, 14 minutes 55 seconds, eval `eval-SJK-2026-11-04T09:40:43`):
+In the run captured here (CPU only, 4 minutes 1 second, eval `eval-uLX-2026-11-09T07:35:44`):
 
 | Prompt | qwen3-1.7b | qwen3-0.6b |
 |---|---|---|

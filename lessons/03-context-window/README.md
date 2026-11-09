@@ -124,7 +124,9 @@ Expect two to three minutes on a CPU: the full file is processed twice.
 - `num_ctx = 2048`: "NOT FOUND", with **1,026** prompt tokens. The model never saw the entry.
 - `num_ctx = 8192`: "NOT FOUND" again, with **6,370** prompt tokens. This time it did see it.
 - Head and tail: "NOT FOUND", 3,202 tokens. The middle was removed on purpose.
-- Four chunks: three NOT FOUND, and chunk 2 quoting Reyes word for word.
+- Four chunks: three NOT FOUND, and chunk 2 quoting Reyes word for word. In our run it then
+  said the entry was dated Tuesday 03 February. The notes date it Friday 06 February. The quote
+  was right and the date beside it was not, so check both.
 
 ## Try this
 

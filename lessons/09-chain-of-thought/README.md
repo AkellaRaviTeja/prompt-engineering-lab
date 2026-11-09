@@ -68,8 +68,8 @@ sequenceDiagram
 ## The nuances
 
 **1. Direct answers hide the error.** On our run the direct prompt said "yes": the records support
-Malhotra. It even quoted 23:31 and 23:47 correctly, then called a 16 minute gap "consistent" with a
-5 minute walk. There is nothing to audit in a one-word verdict.
+Malhotra. It even quoted 23:31 and 23:47 correctly, then said the 5 minute walk "matches" his
+claim, without noticing the 16 minutes between those times. There is nothing to audit in a one-word verdict.
 
 **2. Free CoT can reach the right verdict by the wrong road.** "Think step by step" produced 918
 tokens. It found the 16 minutes, then wandered: it invented a "12-minute walk back" and measured to
@@ -87,8 +87,8 @@ and unreliable at arithmetic and comparison. Step 4 keeps the reading and gives 
 This is the strongest pattern for small models: the model extracts, code computes. It is also the
 version you can defend in court.
 
-**5. CoT costs tokens and time.** Direct: 67 output tokens, about 2 seconds. Free CoT: 918 tokens,
-38 seconds. Set steps: 215 tokens, 10 seconds. Set steps are cheaper than free CoT because you
+**5. CoT costs tokens and time.** Direct: 71 output tokens, about 2 seconds. Free CoT: 918 tokens,
+31 seconds. Set steps: 215 tokens, 7 seconds. Set steps are cheaper than free CoT because you
 decided what to write.
 
 **6. CoT can hurt simple tasks.** For a lookup ("what time did he badge out?") reasoning adds
@@ -121,7 +121,7 @@ Three model calls plus some Python. About one to two minutes on a CPU.
 - **set steps**: steps 1 to 3 correct, step 4 wrong (16 instead of 5), the verdict right anyway.
 - **model reads, program reasons**: 16.1 minutes elapsed, 11.1 unaccounted, the stairwell route
   fits.
-- The cost table: free CoT used about 14 times the tokens of the direct answer.
+- The cost table: free CoT used about 13 times the tokens of the direct answer.
 
 ## Try this
 

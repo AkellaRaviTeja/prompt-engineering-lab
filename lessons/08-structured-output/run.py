@@ -8,7 +8,18 @@ from typing import Literal
 from pydantic import BaseModel, Field, ValidationError
 
 from lantern import case, chat
-from lantern.ui import Table, chapter, console, evidence, finding, note, reply, save_shot, step
+from lantern.ui import (
+    Table,
+    chapter,
+    console,
+    evidence,
+    finding,
+    note,
+    reply,
+    save_shot,
+    step,
+    your_turn,
+)
 
 chapter("08", "Rows for the link chart", """
 Okafor's office wall is covered in paper: vendors, bank accounts, names, arrows. He wants it in a
@@ -123,6 +134,26 @@ for inv in nw:
               f"{trip['depart']} to {trip['return']}" if trip else "")
 console.print(x)
 note("The join is ordinary Python. The model only had to produce rows a program can trust.")
+
+your_turn(
+    "08",
+    check=[
+        "Look at the first character of the no-schema reply. Why did validation reject it?",
+        "Open case/invoices/NW-0419.txt and compare it with its row in the table. Is the vendor in "
+        "normal capitalisation? Is every category the one you would pick?",
+        "Read the step 3 notes. Which field had to be corrected, and what had the model put there?",
+    ],
+    exercises=[
+        "In run.py, in `Invoice`, change `total_kbd` to plain `total_kbd: float` with no "
+        "description. What type and format come back?",
+        "In run.py, in extract(), change `format=schema` to `format=\"json\"` (JSON mode). "
+        "Which fields drift?",
+        "In run.py, move the `category` line to the top of `Invoice`, above `invoice_id`. "
+        "Do the categories get worse?",
+        "In run.py, change the `vat_number` description to \"Only the value printed after 'VAT "
+        "registration:'. null if that line is absent.\" Does the source check still find problems?",
+    ],
+)
 
 finding(f"""
 {len(nw)} Northwind invoices, KBD {sum(i.total_kbd for i in nw):,.2f} in total. None carries a VAT

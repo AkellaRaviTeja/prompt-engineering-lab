@@ -7,7 +7,7 @@ import httpx
 
 from lantern import case, chat, load_config
 from lantern.config import ROOT
-from lantern.ui import Table, chapter, console, finding, note, save_shot, step
+from lantern.ui import Table, chapter, console, finding, note, save_shot, step, your_turn
 
 chapter("12", "Three models, one case", """
 Varma has a rule about tools: you do not trust one you have not tested. LANTERN carries three
@@ -76,6 +76,9 @@ def loaded_size(model: str) -> float:
             return m["size"] / 1e9
     return 0.0
 
+
+note("The classification prompt is the `CLASSIFY` variable in run.py. `LABEL_SCHEMA` pins "
+     "the answer to three labels.")
 
 results = []
 for model in MODELS:
@@ -153,6 +156,32 @@ small, medium, large = results
 best = max(results, key=lambda r: r["accuracy"])
 small_extract = ("also extracts the invoice correctly" if small["extraction_ok"]
                  else "cannot reliably copy an invoice number into the right field")
+your_turn(
+    "12",
+    check=[
+        "Read the scorecard row by row. Where does accuracy go up, and what does each step to a "
+        "bigger model cost in latency, memory and cold start?",
+        "Compare each model's 'extraction:' line with case/invoices/NW-0402.txt. Is every value "
+        "in the field it belongs in?",
+        "Read the 'miss:' lines for all three models and look the ids up in "
+        "case/messages.jsonl. Are the misses spread across labels, or do they cluster?",
+    ],
+    exercises=[
+        "Pull a fourth model (ollama pull llama3.2:3b) and add \"llama3.2:3b\" to `MODELS` in "
+        "run.py. Also change `small, medium, large = results` to `small, medium, large, *extra = "
+        "results`, and add a fourth colour to `colours` in "
+        "lessons/12-choosing-a-model/chart.py.",
+        "Set `provider: anthropic` (or openai, gemini) in config.yaml, with the key in .env and "
+        "`uv sync --extra cloud`. Read only the classify column: latency and memory are "
+        "Ollama's, and the script stops after the scorecard.",
+        "In run.py, delete `format=LABEL_SCHEMA` from the classification chat call and change "
+        "the `Reply as JSON` line in `CLASSIFY` to 'Reply with one word: threat, logistics or "
+        "personal.' What happens to qwen3:4b?",
+        "No edit: run make lesson N=12 twice. After each run, git diff "
+        "docs/charts/12-model-scorecard.json shows which numbers moved.",
+    ],
+)
+
 finding(f"""
 On these sixteen messages the small model scores {small['accuracy']:.0%}, the medium
 {medium['accuracy']:.0%} and the large {large['accuracy']:.0%}. The small model

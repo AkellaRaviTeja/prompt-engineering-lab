@@ -74,8 +74,8 @@ did not. They looked at different parts of the same evidence.
 persona scored 3 of 4 and the plain prompt 0 of 4, which looks like the persona made the model
 smarter. It did not. Without a persona the model starts by showing its working ("To determine which
 invoice has the largest total, let's sum...") and runs out of tokens before the answer. The expert
-answers first. Given 400 tokens, both scored 4 of 4; the plain prompt just used 142 tokens to the
-expert's 52. Always check whether a persona "improvement" is really a length or format change.
+answers first. Given 400 tokens, both scored 4 of 4; the plain prompt just used 141 tokens to the
+expert's 50. Always check whether a persona "improvement" is really a length or format change.
 
 **3. System prompt or user prompt?** Both work for one turn. The system prompt is where standing
 roles belong (chapter 02): it persists across turns, and later user messages are less likely to
@@ -118,8 +118,8 @@ one to two minutes on a CPU.
 - **Hale:** three objections about inference and route ambiguity, none disputing a timestamp.
 - **Accountant:** three questions about approvals, beneficiaries and supporting documents.
 - **Voss:** one line, saying she would need to check the records.
-- **Hale in the user prompt:** longer and more dramatic, and less faithful to the role: in our
-  latest run it ends up arguing the prosecution's case.
+- **Hale in the user prompt:** longer and more dramatic, and less faithful to the facts: in our
+  latest run it invents a contradiction by treating 23:36 as five minutes before 23:31:02.
 - **The expert table:** 0/4 against 3/4 at 40 tokens; 4/4 against 4/4 at 400 tokens, with the
   plain prompt using about three times the tokens.
 

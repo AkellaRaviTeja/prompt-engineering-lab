@@ -46,14 +46,14 @@ the real distribution LANTERN produced:
 ![One real distribution at four temperatures](../../docs/charts/05-temperature.png)
 
 Temperature is plain arithmetic. With log-probabilities `lp`, the new probability of each token is
-`exp(lp / T)` divided by the sum over all tokens. In the run captured above:
+`exp(lp / T)` divided by the sum over all tokens. In the run in the terminal screenshot below:
 
 | Token | T = 0.2 | T = 0.7 | T = 1.0 (raw) | T = 1.5 |
 |---|---|---|---|---|
-| ` company` | 0.669 | 0.417 | 0.326 | 0.227 |
-| ` **` (bold markdown) | 0.317 | 0.337 | 0.281 | 0.205 |
-| ` fict` (start of "fictitious") | 0.014 | 0.138 | 0.150 | 0.135 |
-| ` fictional` | 0.000 | 0.049 | 0.073 | 0.084 |
+| ` company` | 0.709 | 0.471 | 0.369 | 0.252 |
+| ` **` (bold markdown) | 0.289 | 0.365 | 0.308 | 0.224 |
+| ` fict` (start of "fictitious") | 0.002 | 0.083 | 0.110 | 0.112 |
+| ` fictional` | 0.000 | 0.029 | 0.052 | 0.068 |
 
 Top-k and top-p cut the list before the draw. On this distribution, `top_k = 3` keeps three
 tokens; `top_p = 0.9` keeps six or seven, because no single token is dominant:
@@ -83,7 +83,7 @@ case: one token at 100%, where no setting changes anything.
 
 **1. Ollama's logprobs are the raw distribution.** The script asks for the same distribution at
 T = 1.0 and T = 0.2. If temperature were applied to the reported numbers, " company" would jump
-from about 0.30 to about 0.67. It does not. The sampler applies temperature after the model has
+from about 0.34 to about 0.71. It does not. The sampler applies temperature after the model has
 reported its scores. (You may still see the raw numbers move a little between calls. That is
 server state, not temperature; chapter 06 explains it.)
 
@@ -92,8 +92,8 @@ answer and the model knows it: the next token is near 100% at every temperature.
 LANTERN read KB 714 FLR at T = 0 and at T = 1.8. Temperature does not make a model creative about
 things it is certain of. It makes it random about things it is unsure of.
 
-**3. High temperature unlocks junk.** At T = 1.5 the eight runs produced five different first
-words, including a closing `</think>` tag and a run of underscores. Formatting tokens, stray markup
+**3. High temperature unlocks junk.** At T = 1.5 the eight runs produced four different first
+words, including a run of underscores. Formatting tokens, stray markup
 and half-words live in the tail. Turning the temperature up gives them a chance.
 
 **4. Top-k is fixed; top-p adapts.** `top_k = 3` keeps three tokens whether the model is certain or
@@ -132,8 +132,8 @@ make charts
 
 ![Chapter 05 terminal output](../../docs/screenshots/05-temperature-and-top-k.png)
 
-- The raw distribution table with bars: " company" about 0.30, " **" about 0.26.
-- The temperature table: the favourite rises to about two thirds at T = 0.2 and falls to under a
+- The raw distribution table with bars: " company" about 0.34, " **" about 0.29.
+- The temperature table: the favourite rises to about 0.71 at T = 0.2 and falls to about a
   quarter at T = 1.5.
 - The kept sets for top_k = 3 and top_p = 0.9.
 - Distinct first words: 2 at T = 0.2, 3 to 6 at T = 1.0, 4 to 8 at T = 1.5 (exact counts vary run

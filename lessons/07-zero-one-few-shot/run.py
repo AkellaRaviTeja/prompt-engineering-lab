@@ -4,7 +4,18 @@ import time
 from collections import Counter
 
 from lantern import case, chat
-from lantern.ui import Table, chapter, console, evidence, finding, note, reply, save_shot, step
+from lantern.ui import (
+    Table,
+    chapter,
+    console,
+    evidence,
+    finding,
+    note,
+    reply,
+    save_shot,
+    step,
+    your_turn,
+)
 
 LABELS = ["threat", "logistics", "personal"]
 
@@ -70,6 +81,7 @@ reply("few-shot as chat turns (first 2 of 6 examples)", "```text\n" + "\n".join(
                                                  *convo]) + "\n```", style="blue")
 note("Each example is a user turn and the 'right' assistant reply. "
      "The model continues the pattern.")
+note("The task is `TASK` in run.py. The example sets are the `EASY` and `BORDER` lists.")
 
 step(f"2. Five prompts, {len(scored)} held-out messages each")
 results: dict[str, dict] = {}
@@ -124,6 +136,27 @@ note("Read each disagreement before blaming the model. "
 note("M47, Simon Clarke at 21:44 on the night: 'Are you still at the office?' Okafor says threat.")
 note("On its own the text is harmless. "
      "It is a threat only if you know what happened two hours later.")
+
+your_turn(
+    "07",
+    check=[
+        "Compare each prompt's threat column with Okafor's gold row. Which prompts count fewer "
+        "threats than he did, even with a good accuracy score?",
+        "In the Disagreements table, who sent the threats LANTERN missed? Open case/messages.jsonl "
+        "and read that sender's other messages.",
+        "Compare tokens/msg with accuracy. Did six examples pay for what they cost on every call?",
+    ],
+    exercises=[
+        "In run.py, reorder `EASY` so the two threat examples, M03 and M12, come last: "
+        "[\"M02\", \"M01\", \"M04\", \"M05\", \"M03\", \"M12\"]. Does the threat count rise?",
+        "In run.py, add \"M07\" and \"M23\" to `EASY`. They drop out of `scored` on their own. "
+        "Do the other +88 301 messages now land as threats?",
+        "In run.py, step 2, replace the `examples_as_turns(ids)` turns with one user message: each "
+        "example as a text line (message, then label), then ask(m). Count the invalid column.",
+        "No edit: run LANTERN_MODEL=qwen3:4b make lesson N=07. Does 'few-shot, boundary only' "
+        "still collapse?",
+    ],
+)
 
 finding(f"""
 Best prompt on this phone: {best}, {results[best]['acc']:.0%} agreement with Okafor. The threats

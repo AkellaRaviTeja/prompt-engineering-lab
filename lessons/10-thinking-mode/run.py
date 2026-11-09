@@ -3,7 +3,18 @@
 import sys
 
 from lantern import case, chat
-from lantern.ui import Table, chapter, console, evidence, finding, note, reply, save_shot, step
+from lantern.ui import (
+    Table,
+    chapter,
+    console,
+    evidence,
+    finding,
+    note,
+    reply,
+    save_shot,
+    step,
+    your_turn,
+)
 
 chapter("10", "The locked door", """
 Stairwell C has two doors. At 23:30 every night the bottom one locks itself. At 23:36 someone
@@ -69,6 +80,8 @@ def run(label: str, think: bool, max_tokens: int, model: str | None = None) -> N
           style="green" if r.text else "red")
 
 
+note("The prompt is the `puzzle` variable in run.py. Every run below sends it.")
+
 step("1. Thinking off")
 note("think=False: the model starts writing the answer at once.")
 run("think off", think=False, max_tokens=700)
@@ -94,6 +107,30 @@ for label, r in runs:
 console.print(table)
 note("Check every COULD and COULD NOT against the records. "
      "Thinking makes a model slower, not honest.")
+
+your_turn(
+    "10",
+    check=[
+        "Which credential did each answer name for Q1? Find the 23:36:15 row in "
+        "case/badge-log.csv and check.",
+        "Open case/site-facts.md and read the hours each override code is valid. Did each answer "
+        "use them when it wrote COULD or COULD NOT?",
+        "In the 'Same puzzle, three runs' table, which run spent its whole budget thinking "
+        "and left no answer?",
+    ],
+    exercises=[
+        "In run.py, change max_tokens=4000 in step 3's run(...) call to 8000, then run make "
+        "lesson N=10 ARGS=--large. How long does it take, and is the answer right?",
+        "In run.py, change max_tokens=300 in step 2's run(...) call to 1200. Does an answer "
+        "appear, and is it any better than thinking off?",
+        "In run.py, inside run(), change chat(puzzle, ...) to chat(puzzle if think else puzzle + "
+        "\" Think step by step.\", ...). Compare step 1's tokens and accuracy with step 3.",
+        "In run.py, in `puzzle`, change Q2 to ask whether each candidate CAN or CANNOT open it, "
+        "and put candidates e) and f) on one line. What changes?",
+        "In run.py, delete the <other_facts> block from `puzzle`, tags and all. Which candidates "
+        "can no longer be ruled out, by you or the model?",
+    ],
+)
 
 finding("""
 The door was not opened with a badge. It was opened with OVR-AUD-02, a contractor override code

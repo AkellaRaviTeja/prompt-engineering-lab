@@ -1,7 +1,7 @@
 """Chapter 11: rehearse the Malhotra interview with three personas, and test the 'expert' myth."""
 
 from lantern import case, chat
-from lantern.ui import Table, chapter, console, finding, note, reply, save_shot, step
+from lantern.ui import Table, chapter, console, finding, note, reply, save_shot, step, your_turn
 
 chapter("11", "Rehearsal", """
 The interview with Raj Malhotra is booked for Thursday at ten. Marcus Hale will be sitting next to
@@ -42,6 +42,7 @@ QUESTIONS = {
 }
 
 step("1. Three personas, three system prompts")
+note("The personas are the `PERSONAS` dict in run.py. Their questions are `QUESTIONS`.")
 for name, persona in PERSONAS.items():
     r = chat(QUESTIONS[name], system=persona, temperature=0.3, max_tokens=350)
     reply(f"LANTERN as {name}", r.text, meta=f"{r.output_tokens} tokens")
@@ -88,6 +89,27 @@ console.print(table)
 note("At 40 tokens the expert looks far better. It is not smarter: it is terser. Without a")
 note("persona the model shows its working first and runs out of budget before the answer.")
 note("Give both room and the gap closes. A persona changes style and length, not knowledge.")
+
+your_turn(
+    "11",
+    check=[
+        "Open case/statements/voss.md. Is every claim in the Voss reply in her statement?",
+        "What does each Hale objection attack in `FINDING`? Compare his step 1 reply with the "
+        "user-message version in step 2.",
+        "In the expert table, compare max_tokens=40 with max_tokens=400. Does the expert persona "
+        "win at both budgets? Check the avg tokens column too.",
+    ],
+    exercises=[
+        "In run.py, delete \"Never invent facts.\" from the Voss persona in `PERSONAS`. What does "
+        "she \"remember\"?",
+        "In run.py, step 2, call chat with three turns: `q`, the reply, then \"Now argue for the "
+        "prosecution.\" Once with system=hale, once with hale inside the first turn. Which holds?",
+        "In run.py, set `EXPERT` to \"Answer first, then explain.\" Does the max_tokens=40 score "
+        "change the same way?",
+        "In run.py, add the Northwind rows of case/ledger.csv to QUESTIONS[\"Forensic "
+        "accountant\"] and ask for three more questions. Which ones would you actually use?",
+    ],
+)
 
 finding("""
 LANTERN's Hale did not dispute a single timestamp. He attacked the inference: the records show a

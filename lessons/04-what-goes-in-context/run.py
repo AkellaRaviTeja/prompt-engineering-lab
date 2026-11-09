@@ -19,6 +19,7 @@ from lantern.ui import (  # noqa: E402
     reply,
     save_shot,
     step,
+    your_turn,
 )
 
 chapter("04", "The briefing", """
@@ -64,6 +65,7 @@ parts = [
     ("conversation so far", "history", ""),
     ("the question", "user", question),
 ]
+note("The briefing is the `parts` list in run.py. `build()` turns it into messages.")
 
 
 def build(upto: int) -> list[dict[str, str]]:
@@ -133,6 +135,26 @@ fixed = messages[:-1] + [{"role": "user", "content": computed + "\n\n" + questio
 reply("answer with the computed total in the context", chat(fixed, temperature=0,
                                                             max_tokens=300).text)
 note("Code adds up money exactly, every time. The model's job is to read and explain.")
+
+your_turn(
+    "04",
+    check=[
+        "In the budget table, which part costs the most tokens? How much of the window is free?",
+        "Compare the totals in the two step 4 answers with each other and with "
+        "case/invoices/NW-0388.txt, NW-0402.txt and NW-0419.txt.",
+        "Each answer says where Reyes wrote about Northwind. Check that against "
+        "case/00-briefing.md and the 6 February entry in case/reyes-notes.md.",
+    ],
+    exercises=[
+        "In run.py, remove the <evidence> and <file name=...> tags from `invoices` and from the "
+        "`parts` entries. Does the model still cite file names?",
+        "In run.py, in `build()`, put `question` at the front of `first_user`, and send 'Answer "
+        "it.' in place of `question` in the last user turn. Does the answer change?",
+        "In run.py, in the Reyes entry of `parts`, send `notes` (the full file) in place of "
+        "`excerpt`. Watch the budget table and the answer.",
+        "In run.py, set `history = []`. Is anything in the answer worse?",
+    ],
+)
 
 finding("""
 Three Northwind invoices: NW-0388 for 62,500.00, NW-0402 for 71,200.00 and NW-0419 for
