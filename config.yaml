@@ -34,6 +34,7 @@ hosted:
     # Same three aliases as the local models, so a lesson that asks for "large" gets the larger
     # hosted model. Haiku is the default because it is the cheapest current model.
     models: {default: claude-haiku-5-5, small: claude-haiku-5-5, large: claude-sonnet-5-5}
+    context_window: {claude-haiku-5-5: 1000000, claude-sonnet-5-5: 1000000}
     # How to turn thinking off, per model. Sonnet 5.5 rejects "disabled" and takes
     # "between_tools"; Opus 5.5 cannot turn thinking off at all (null: reported as unsupported).
     thinking_off: {claude-haiku-5-5: disabled, claude-sonnet-5-5: between_tools, claude-opus-5-5: null}

@@ -258,7 +258,12 @@ def _ollama(
 
 
 def model_info(model: str | None = None) -> dict[str, Any]:
-    """Ollama's /api/show: the chat template, parameters and architecture details."""
+    """Ollama's /api/show: the chat template, parameters and architecture details.
+
+    Local tier only: a hosted provider does not publish its chat template or weights.
+    """
+    if provider_of() != "ollama":
+        raise SystemExit("model_info() reads Ollama's model file; it has no hosted equivalent.")
     host = load_config()["ollama"]["host"]
     r = httpx.post(f"{host}/api/show", json={"model": model_name(model)}, timeout=60)
     r.raise_for_status()
@@ -266,7 +271,14 @@ def model_info(model: str | None = None) -> dict[str, Any]:
 
 
 def context_length(model: str | None = None) -> int:
-    """The maximum context the model was trained for, read from its metadata."""
+    """The maximum context the model was trained for, read from its metadata.
+
+    On the hosted tier, the provider's documented window from config.yaml.
+    """
+    provider = provider_of()
+    if provider != "ollama":
+        return int(load_config()["hosted"][provider].get("context_window", {}).get(
+            model_name(model), 0))
     info = model_info(model).get("model_info", {})
     for key, value in info.items():
         if key.endswith(".context_length"):
