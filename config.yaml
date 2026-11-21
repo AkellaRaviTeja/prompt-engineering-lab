@@ -1,8 +1,6 @@
 # LANTERN configuration. Every lesson reads this file.
 # Environment variables override it: LANTERN_PROVIDER, LANTERN_MODEL, OLLAMA_HOST.
 
-provider: ollama            # ollama | anthropic | openai | gemini
-
 ollama:
   host: http://localhost:11434
 
@@ -23,15 +21,59 @@ generation:
   max_tokens: 800
   think: false              # Qwen3 thinking mode; lesson 10 turns it on
 
-# Cloud providers, used only when you switch `provider` and set a key in .env.
-# Evidence never goes to these in the story; in the lab they are for comparison.
-cloud:
+# Where calls go. `local` is LANTERN's own Ollama and the default for every chapter.
+# `hosted` (make lesson N=NN TIER=hosted) sends the chapter's synthetic material to a provider's
+# API instead, using that provider's native features. In the story evidence never leaves the
+# building; in the lab every case document is synthetic, which is why the hosted tier exists.
+tier: local                 # local | hosted
+provider: ollama            # the local tier's provider
+
+hosted:
+  provider: anthropic       # anthropic | openai | gemini  (LANTERN_HOSTED_PROVIDER overrides)
   anthropic:
-    model: claude-sonnet-5-5
+    # Same three aliases as the local models, so a lesson that asks for "large" gets the larger
+    # hosted model. Haiku is the default because it is the cheapest current model.
+    models: {default: claude-haiku-5-5, small: claude-haiku-5-5, large: claude-sonnet-5-5}
+    # How to turn thinking off, per model. Sonnet 5.5 rejects "disabled" and takes
+    # "between_tools"; Opus 5.5 cannot turn thinking off at all (null: reported as unsupported).
+    thinking_off: {claude-haiku-5-5: disabled, claude-sonnet-5-5: between_tools, claude-opus-5-5: null}
   openai:
-    model: gpt-5-mini
+    # Not run by this lab yet: model names and capabilities are as of the last edit, not checked
+    # against a live call. Flip a capability to false if the API rejects it.
+    models: {default: gpt-5-mini, small: gpt-5-mini, large: gpt-5}
+    supports: {temperature: false, top_p: false, seed: true, logprobs: false, reasoning_effort: true}
   gemini:
-    model: gemini-2.5-flash
+    models: {default: gemini-2.5-flash, small: gemini-2.5-flash, large: gemini-2.5-pro}
+    supports: {temperature: true, top_k: true, top_p: true, seed: true, logprobs: true, thinking: true}
+
+# USD per million tokens. Every hosted run records input, output and cached tokens and the cost
+# computed from these. A model with no checked price reports its cost as unknown, never 0.
+prices:
+  claude-haiku-5-5:
+    input: 0.10
+    cache_write: 0.125      # 5-minute cache write
+    cache_read: 0.01
+    output: 0.50
+    over: {tokens: 100000, input: 0.50, cache_write: 0.625, cache_read: 0.05, output: 2.50}
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    checked: 2026-11-21
+  claude-sonnet-5-5:
+    input: 2.00
+    cache_write: 2.50
+    cache_read: 0.10
+    output: 10.00
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    checked: 2026-11-21
+  gpt-5-mini: {input: null, note: not checked}
+  gemini-2.5-flash: {input: null, note: not checked}
+
+# Every call: a timeout, and retries with exponential backoff and full jitter on rate limits,
+# server errors, timeouts and dropped connections. Chapter 17 explains each number.
+reliability:
+  timeout_s: 300            # one attempt; a cold 4B model on a laptop CPU can take a minute
+  retries: 3
+  backoff_base_s: 1.0
+  backoff_cap_s: 30.0
 
 # Where lessons save terminal screenshots when run with --shot.
 screenshots_dir: docs/screenshots

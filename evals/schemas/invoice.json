@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "invoice_id": {"type": "string", "description": "The code printed after the word INVOICE, without the word itself, e.g. NW-0001"},
+    "vendor": {"type": "string", "description": "The supplier's name from the letterhead at the top"},
+    "date": {"type": "string", "description": "Invoice date as YYYY-MM-DD"},
+    "total": {"type": "number", "description": "The total due, without currency or thousands separators"}
+  },
+  "required": ["invoice_id", "vendor", "date", "total"]
+}

@@ -1,7 +1,7 @@
 """Replace this machine's absolute repo path in promptfoo output with a relative one.
 
 promptfoo resolves `file://` variables to absolute paths and writes them into
-evals/output/results.json. The file is committed so chapter 15 works without a
+evals/output/results.json. The file is committed so chapter 19 works without a
 15 minute eval run, so it must not carry anyone's home directory.
 """
 

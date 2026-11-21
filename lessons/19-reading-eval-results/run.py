@@ -1,4 +1,4 @@
-"""Chapter 15: read the eval results, triage the failures, and follow the one that is not a bug."""
+"""Chapter 19: read the eval results, triage the failures, and follow the one that is not a bug."""
 
 import json
 from collections import defaultdict
@@ -18,7 +18,7 @@ from lantern.ui import (
     your_turn,
 )
 
-chapter("15", "The test that would not pass", """
+chapter("19", "The test that would not pass", """
 It is past midnight and the EOW is empty except for you and the hum of LANTERN. The eval results
 are open on the screen. You have fixed prompts all evening, and the pass rate has climbed. One
 test has not moved. It fails on the small model, it fails on the medium model, and it fails with
@@ -27,7 +27,7 @@ the same number every time. You stop trying to fix the prompt and start reading 
 
 results_path = ROOT / "evals" / "output" / "results.json"
 if not results_path.exists():
-    raise SystemExit("No eval results yet. Run `make eval` (or `make lesson N=14`) first.")
+    raise SystemExit("No eval results yet. Run `make eval` (or `make lesson N=18`) first.")
 data = json.loads(results_path.read_text(encoding="utf-8"))["results"]
 rows = data["results"]
 
@@ -142,7 +142,7 @@ note("An account is not a person. The log shows the pk.dsouza login was used. It
      "show who typed the password. LANTERN's wording blurs that; your report must not.")
 
 your_turn(
-    "15",
+    "19",
     check=[
         "In the metric table, which metric is furthest from full marks, and which prompt do its "
         "tests use?",
@@ -158,9 +158,9 @@ your_turn(
         "Write evals/prompts/classify-v3.json that fixes one v1-only failure. Add it under "
         "`prompts:` in evals/promptfooconfig.yaml with `label: classify-v3`, add classify-v3 to "
         "the `prompts` list in `classification_tests()` in evals/build_tests.py, then run make "
-        "lesson N=14 and this lesson. Did anything else break?",
+        "lesson N=18 and this lesson. Did anything else break?",
         "In `extraction_tests()` in evals/build_tests.py, set `total = 94000.0` when `ref` is "
-        "NW-0419, instead of the ledger's `amount_kbd`. Run make lesson N=14, then this lesson. "
+        "NW-0419, instead of the ledger's `amount_kbd`. Run make lesson N=18, then this lesson. "
         "What has the suite stopped telling you?",
         "No edit: open case/evidence-store-audit.csv and read every line, not only the 'modify' "
         "one. What else in it should worry you?",
@@ -185,4 +185,4 @@ that someone inside this one can reach."
 
 Case File 02 begins in the archive.
 """)
-save_shot("15-reading-eval-results")
+save_shot("19-reading-eval-results")

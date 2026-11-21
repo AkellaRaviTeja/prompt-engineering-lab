@@ -1,4 +1,4 @@
-# Chapter 14: Proven, not demonstrated
+# Chapter 18: Proven, not demonstrated
 
 **Concept:** evaluating prompts systematically with [promptfoo](https://www.promptfoo.dev): prompts,
 providers, test cases, assertions, and the matrix they make.
@@ -37,7 +37,7 @@ flowchart LR
 
 ## How it works
 
-![The promptfoo matrix](../../docs/diagrams/14-promptfoo-matrix.svg)
+![The promptfoo matrix](../../docs/diagrams/18-promptfoo-matrix.svg)
 
 Everything lives in [`evals/`](../../evals/):
 
@@ -121,7 +121,7 @@ can be wrong. This suite uses one, graded by the local 1.7B model, so nothing le
 
 **2. Expected values have a source, and the source can be wrong.** The extraction tests take their
 expected totals from the seized ledger, because that is the record the EOW must verify. An eval is
-only as trustworthy as its reference data. Chapter 15 is about what happens when the reference is
+only as trustworthy as its reference data. Chapter 19 is about what happens when the reference is
 the thing that is wrong.
 
 **3. What you do not assert, you do not know.** The 1.7B model put "Halcyon Maritime Logistics"
@@ -164,8 +164,8 @@ make eval-view   # opens the web viewer at http://localhost:15500
 Or run the lesson, which regenerates the tests, runs the eval and prints the matrix:
 
 ```bash
-make lesson N=14
-uv run python lessons/14-evals-with-promptfoo/run.py --reuse   # redraw from the last run
+make lesson N=18
+uv run python lessons/18-evals-with-promptfoo/run.py --reuse   # redraw from the last run
 ```
 
 promptfoo is pinned (`npx promptfoo@0.124.1`) and needs Node 20 or later. The first run downloads
@@ -173,7 +173,7 @@ it.
 
 ## What you should see
 
-![Chapter 14 terminal output](../../docs/screenshots/14-evals-with-promptfoo.png)
+![Chapter 18 terminal output](../../docs/screenshots/18-evals-with-promptfoo.png)
 
 In the run captured here (CPU only, 4 minutes 1 second, eval `eval-uLX-2026-11-09T07:35:44`):
 
@@ -191,7 +191,7 @@ prompts work and where they do not:
   registration question with "Not in evidence.", and named nobody when asked who pushed Reyes. The
   local `llm-rubric` grader agreed.
 - **Extraction is nearly perfect.** Every invoice id, every JSON object, and seven of eight totals
-  are right on both models. The eighth is NW-0419, on both models. Chapter 15 is about that one.
+  are right on both models. The eighth is NW-0419, on both models. Chapter 19 is about that one.
 - **The terse classifier (v1) fails every test.** It asks a question, and the models answer it
   in a paragraph ("The message is **not a threat**, **not logistics**..."). The assertion wants
   one word. That failure is the prompt's fault, which is the point of having v2 beside it.
@@ -200,12 +200,12 @@ prompts work and where they do not:
 
 The first version of this suite scored 17/70. The extraction prompt did not say that `invoice_id`
 excludes the word "INVOICE", and v2 did not end with "Reply with the label only." Two lines of
-prompt, found by reading failures, doubled the pass rate. That is the loop chapter 15 teaches.
+prompt, found by reading failures, doubled the pass rate. That is the loop chapter 19 teaches.
 
 The web viewer shows the same run as a table: one row per test, one column per provider and
 prompt, every cell coloured by pass or fail, and the output underneath.
 
-![promptfoo web viewer: the results matrix](../../docs/screenshots/14-promptfoo-matrix.png)
+![promptfoo web viewer: the results matrix](../../docs/screenshots/18-promptfoo-matrix.png)
 
 ## Try this
 
@@ -226,4 +226,4 @@ expect.
 Varma looks at the matrix for a long time. "Before you fix anything, find out what is failing. A
 failing test is evidence too."
 
-**Next:** [Chapter 15: The test that would not pass](../15-reading-eval-results/README.md)
+**Next:** [Chapter 19: The test that would not pass](../19-reading-eval-results/README.md)

@@ -7,8 +7,6 @@
     ref: BIT-3307
     ledger_total: 5450.0
     ledger_payee: Bayline IT
-  options:
-    transform: output.replace(/```(json)?/g, '').trim()
   assert:
   - type: is-json
     metric: valid_json
@@ -26,8 +24,6 @@
     ref: GTS-1182
     ledger_total: 14820.0
     ledger_payee: Gulf Tug Services
-  options:
-    transform: output.replace(/```(json)?/g, '').trim()
   assert:
   - type: is-json
     metric: valid_json
@@ -45,8 +41,6 @@
     ref: HCS-0554
     ledger_total: 3180.0
     ledger_payee: Harbour Cleaning Services
-  options:
-    transform: output.replace(/```(json)?/g, '').trim()
   assert:
   - type: is-json
     metric: valid_json
@@ -64,8 +58,6 @@
     ref: KFS-7710
     ledger_total: 38140.5
     ledger_payee: Kestrel Fuel Supply
-  options:
-    transform: output.replace(/```(json)?/g, '').trim()
   assert:
   - type: is-json
     metric: valid_json
@@ -83,8 +75,6 @@
     ref: MCH-0291
     ledger_total: 22600.0
     ledger_payee: Meridian Crane Hire
-  options:
-    transform: output.replace(/```(json)?/g, '').trim()
   assert:
   - type: is-json
     metric: valid_json
@@ -102,8 +92,6 @@
     ref: NW-0388
     ledger_total: 62500.0
     ledger_payee: Northwind Freight Ltd
-  options:
-    transform: output.replace(/```(json)?/g, '').trim()
   assert:
   - type: is-json
     metric: valid_json
@@ -121,8 +109,6 @@
     ref: NW-0402
     ledger_total: 71200.0
     ledger_payee: Northwind Freight Ltd
-  options:
-    transform: output.replace(/```(json)?/g, '').trim()
   assert:
   - type: is-json
     metric: valid_json
@@ -140,8 +126,6 @@
     ref: NW-0419
     ledger_total: 9400.0
     ledger_payee: Northwind Freight Ltd
-  options:
-    transform: output.replace(/```(json)?/g, '').trim()
   assert:
   - type: is-json
     metric: valid_json

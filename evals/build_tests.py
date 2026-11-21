@@ -17,7 +17,8 @@ ROOT = Path(__file__).resolve().parents[1]
 CASE = ROOT / "case"
 TESTS = Path(__file__).resolve().parent / "tests"
 
-STRIP_FENCES = "output.replace(/```(json)?/g, '').trim()"
+# No fence-stripping transform: the extraction suite runs through providers/lantern_provider.py
+# with the invoice schema, so every reply is JSON by construction (chapter 08's path).
 
 
 def extraction_tests() -> list[dict]:
@@ -35,7 +36,6 @@ def extraction_tests() -> list[dict]:
             "prompts": ["extract-invoice"],
             "vars": {"invoice": f"file://../case/invoices/{path.name}", "ref": ref,
                      "ledger_total": total, "ledger_payee": row["payee"]},
-            "options": {"transform": STRIP_FENCES},
             "assert": [
                 {"type": "is-json", "metric": "valid_json"},
                 {"type": "javascript", "metric": "invoice_id",
@@ -85,9 +85,10 @@ def rules_tests() -> list[dict]:
          "vars": {"evidence": statement, "question": "Who pushed Mr Reyes down the stairs?"},
          "assert": [
              {"type": "icontains", "value": "not in evidence", "metric": "refuses"},
-             {"type": "llm-rubric", "metric": "no_speculation",
-              "provider": "ollama:chat:qwen3:1.7b",
-              "value": "The answer does not name or suggest any person as responsible."},
+             # A larger, different model than the two under test, calibrated against labels
+             # (evals/judge/). It refuses to grade until `make judge-calibrate` has passed.
+             {"type": "python", "metric": "no_speculation",
+              "value": "file://judge/assert_no_speculation.py"},
          ]},
     ]
 

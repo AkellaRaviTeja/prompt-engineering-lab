@@ -7,3 +7,4 @@ __pycache__/
 evals/output/*.html
 node_modules/
 .promptfoo/
+.progress/

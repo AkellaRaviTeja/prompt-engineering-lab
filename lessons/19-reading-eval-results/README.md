@@ -1,4 +1,4 @@
-# Chapter 15: The test that would not pass
+# Chapter 19: The test that would not pass
 
 **Concept:** reading eval results: pass rates, the matrix, named metrics, comparing prompts and
 models, reading a single failure, and telling a bad prompt from a bad test from bad data.
@@ -32,30 +32,30 @@ A pass rate tells you whether to look. Only the individual failures tell you wha
 
 ## How it works
 
-The script reads `evals/output/results.json` from chapter 14 and walks the six steps above, then checks LANTERN's own summary of the audit log against the log itself. The web
+The script reads `evals/output/results.json` from chapter 18 and walks the six steps above, then checks LANTERN's own summary of the audit log against the log itself. The web
 viewer (`make eval-view`) shows the same data interactively, and the screenshots below are from it.
 
-![Triage: whose fault is a failing test?](../../docs/diagrams/15-failure-triage.svg)
+![Triage: whose fault is a failing test?](../../docs/diagrams/19-failure-triage.svg)
 
 **The matrix view.** One row per test, one column per provider and prompt pair. Read along a row
 to compare models and prompts on the same input. Read down a column to see one configuration's
 weak spots.
 
-![promptfoo results matrix](../../docs/screenshots/15-promptfoo-matrix.png)
+![promptfoo results matrix](../../docs/screenshots/19-promptfoo-matrix.png)
 
 **Filtering failures.** The viewer's display filter can show failures only. With 70 cells, the
 handful of red ones are what deserve your time.
 
-![promptfoo filtered to failures](../../docs/screenshots/15-promptfoo-failures.png)
+![promptfoo filtered to failures](../../docs/screenshots/19-promptfoo-failures.png)
 
 **One failure in detail.** Open a cell to see the full prompt as sent, the raw output, and each
 assertion with its own pass or fail and reason.
 
-![promptfoo detail for NW-0419: prompt and output](../../docs/screenshots/15-promptfoo-nw0419.png)
+![promptfoo detail for NW-0419: prompt and output](../../docs/screenshots/19-promptfoo-nw0419.png)
 
 The Evaluation tab of the same cell: two assertions pass, one fails, with the exact expression.
 
-![promptfoo detail for NW-0419: assertions](../../docs/screenshots/15-promptfoo-nw0419-assertions.png)
+![promptfoo detail for NW-0419: assertions](../../docs/screenshots/19-promptfoo-nw0419-assertions.png)
 
 ## The nuances
 
@@ -108,16 +108,16 @@ LANTERN said on 22 April, with which prompt, the answer is an eval id, not a rec
 
 ## Run it
 
-Run chapter 14 first (it produces `evals/output/results.json`), then:
+Run chapter 18 first (it produces `evals/output/results.json`), then:
 
 ```bash
-make lesson N=15
+make lesson N=19
 make eval-view   # the same results in the browser
 ```
 
 ## What you should see
 
-![Chapter 15 terminal output](../../docs/screenshots/15-reading-eval-results.png)
+![Chapter 19 terminal output](../../docs/screenshots/19-reading-eval-results.png)
 
 What the script found in the run captured here (34 of 70 cells passed):
 

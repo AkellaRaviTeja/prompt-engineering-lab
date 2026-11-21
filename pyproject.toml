@@ -11,11 +11,15 @@ dependencies = [
     "pyyaml>=6.0",
     "rich>=13.7",
     "python-dotenv>=1.0",
+    "opentelemetry-api>=1.27",
+    "opentelemetry-sdk>=1.27",
 ]
 
 [project.optional-dependencies]
 # Optional cloud providers. LANTERN runs on Ollama; these exist for comparison only.
-cloud = ["anthropic>=0.40", "openai>=1.50", "google-genai>=1.0"]
+cloud = ["anthropic>=2.4", "openai>=1.50", "google-genai>=1.0"]
+# JupyterLab, for the notebook version of each lesson (make notebook N=05).
+notebooks = ["jupyterlab>=4.2", "ipykernel>=6.29"]
 
 [dependency-groups]
 dev = ["pytest>=8.0", "ruff>=0.6", "matplotlib>=3.9", "playwright>=1.48"]
@@ -30,11 +34,12 @@ packages = ["src/lantern"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+extend-exclude = ["lessons/*/lesson.ipynb"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "lessons", "capstone"]
 markers = ["live: needs a running Ollama with the configured models"]
-addopts = "-m 'not live'"
+addopts = "-m 'not live' --import-mode=importlib"

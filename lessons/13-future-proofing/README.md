@@ -96,7 +96,7 @@ version for anything you rely on.
 
 **8. The safety net is the eval, not the prompt.** No wording survives every model. What survives is
 a suite that runs every prompt on the new model before you switch and tells you what broke. That
-is chapter 14.
+is chapter 18.
 
 ## Run it
 
@@ -147,4 +147,4 @@ contract was met in shape but broken in substance. Only a test would have caught
 Varma initials the changelog. "Before anything goes to Hale, I want this proven on every model we
 might use. Not demonstrated. Proven."
 
-**Next:** [Chapter 14: Proven, not demonstrated](../14-evals-with-promptfoo/README.md)
+**Next:** [Chapter 18: Proven, not demonstrated](../18-evals-with-promptfoo/README.md)

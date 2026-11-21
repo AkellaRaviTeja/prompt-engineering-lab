@@ -12,7 +12,7 @@ Learn prompt engineering by working a real case on a local language model.
 > chapters to find out what happened.
 
 Every chapter teaches one prompt engineering concept. Every example runs on that chapter's
-evidence. By chapter 15 you will have used every technique in this lab to answer the case's first
+evidence. By chapter 19 you will have used every technique in this lab to answer the case's first
 question, and found the thread that leads into Case File 02.
 
 ## What you will learn
@@ -32,8 +32,8 @@ question, and found the thread that leads into Case File 02.
 | [11](lessons/11-personas/README.md) | Personas | Rehearsing the interview against defence counsel |
 | [12](lessons/12-choosing-a-model/README.md) | How to choose a model | Three models, one workstation, which can the case trust? |
 | [13](lessons/13-future-proofing/README.md) | Future-proofing prompts | Headquarters is replacing LANTERN's models next quarter |
-| [14](lessons/14-evals-with-promptfoo/README.md) | Evals with promptfoo | Proving the pipeline before anything goes to court |
-| [15](lessons/15-reading-eval-results/README.md) | Reading eval results | One test fails on every model, the same way |
+| [18](lessons/18-evals-with-promptfoo/README.md) | Evals with promptfoo | Proving the pipeline before anything goes to court |
+| [19](lessons/19-reading-eval-results/README.md) | Reading eval results | One test fails on every model, the same way |
 
 Each chapter's README has the same shape: **the scene**, **the concept**, **how it works** (with
 diagrams), **the nuances** (every subtle point, drawn where a picture helps), **run it**, **what you

@@ -94,7 +94,7 @@ licences with use restrictions. Check before anything leaves the lab.
 
 **9. Frontier versus small is not either-or.** A common production shape is a small local model for
 the bulk of the work, with the hard or high-stakes cases sent to a larger model. The large one may
-be a cloud model where policy allows. The eval in chapter 14 is how you decide where the line goes.
+be a cloud model where policy allows. The eval in chapter 18 is how you decide where the line goes.
 
 **10. Leaderboards are someone else's tasks.** Public benchmarks measure maths olympiad problems and
 coding puzzles. Your case is sixteen messages from a dead man's phone. Measure that.

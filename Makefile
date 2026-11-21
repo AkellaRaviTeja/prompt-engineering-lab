@@ -20,8 +20,17 @@ endef
 # Recursive `=` so the check runs when a recipe uses it, after `up` has started the container.
 OLLAMA = $(shell docker ps --format '{{.Names}}' 2>/dev/null | grep -qx pel-ollama && echo "docker exec pel-ollama ollama" || echo ollama)
 
+# The tier a lesson runs on: local (Ollama, the default) or hosted (a provider's API).
+TIER ?= local
+# RECORD=1 saves a hosted run to recordings/hosted/; REPLAY=1 answers from it with no key.
+LESSON_ENV = LANTERN_TIER=$(TIER) $(if $(RECORD),LANTERN_RECORD=1) $(if $(REPLAY),LANTERN_REPLAY=1)
+# promptfoo runs the Python provider and judge with this interpreter (it needs lantern).
+export PROMPTFOO_PYTHON := $(CURDIR)/.venv/bin/python
+
 .PHONY: help setup install up up-gpu down models doctor lesson lessons shots charts diagrams \
-        eval eval-view shots-promptfoo check lint test prose structure smoke clean
+        eval eval-view shots-promptfoo check release-check hosted-check lint test prose structure \
+        smoke clean quiz exercise exercise-reset hint solution challenge progress notebooks \
+        notebooks-check notebook judge-calibrate capstone capstone-solution capstone-live
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -47,9 +56,9 @@ models: ## Pull the three LANTERN models
 doctor: ## Check Ollama, models and config
 	uv run python scripts/doctor.py
 
-lesson: ## Run one lesson: make lesson N=05
+lesson: ## Run one lesson: make lesson N=05 [TIER=hosted] [RECORD=1 | REPLAY=1]
 	@test -n "$(N)" || (echo "usage: make lesson N=01" && exit 2)
-	uv run python lessons/$(N)-*/run.py $(ARGS)
+	$(LESSON_ENV) uv run $(if $(filter hosted,$(TIER)),--extra cloud) python lessons/$(N)-*/run.py $(ARGS)
 
 lessons: ## Run every lesson in order
 	@for d in lessons/[0-9][0-9]-*/; do uv run python $$d/run.py || exit 1; done
@@ -68,7 +77,10 @@ diagrams: ## Render the D2 diagrams in docs/diagrams to SVG
 eval: ## Run the promptfoo evals against the local models
 	cd evals && $(PROMPTFOO) eval --no-cache -c promptfooconfig.yaml --output output/results.json; \
 	 status=$$?; cd .. && uv run python scripts/clean_eval_output.py; \
-	 if [ $$status -eq 100 ]; then echo "eval: finished, some tests failed (expected: chapter 15 reads them)"; status=0; fi; exit $$status
+	 if [ $$status -eq 100 ]; then echo "eval: finished, some tests failed (expected: chapter 19 reads them)"; status=0; fi; exit $$status
+
+judge-calibrate: ## Check the eval's judge (qwen3:4b) against labelled answers, live
+	uv run python evals/judge/calibrate.py
 
 eval-view: ## Open the promptfoo results viewer at http://localhost:15500
 	cd evals && $(PROMPTFOO) view --yes
@@ -78,8 +90,14 @@ shots-promptfoo: ## Screenshot the promptfoo viewer (run `make eval-view` in ano
 
 check: lint test prose structure ## Every offline gate: lint, tests, prose, structure
 
+release-check: check notebooks-check ## Every gate, notebooks current, practice and capstone complete
+	uv run python scripts/check_lessons.py --release
+
+hosted-check: ## Live, needs a key: chapter 08 end to end on the hosted tier, checked
+	uv run --extra cloud python scripts/hosted_check.py
+
 lint: ## Ruff
-	uv run ruff check src scripts lessons tests
+	uv run ruff check src scripts lessons tests evals capstone conftest.py
 
 test: ## Unit tests (no model needed)
 	uv run pytest -q
@@ -92,6 +110,46 @@ structure: ## Every lesson has the required sections and a run.py
 
 smoke: ## Live tests against Ollama
 	uv run pytest -q -m live
+
+quiz: ## The chapter check, with why after each answer: make quiz N=05
+	@uv run python scripts/learn.py quiz $(N)
+
+exercise: ## Grade your practice/exercise.py, offline: make exercise N=05
+	@uv run python scripts/learn.py exercise $(N)
+
+exercise-reset: ## Put a chapter's exercise.py back to the starting stub: make exercise-reset N=05
+	git checkout -- lessons/$(N)-*/practice/exercise.py
+
+hint: ## The next hint for a chapter's exercise: make hint N=05
+	@uv run python scripts/learn.py hint $(N)
+
+solution: ## The reference solution, once you have tried: make solution N=05
+	@uv run python scripts/learn.py solution $(N) $(ARGS)
+
+challenge: ## Break-it challenges, checked against your latest run: make challenge N=05 [TIER=hosted]
+	@LANTERN_TIER=$(TIER) ID=$(ID) uv run python scripts/learn.py challenge $(N)
+
+progress: ## Every chapter: predictions, check, exercise, challenges
+	@uv run python scripts/learn.py progress
+
+notebooks: ## Build lessons/NN-*/lesson.ipynb from each chapter's README, run.py and practice
+	uv run python scripts/build_notebooks.py
+
+notebooks-check: ## Fail if a committed notebook is out of date
+	uv run python scripts/build_notebooks.py --check
+
+notebook: ## Open a chapter's notebook in JupyterLab: make notebook N=05
+	@test -n "$(N)" || (echo "usage: make notebook N=05" && exit 2)
+	uv run --extra notebooks jupyter lab lessons/$(N)-*/lesson.ipynb
+
+capstone: ## Grade your capstone/work/ offline against the capstone tests
+	LANTERN_CAPSTONE=learner uv run pytest -q capstone/tests
+
+capstone-solution: ## Run the capstone tests against the reference solution
+	uv run pytest -q capstone/tests
+
+capstone-live: ## Run your capstone pipeline live and check it against the recorded thresholds
+	uv run python capstone/live_check.py $(ARGS)
 
 clean: ## Remove caches
 	rm -rf .pytest_cache .ruff_cache

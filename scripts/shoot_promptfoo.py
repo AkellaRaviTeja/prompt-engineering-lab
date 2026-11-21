@@ -3,11 +3,11 @@
 Start the viewer first (`make eval-view`, port 15500), then run:
     uv run python scripts/shoot_promptfoo.py
 It opens the most recent eval, hides the variable columns (they hold file paths) and saves:
-    14-promptfoo-matrix.png   the results table, every prompt and provider
-    15-promptfoo-matrix.png   the same with pass-rate and metric charts
-    15-promptfoo-failures.png the table filtered to failures
-    15-promptfoo-nw0419.png   the detail view of one failing cell: prompt and output
-    15-promptfoo-nw0419-assertions.png  the same cell: each assertion and its result
+    18-promptfoo-matrix.png   the results table, every prompt and provider
+    19-promptfoo-matrix.png   the same with pass-rate and metric charts
+    19-promptfoo-failures.png the table filtered to failures
+    19-promptfoo-nw0419.png   the detail view of one failing cell: prompt and output
+    19-promptfoo-nw0419-assertions.png  the same cell: each assertion and its result
 """
 
 from __future__ import annotations
@@ -58,14 +58,14 @@ def main() -> int:
         page.evaluate("document.body.style.zoom = '0.7'")
 
         charts(page, show=False)
-        shot(page, "14-promptfoo-matrix", saved)
+        shot(page, "18-promptfoo-matrix", saved)
         charts(page, show=True)
-        shot(page, "15-promptfoo-matrix", saved)
+        shot(page, "19-promptfoo-matrix", saved)
 
         charts(page, show=False)
         page.get_by_role("button", name="Failures", exact=True).click()
         settle(page)
-        shot(page, "15-promptfoo-failures", saved)
+        shot(page, "19-promptfoo-failures", saved)
 
         page.get_by_role("button", name="All", exact=True).click()
         page.get_by_placeholder("Search...").fill("NW-0419")
@@ -74,10 +74,10 @@ def main() -> int:
         page.set_viewport_size({"width": 1600, "height": 1200})
         page.get_by_role("button", name="View output and test details").first.click()
         settle(page)
-        shot(page, "15-promptfoo-nw0419", saved)
+        shot(page, "19-promptfoo-nw0419", saved)
         page.get_by_role("tab", name="Evaluation").click()
         settle(page, 800)
-        shot(page, "15-promptfoo-nw0419-assertions", saved)
+        shot(page, "19-promptfoo-nw0419-assertions", saved)
         browser.close()
     for s in saved:
         print(f"saved {s.relative_to(ROOT)}")

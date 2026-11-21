@@ -1,4 +1,4 @@
-"""Chapter 14: run the promptfoo eval suite against LANTERN's models and summarise it."""
+"""Chapter 18: run the promptfoo eval suite against LANTERN's models and summarise it."""
 
 import json
 import os
@@ -22,7 +22,7 @@ from lantern.ui import (
     your_turn,
 )
 
-chapter("14", "Proven, not demonstrated", """
+chapter("18", "Proven, not demonstrated", """
 The case conference is in nine days. Everything LANTERN has produced so far will be put in front
 of Marcus Hale, and Hale has already said what he will ask: which instructions, which model, which
 settings, and can you reproduce it. A demonstration answers none of that. A demonstration is the
@@ -95,7 +95,7 @@ note(f"Overall: {stats['successes']} passed, {stats['failures']} failed, "
 note("Open the full results with `make eval-view` (http://localhost:15500).")
 
 your_turn(
-    "14",
+    "18",
     check=[
         "In the matrix, compare classify-v1 with classify-v2 on the same model. Then open "
         "evals/prompts/classify-v1.json and evals/prompts/classify-v2.json. Which lines could "
@@ -130,4 +130,4 @@ threats. And one extraction test fails on both models in exactly the same way.
 Varma looks at the matrix for a long time. "Before you fix anything, find out what is failing.
 A failing test is evidence too."
 """)
-save_shot("14-evals-with-promptfoo")
+save_shot("18-evals-with-promptfoo")
