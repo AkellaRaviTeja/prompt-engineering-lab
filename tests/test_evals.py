@@ -33,14 +33,18 @@ def test_extraction_has_no_fence_stripping_transform():
         assert "transform" not in json.dumps(t), f"{t['description']} still strips fences"
 
 
-def test_extraction_prompt_runs_only_through_the_schema_path():
-    for p in CONFIG["providers"]:
-        if "extract-invoice" in p.get("prompts", []):
-            assert p["id"] == "file://providers/lantern_provider.py"
-            schema = json.loads((EVALS / p["config"]["schema"][len("file://"):]).read_text())
+def test_every_prompt_runs_through_lantern_with_the_schema_for_extraction():
+    for name in ("promptfooconfig.yaml", "promptfooconfig.hosted.yaml"):
+        cfg = yaml.safe_load((EVALS / name).read_text())
+        assert cfg["providers"], f"{name}: no providers"
+        for p in cfg["providers"]:
+            assert p["id"] == "file://providers/lantern_provider.py", f"{name}: {p['id']}"
+            assert "prompts" not in p, f"{name}: a provider-level prompts filter drops tests"
+            ref = p["config"]["schemas"]["extract-invoice"]
+            schema = json.loads((EVALS / ref[len("file://"):]).read_text())
             assert set(schema["required"]) == {"invoice_id", "vendor", "date", "total"}
-    users = [p for p in CONFIG["providers"] if "extract-invoice" in p.get("prompts", [])]
-    assert len(users) == 2, "both models must run the extraction suite"
+    labels = [p["label"] for p in CONFIG["providers"]]
+    assert labels == ["qwen3-1.7b", "qwen3-0.6b"], "both models run every suite, once each"
 
 
 def test_provider_sends_the_schema_to_lantern_chat(monkeypatch):
@@ -53,7 +57,7 @@ def test_provider_sends_the_schema_to_lantern_chat(monkeypatch):
     monkeypatch.setattr(mod, "chat", model)
     out = mod.call_api(json.dumps([{"role": "user", "content": "INVOICE NW-0419"}]),
                        {"config": {"model": "qwen3:1.7b",
-                                   "schema": "file://schemas/invoice.json"}},
+                                   "schemas": {"extract-invoice": "file://schemas/invoice.json"}}},
                        {"prompt": {"label": "extract-invoice"}})
     sent = model.requests[0]
     assert sent["format"]["required"] == ["invoice_id", "vendor", "date", "total"]
@@ -63,9 +67,7 @@ def test_provider_sends_the_schema_to_lantern_chat(monkeypatch):
 
 
 def test_no_rubric_is_graded_by_a_model_under_test():
-    under_test = {p["id"].split("chat:")[-1] for p in CONFIG["providers"] if "ollama" in p["id"]}
-    under_test |= {p["config"]["model"] for p in CONFIG["providers"] if "config" in p
-                   and "model" in p["config"]}
+    under_test = {p["config"]["model"] for p in CONFIG["providers"]}
     assert judge.JUDGE_MODEL not in under_test
     for t in TESTS["rules.yaml"]:
         for a in t["assert"]:

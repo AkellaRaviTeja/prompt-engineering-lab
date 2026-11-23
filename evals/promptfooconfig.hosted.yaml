@@ -22,13 +22,8 @@ prompts:
 providers:
   - id: file://providers/lantern_provider.py
     label: claude-haiku-5-5
-    prompts: [classify-v1, classify-v2, evidence-rules]
-    config: {model: claude-haiku-5-5, tier: hosted, max_tokens: 300, prompt_version: v1}
-  - id: file://providers/lantern_provider.py
-    label: claude-haiku-5-5
-    prompts: [extract-invoice]
-    config: {model: claude-haiku-5-5, tier: hosted, schema: "file://schemas/invoice.json",
-             max_tokens: 300, prompt_version: v1}
+    config: {model: claude-haiku-5-5, tier: hosted, max_tokens: 300, prompt_version: v1,
+             schemas: {extract-invoice: "file://schemas/invoice.json"}}
 
 tests:
   - file://tests/extraction.yaml

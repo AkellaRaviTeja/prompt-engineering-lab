@@ -52,7 +52,8 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
     r = chat(
         messages,
         model=cfg.get("model"),
-        format=_schema(cfg.get("schema")),
+        # A schema per prompt label (`schemas:`), or one for every prompt (`schema:`).
+        format=_schema(cfg.get("schemas", {}).get(label, cfg.get("schema"))),
         temperature=cfg.get("temperature", 0),
         seed=cfg.get("seed", 7),
         max_tokens=cfg.get("max_tokens", 300),

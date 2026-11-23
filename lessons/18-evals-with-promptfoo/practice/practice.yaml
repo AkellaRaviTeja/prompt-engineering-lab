@@ -132,9 +132,9 @@ challenges:
       Add qwen3:4b, the judge's model, as a third model under test, and run the suite. The
       no-speculation assertion must refuse to grade it rather than mark its own work.
     change: >
-      In evals/promptfooconfig.yaml, add a provider `id: ollama:chat:qwen3:4b`,
-      `label: qwen3-4b`, `prompts: [classify-v1, classify-v2, evidence-rules]`,
-      `config: *settings`. Then make lesson N=18.
+      In evals/promptfooconfig.yaml, add a third provider
+      `id: file://providers/lantern_provider.py`, `label: qwen3-4b`,
+      `config: {<<: *settings, model: "qwen3:4b"}`. Then make lesson N=18.
     target: "providers == 3 and judge_refused_self >= 1"
     reset: git checkout evals/promptfooconfig.yaml lessons/18-evals-with-promptfoo/run.py
 

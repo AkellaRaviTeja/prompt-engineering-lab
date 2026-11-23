@@ -71,27 +71,33 @@ evals/
 `{{text}}` are Nunjucks variables filled from each test.
 
 **Providers** are the models. Both use the same settings, so the only difference is the model.
-The classification and rules prompts go to Ollama directly. The extraction prompt goes through
-`providers/lantern_provider.py`, which calls `lantern.chat` with the invoice schema: chapter 08's
-schema-constrained path, so the reply is JSON by construction. Same label, same column:
+Every prompt goes through `providers/lantern_provider.py`, which calls `lantern.chat`: the
+extraction prompt with the invoice schema (chapter 08's schema-constrained path, so the reply is
+JSON by construction), the classification and rules prompts as plain chat. Every call is logged
+with its prompt version, model, tokens and latency:
 
 ```yaml
 providers:
-  - id: ollama:chat:qwen3:1.7b
-    label: qwen3-1.7b
-    prompts: [classify-v1, classify-v2, evidence-rules]
-    config: &settings
-      temperature: 0
-      seed: 7
-      num_predict: 300
-      num_ctx: 8192
-      think: false
   - id: file://providers/lantern_provider.py
     label: qwen3-1.7b
-    prompts: [extract-invoice]
-    config: {model: "qwen3:1.7b", schema: "file://schemas/invoice.json", prompt_version: v1}
-  # ... and the same two for qwen3-0.6b
+    config: &settings
+      model: "qwen3:1.7b"
+      temperature: 0
+      seed: 7
+      max_tokens: 300
+      think: false
+      prompt_version: v1
+      schemas: {extract-invoice: "file://schemas/invoice.json"}
+  - id: file://providers/lantern_provider.py
+    label: qwen3-0.6b
+    config: {<<: *settings, model: "qwen3:0.6b"}
 ```
+
+An earlier version of this file sent the classification prompts to promptfoo's own `ollama:chat`
+provider and only the extraction prompt through `lantern.chat`, with a `prompts:` filter on each
+provider. With two providers sharing a label, promptfoo applied the filters wrongly and ran only
+the extraction suite: 32 results where 70 were due, and every suite still "green". Count the
+results an eval produced, not only how many passed.
 
 **Tests** give each variable a value and list the assertions. `prompts:` limits a test to the
 prompts it makes sense for. Without it, promptfoo would send invoices to the classifier.

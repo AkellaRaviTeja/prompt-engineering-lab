@@ -15,31 +15,26 @@ prompts:
     label: evidence-rules
 
 # Two LANTERN models. Same settings for both, so the only variable is the model.
-# The classification and rules prompts go to Ollama directly. The extraction prompt goes through
-# lantern.chat with the invoice schema (chapter 08's constrained path), so it is JSON by
-# construction and needs no transform. Same labels, so each model is one column in the viewer.
+# Every prompt goes through providers/lantern_provider.py, that is through lantern.chat: the
+# extraction prompt with the invoice schema (chapter 08's constrained path), so it is JSON by
+# construction and needs no transform; the classification and rules prompts as plain chat. Every
+# call is logged with its prompt version, model, tokens and latency.
 providers:
-  - id: ollama:chat:qwen3:1.7b
+  - id: file://providers/lantern_provider.py
     label: qwen3-1.7b
-    prompts: [classify-v1, classify-v2, evidence-rules]
     config: &settings
+      model: "qwen3:1.7b"
       temperature: 0
       seed: 7
-      num_predict: 300
-      num_ctx: 8192
+      max_tokens: 300
       think: false
-  - id: ollama:chat:qwen3:0.6b
-    label: qwen3-0.6b
-    prompts: [classify-v1, classify-v2, evidence-rules]
-    config: *settings
-  - id: file://providers/lantern_provider.py
-    label: qwen3-1.7b
-    prompts: [extract-invoice]
-    config: {model: "qwen3:1.7b", schema: "file://schemas/invoice.json", prompt_version: v1}
+      prompt_version: v1
+      schemas: {extract-invoice: "file://schemas/invoice.json"}
   - id: file://providers/lantern_provider.py
     label: qwen3-0.6b
-    prompts: [extract-invoice]
-    config: {model: "qwen3:0.6b", schema: "file://schemas/invoice.json", prompt_version: v1}
+    config:
+      <<: *settings
+      model: "qwen3:0.6b"
 
 tests:
   - file://tests/extraction.yaml

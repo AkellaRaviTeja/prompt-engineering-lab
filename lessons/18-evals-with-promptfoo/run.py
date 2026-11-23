@@ -190,8 +190,9 @@ your_turn(
         "and would you trust it on its own?",
     ],
     exercises=[
-        "In evals/promptfooconfig.yaml, under `providers:`, add `- id: ollama:chat:qwen3:4b` "
-        "with `label: qwen3-4b` and `config: *settings`. Compare the extra minutes with the "
+        "In evals/promptfooconfig.yaml, under `providers:`, add a third lantern provider with "
+        "`label: qwen3-4b` and `config: {<<: *settings, model: \"qwen3:4b\"}`. Compare the "
+        "extra minutes with the "
         "extra passes.",
         "Add finance to the label list in evals/prompts/classify-v1.json and "
         "evals/prompts/classify-v2.json. In `classification_tests()` in evals/build_tests.py, "
