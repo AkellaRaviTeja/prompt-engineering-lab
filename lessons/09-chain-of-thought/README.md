@@ -123,6 +123,31 @@ Three model calls plus some Python. About one to two minutes on a CPU.
   fits.
 - The cost table: free CoT used about 13 times the tokens of the direct answer.
 
+## On a hosted model
+
+```bash
+make lesson N=09 TIER=hosted     # needs ANTHROPIC_API_KEY in .env and `uv sync --extra cloud`
+make lesson N=09 TIER=hosted REPLAY=1   # once a run has been recorded, no key needed
+```
+
+The hosted path sends the four prompts to claude-haiku-5-5 as user turns. With `think: false` in
+the defaults, `cloud.py` sends thinking disabled, so the only chain of thought is the one written
+in the answer, as on the local tier. Claude does not take `temperature`, `top_k`, `top_p` or
+`seed`; `cloud.py` leaves out `temperature=0` and reports it. The Python step that subtracts the
+timestamps runs the same on both tiers, and no step is skipped.
+
+| Measure | Local: qwen3:1.7b, Ollama | Hosted: claude-haiku-5-5 |
+|---|---|---|
+| Direct: verdict, output tokens | "yes", 71 | not run |
+| Free CoT: verdict, output tokens | "not supported", 918 | not run |
+| Set steps: verdict, output tokens | "not supported", 215 (step 4 wrote 16 instead of 5) | not run |
+| Model reads, program reasons | 16.1 minutes elapsed, 11.1 unaccounted | not run |
+| Free CoT tokens against direct | about 13 times | not run |
+
+What the hosted run will test: whether the wrong direct "yes" and the slip in step 4 are
+small-model effects. That free CoT costs many times the tokens of a direct answer, and that
+letting code do the arithmetic gives the answer you can defend, should hold on both.
+
 ## Try this
 
 1. Remove the `rows="R. Malhotra only"` filter and give all eleven badge rows. Which steps fail

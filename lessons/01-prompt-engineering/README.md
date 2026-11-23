@@ -116,6 +116,30 @@ prompt at temperature 0. Both replies show the token counts underneath.
   same line. That is your first lesson in not trusting LANTERN, and the reason the rule asks for
   quotes.
 
+## On a hosted model
+
+```bash
+make lesson N=01 TIER=hosted     # needs ANTHROPIC_API_KEY in .env and `uv sync --extra cloud`
+make lesson N=01 TIER=hosted REPLAY=1   # once a run has been recorded, no key needed
+```
+
+The hosted path sends both prompts to claude-haiku-5-5 (the `default` alias in `config.yaml`) as
+plain user turns: this chapter uses no system prompt, no schema and no thinking, and with
+`think: false` in the defaults `cloud.py` sends thinking disabled. Claude does not take
+`temperature`, `top_k`, `top_p` or `seed`, so the precise prompt's `temperature=0` is left out and
+reported on the console (see `src/lantern/cloud.py`). No step is skipped on this tier.
+
+| Measure | Local: qwen3:1.7b, Ollama | Hosted: claude-haiku-5-5 |
+|---|---|---|
+| Time the vague reply invented | "approximately 22:52" | not run |
+| Gap the precise reply found | 12 minutes, 23:40 to 23:52 | not run |
+| "Twenty to twelve" read as, with the rule | 23:40 | not run |
+| Paraphrase that changed a fact | "no loading after 23:00" (quote says 21:00) | not run |
+
+What the hosted run will test: whether the invented time and the paraphrase that changed 21:00
+are small-model effects that a larger model avoids. That the vague prompt gives an answer you
+cannot check, and that the shift rule is needed for "twenty to twelve", should hold on both.
+
 ## Try this
 
 1. Remove the `<statement>` tags and rerun. Does the format still hold?

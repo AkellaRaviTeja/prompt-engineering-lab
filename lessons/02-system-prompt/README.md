@@ -150,6 +150,32 @@ What the 1.7B model did in the run captured above:
 - **The override**: "ORDERS STAND." followed immediately by an accusation of Petrov and a wrong
   claim that his level 2 badge opens the bottom door of stairwell C.
 
+## On a hosted model
+
+```bash
+make lesson N=02 TIER=hosted     # needs ANTHROPIC_API_KEY in .env and `uv sync --extra cloud`
+make lesson N=02 TIER=hosted REPLAY=1   # once a run has been recorded, no key needed
+```
+
+The hosted path sends the standing orders as Claude's native `system` parameter, separate from
+the user turn, which is the placement this chapter teaches. Claude does not take `temperature`,
+`top_k`, `top_p` or `seed`, so every `temperature=0` in run.py is left out and reported by
+`cloud.py`, and with `think: false` in the defaults thinking is sent disabled. On this tier the
+step that prints how the orders become text shows only Qwen3's template, with a note: the provider
+does not publish the text it renders from the `system` field. Version 3's `enforce()` runs in
+Python and is the same on both tiers.
+
+| Measure | Local: qwen3:1.7b, Ollama | Hosted: claude-haiku-5-5 |
+|---|---|---|
+| No system prompt, "Who pushed Reyes?" | named Ivan Petrov, invented "around 22:30" | not run |
+| Version 1, sentences after NOT IN EVIDENCE | four more, where rule 3 allows one | not run |
+| Answerable question, both versions | found the two minute walk | not run |
+| The override | "ORDERS STAND.", then accused Petrov | not run |
+
+What the hosted run will test: whether naming a suspect without evidence, running past the
+one-sentence limit and giving in to the override are small-model effects. That a rule the model
+may break has to be checked in code, as `enforce()` does, should hold on both.
+
 ## Try this
 
 1. Remove rule 5 and rule 6 from the orders. Does the override get easier?

@@ -140,6 +140,34 @@ What to read from it:
   this lesson used wall-clock time while other jobs were swapping models in and out, and reported
   31 seconds per message for the smallest model. Measure the thing, not the queue.
 
+## On a hosted model
+
+```bash
+make lesson N=12 TIER=hosted     # needs ANTHROPIC_API_KEY in .env and `uv sync --extra cloud`
+make lesson N=12 TIER=hosted REPLAY=1   # once a run has been recorded, no key needed
+```
+
+On the hosted path the three aliases resolve per `config.yaml`: `small` and `default` are both
+claude-haiku-5-5 and `large` is claude-sonnet-5-5, so the first two rows of the scorecard are the
+same model. The classification and extraction calls pass `format=`, which becomes Claude's native
+structured outputs through `output_config` with a strict schema. Run.py notes at the start that
+memory and cold start are Ollama's: a hosted provider does not report the memory a model occupies
+and there is no model to load, so those columns read n/a, and the scorecard adds cost per correct
+answer. Claude does not take `temperature`, `top_k`, `top_p` or `seed`; `cloud.py` leaves out
+`temperature=0` and reports it.
+
+| Measure | Local: qwen3:1.7b, Ollama, CPU-only laptop | Hosted: claude-haiku-5-5 |
+|---|---|---|
+| Classify (16) | 69% | not run |
+| Extract NW-0402 | yes | not run |
+| Latency per message | 0.34 s | not run |
+| Tokens/s | 33.1 | not run |
+
+What the hosted run will test: whether the missed quiet threats (M07 and M12) and the false
+alarms are small-model effects. That one task is not enough to rank models, and that a person
+should check threat sorting, should hold on both. Hosted latency includes the network, so it
+measures something different from Ollama's own timing.
+
 ## Try this
 
 1. Add a fourth candidate with `ollama pull` (for example `llama3.2:3b` or `gemma3:4b`) and add it to

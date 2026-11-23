@@ -132,6 +132,33 @@ order, trimmed to a token budget when they do not fit. Step 6 shows the trim at 
   summary says the margin note was on a photocopied ledger page. The model blended two documents.
 - With the `<computed>` block in the context, the total comes back as 227,700.00.
 
+## On a hosted model
+
+```bash
+make lesson N=04 TIER=hosted     # needs ANTHROPIC_API_KEY in .env and `uv sync --extra cloud`
+make lesson N=04 TIER=hosted REPLAY=1   # once a run has been recorded, no key needed
+```
+
+The hosted path sends the assembled messages to Claude with the rules as its native `system`
+parameter. Three steps are skipped on this tier, each with a note: step 1 (the chat template) and
+step 3 (the rendered briefing), because the provider does not publish its template or the text it
+renders from the messages, and step 4's raw comparison, because it sends the rendered string to
+Ollama's `/api/generate` with `raw=true` and a hosted API takes messages only. Step 4 then shows
+the chat endpoint's answer alone. Claude does not take `temperature`, `top_k`, `top_p` or `seed`;
+`cloud.py` leaves out `temperature=0` and reports it.
+
+| Measure | Local: qwen3:1.7b, Ollama | Hosted: claude-haiku-5-5 |
+|---|---|---|
+| Tokens used of 8,192 | about 1,177 | not run |
+| Total, chat endpoint | 227,700 | not run |
+| Total, raw rendered text | 255,700 | not run |
+| Total, with the `<computed>` block | 227,700.00 | not run |
+
+What the hosted run will test: whether the blended margin note, which the model placed on an
+invoice instead of the ledger page, is a small-model effect. That a total computed in code and put
+in the context is the one to trust should hold on both. The raw-text total has no hosted
+counterpart.
+
 ## Try this
 
 1. Remove the tags (`<evidence>`, `<file>`) and send the same text. Does the model still cite file

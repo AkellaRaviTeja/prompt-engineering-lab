@@ -139,6 +139,33 @@ Voss was at a dinner, Petrov was on the hut camera, and the lift contractor's co
 18:00. Brightwater & Co held OVR-AUD-02, and anyone Brightwater shared it with could have used it.
 Malhotra's badge was not used, but he cannot be ruled out of knowing the code.
 
+## On a hosted model
+
+```bash
+make lesson N=10 TIER=hosted     # needs ANTHROPIC_API_KEY in .env and `uv sync --extra cloud`
+make lesson N=10 TIER=hosted REPLAY=1   # once a run has been recorded, no key needed
+```
+
+On the hosted path `think=True` becomes Claude's adaptive thinking (`display: summarized`) and
+`think=False` becomes thinking disabled on claude-haiku-5-5, as `thinking_off` in `config.yaml`
+sets. `--large` resolves to claude-sonnet-5-5. Thinking tokens still come out of the same
+`max_tokens`, so the 300-token step tests the same budget problem. The thinking text Claude
+returns is a summary, so the thinking characters are not comparable with Qwen's full trace. Claude
+does not take `temperature`, `top_k`, `top_p` or `seed`: the 0.6 and 0 in `run()` are left out and
+reported by `cloud.py`, so token counts will not repeat run to run as they do locally. No step is
+skipped.
+
+| Measure | Local: qwen3:1.7b, Ollama, 28-core CPU | Hosted: claude-haiku-5-5 |
+|---|---|---|
+| Think off, 700: answer chars, tokens out | 2,180, 700 | not run |
+| Think on, 300: thinking chars, answer chars | 992, 0 | not run |
+| Think on, 4000: thinking chars, tokens out | 10,500, 3,725 | not run |
+| Think on, 4000: answer chars, seconds | 1,618, 164 | not run |
+
+What the hosted run will test: whether thinking at length and still reaching the wrong reading
+(everyone COULD NOT) is a small-model effect. That thinking tokens are spent from the same budget
+as the answer, so a small budget can return an empty answer, should hold on both.
+
 ## Try this
 
 1. Run `--large` with step 3's budget raised to 8000. How long does it take, and is the answer

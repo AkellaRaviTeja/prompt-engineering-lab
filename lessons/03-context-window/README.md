@@ -133,6 +133,32 @@ make lesson N=03 ARGS=--no-predict  # no stops for predictions
   said the entry was dated Tuesday 03 February. The notes date it Friday 06 February. The quote
   was right and the date beside it was not, so check both.
 
+## On a hosted model
+
+```bash
+make lesson N=03 TIER=hosted     # needs ANTHROPIC_API_KEY in .env and `uv sync --extra cloud`
+make lesson N=03 TIER=hosted REPLAY=1   # once a run has been recorded, no key needed
+```
+
+The hosted path has no `num_ctx`: `context_length()` returns the 1,000,000-token window documented
+for claude-haiku-5-5 (`hosted.anthropic.context_window` in `config.yaml`), and the provider rejects
+a prompt that does not fit rather than cutting it. Run.py says so before step 2: on this tier
+steps 2 and 3 send the same thing and nothing is dropped, so the 2,048-token truncation cannot be
+reproduced. The head-and-tail and chunking steps still run. Claude does not take `temperature`,
+`top_k`, `top_p` or `seed`; `cloud.py` leaves out `temperature=0` and reports it.
+
+| Measure | Local: qwen3:1.7b, Ollama | Hosted: claude-haiku-5-5 |
+|---|---|---|
+| Trained context length (tokens) | 40,960 | not run |
+| Prompt tokens seen, `num_ctx = 2048` | 1,026 | not run |
+| Prompt tokens seen, `num_ctx = 8192` | 6,370 | not run |
+| Prompt tokens, head and tail | 3,202 | not run |
+
+What the hosted run will test: whether "NOT FOUND" with the whole file in view, and the wrong date
+beside a correct quote in chunk 2, are small-model effects of reading a long prompt. That cutting
+the middle out removes the answer, and that a quote and the facts beside it must both be checked,
+should hold on both.
+
 ## Try this
 
 1. Change the question to "What does Reyes say about Northwind?" (drop "Freight", add nothing
