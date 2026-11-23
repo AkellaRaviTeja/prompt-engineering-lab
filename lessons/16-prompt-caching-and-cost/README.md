@@ -70,7 +70,7 @@ The prices are in `config.yaml`, copied from the provider's price page and check
 ## The nuances
 
 **1. Locally, the cost is time, and the time is the prompt.** One classification call sends
-1,511 prompt tokens and gets 2 back. Of a cold call's 1.44 seconds, 1.40 went on reading the
+1,507 prompt tokens and gets 2 back. Of a cold call's 1.62 seconds, 1.42 went on reading the
 prompt. A local call costs nothing in money, so the bill you can cut is latency, and the part of
 the latency you can cut is the prompt.
 
@@ -79,7 +79,7 @@ them up to the first byte that differs. With the guide first and the message las
 48 calls reused the guide; with a request ID and a time in the first line, none did, though the
 guide was byte for byte the same in both. Order decides it, not content.
 
-**3. Ollama counts what it processed, not what you sent.** `prompt_eval_count` reported 1,511
+**3. Ollama counts what it processed, not what you sent.** `prompt_eval_count` reported 1,507
 tokens for a fresh prefix and 1,450 for the same prefix again: the difference is tokens it did not
 have to process. A hosted bill counts every input token and reports the cached ones separately
 (`cache_read_input_tokens`), so compare like with like.
@@ -129,11 +129,11 @@ A real run on `qwen3:1.7b`, local tier, Apple M1 Pro 16 GB, temperature 0:
 
 | layout | cache hits | prompt tokens processed (median) | prompt processing s (median) | whole call s (median) | run s | correct |
 |---|---|---|---|---|---|---|
-| fixed part first | 48/48 | 1,448 | 0.057 | 0.10 | 5 | 34/48 |
-| request ID first | 0/48 | 1,506 | 1.371 | 1.45 | 70 | 34/48 |
+| fixed part first | 48/48 | 1,448 | 0.067 | 0.10 | 5 | 34/48 |
+| request ID first | 0/48 | 1,505 | 1.362 | 1.47 | 72 | 34/48 |
 
-- **Step 3**: the same 48 messages and the same guide take 5 seconds in one layout and 70 in the
-  other. Prompt processing is 23.9 times faster when the guide comes first.
+- **Step 3**: the same 48 messages and the same guide take 5 seconds in one layout and 72 in the
+  other. Prompt processing is 20.3 times faster when the guide comes first.
 - **Step 4**: two consecutive prompts share 5,903 characters when the fixed part is first and 11
   when a request ID is first. Swapping the tool order kept 5 of 5 hits on this model.
 - **Step 5** is labelled an estimate on the screen: price arithmetic from config.yaml on this
@@ -216,7 +216,7 @@ guide is reused again.
 
 On LANTERN a call costs nothing but time, and most of the time is the prompt. With the sorting
 guide first and the message last, 48 of 48 calls reused the cached guide and prompt processing was
-23.9 times faster. A request ID in the first line cut the reuse to 0, with the same guide and the
+20.3 times faster. A request ID in the first line cut the reuse to 0, with the same guide and the
 same answers. The hosted cost is price arithmetic until a hosted run measures it, and the screen
 says so.
 
