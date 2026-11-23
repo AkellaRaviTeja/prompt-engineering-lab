@@ -1,0 +1,28 @@
+name: extract-invoice
+version: v1
+description: Chapter 08's extraction, with the field rules written into the prompt.
+system: |
+  You extract fields from supplier invoices for a police financial inquiry.
+  Copy every value exactly as it is printed. Reply with JSON only.
+user: |
+  Extract these fields from the invoice:
+  - invoice_id: the code printed after the word INVOICE, without the word itself
+  - vendor: the supplier's name from the letterhead at the top
+  - date: the invoice date as YYYY-MM-DD
+  - total: the total due as a plain number, with no currency and no thousands separators
+
+  <invoice>
+  {{invoice}}
+  </invoice>
+schema:
+  type: object
+  properties:
+    invoice_id: {type: string, description: "The code printed after the word INVOICE, e.g. GTS-1182"}
+    vendor: {type: string, description: "The supplier's name from the letterhead"}
+    date: {type: string, description: "Invoice date as YYYY-MM-DD"}
+    total: {type: number, description: "The total due, without currency or thousands separators"}
+  required: [invoice_id, vendor, date, total]
+settings:
+  temperature: 0
+  max_tokens: 300
+  think: false

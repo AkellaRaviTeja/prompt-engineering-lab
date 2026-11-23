@@ -1,0 +1,150 @@
+# Chapter 14 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=14).
+chapter: "14"
+title: Ask the ledger
+
+objectives:
+  - Explain what happens, message by message, when a model calls a tool, and who runs it.
+  - Write the tool loop with argument validation, errors returned to the model, and a step cap.
+  - Compare a hand-built JSON protocol with native tool calling on the same questions, by measurement.
+  - Say why a tool's "not found" must go back to the model as a result, not be hidden or raised.
+
+quiz:
+  - q: When LANTERN "calls" ledger_lookup with native tool calling, who runs the function?
+    options:
+      - The model runs it inside Ollama.
+      - Ollama reads case/ledger.csv on the model's behalf.
+      - Your code. The model only returns the tool's name and arguments as data.
+      - Nobody; the model predicts what the function would return.
+    answer: c
+    why: >
+      A model can only produce tokens. Native tool calling means the API returns those tokens
+      already parsed into a name and arguments. Your loop decides whether to run anything, runs
+      it, and sends the result back. That is also why every safeguard in chapter 15 lives in
+      your code.
+
+  - q: What does native tool calling give you that the hand-built JSON protocol does not?
+    options:
+      - The model becomes able to read files.
+      - Calls arrive already parsed and separate from the text, the provider trains the model on the format, and a reply can carry several calls with ids.
+      - The arguments are always correct.
+      - The model no longer needs a schema.
+    answer: b
+    why: >
+      By hand, the protocol is a request in prose and your parser copes with whatever comes back.
+      Natively, the format is part of the API and of the model's training. Neither guarantees the
+      arguments are right, which is why the loop still validates them.
+
+  - q: 'The schema allows only references like NW-0388. The model sends {"reference": "nw 388"}. What should the loop do?'
+    options:
+      - Run the function anyway and let it fail.
+      - Crash, so the bug is noticed.
+      - Return an error result naming the problem, without running the function, so the model can correct itself.
+      - Fix the argument silently and run it.
+    answer: c
+    why: >
+      Validation happens before anything runs. An error the model can read ("does not match
+      ^[A-Z]{2,3}-\d{4}$") is usually enough for it to try again correctly. Silent fixing hides
+      what the model asked for, which matters when Hale asks to see the request log.
+
+  - q: 'The ledger has no row NW-0500. Why does ledger_lookup raise LookupError, which the loop turns into {"error": ...}, instead of returning {}?'
+    options:
+      - An empty result invites the model to fill the gap with a plausible amount; an explicit error lets it say the row does not exist.
+      - Empty dictionaries cannot be sent as JSON.
+      - Ollama rejects empty tool results.
+      - It makes no difference to the model.
+    answer: a
+    why: >
+      What a tool returns is all the model knows about the world outside its weights. "No row
+      with reference NW-0500" is a fact it can report. An empty result is a silence it may
+      fill. The second challenge asks you to watch that happen.
+
+  - q: Why does the loop need a step cap?
+    options:
+      - Ollama refuses more than five calls.
+      - A model can keep asking for tools without ever answering; every turn resends the whole conversation, so an uncapped loop costs more each turn and may never end.
+      - The cap makes the answers more accurate.
+      - Tool results expire after five turns.
+    answer: b
+    why: >
+      The model decides when to stop. A cap is the code's decision instead: after max_steps model
+      calls, stop and report that there is no answer. A capped question is a failure to look at,
+      not an answer.
+
+  - q: A reply carries two calls, ledger_lookup NW-0388 and ledger_lookup NW-0402. What must each tool turn carry?
+    options:
+      - Nothing extra; the model will work out which result is which.
+      - The tool_call_id of the call it answers, so each result is paired with its request.
+      - The full question again.
+      - The model's name.
+    answer: b
+    why: >
+      With parallel calls, order alone is fragile and some providers require the pairing: the
+      hosted adapter turns each tool turn into a tool_result block for the tool_use with the
+      same id. A result that answers the wrong call is a wrong fact delivered with confidence.
+
+exercise:
+  title: Write the tool loop
+  kind: component
+  task: |
+    Open `lessons/14-tool-calling/practice/exercise.py` and write two functions:
+
+    - `validate(arguments, schema)`: the problems with a call's arguments against its JSON
+      schema (required, unknown names when `additionalProperties` is false, type, enum,
+      pattern), one message each.
+    - `run_tools(question, chat=..., tools=..., functions=..., system=..., max_steps=...)`: the
+      tool loop the lesson runs natively. The tests hand it a scripted model, so no Ollama is
+      needed. They check that:
+
+      - the conversation starts with the system prompt and the question, and every request
+        carries the tools;
+      - a valid call runs and its result goes back as a `tool` turn with the call's id;
+      - invalid arguments and unknown tools become an error result and the function never runs;
+      - a tool's `LookupError` goes back to the model as `{"error": ...}`;
+      - two calls in one reply both run, in order, each with its own id;
+      - the loop stops at `max_steps` with no answer.
+  hints:
+    - |
+      `validate` first: check `isinstance(arguments, dict)`, then loop over `schema["required"]`,
+      then over `arguments.items()`. `TYPES[want]` gives the Python type for a JSON type, and
+      `isinstance(True, int)` is True in Python, so exclude bools unless the type is "boolean".
+    - |
+      In the loop: `r = chat(messages, tools=tools)`; `if not r.tool_calls:` return the answer.
+      Otherwise make ids, `ids = [c.id or f"call_{turn}_{i}" for i, c in enumerate(r.tool_calls)]`,
+      and append one assistant turn that lists every call before appending any result.
+    - |
+      For each call: `if c.name not in functions` -> error; `elif problems := validate(...)` ->
+      error; else `try: result = functions[c.name](**c.arguments) except LookupError as e:
+      result = {"error": str(e)}`. Then append `{"role": "tool", "tool_call_id": call_id,
+      "tool_name": c.name, "content": json.dumps(result)}`.
+  after: >
+    Now run it on the real questions: `make lesson N=14 ARGS=--mine` uses your run_tools for the
+    native step, and `make challenge N=14` has a challenge for it.
+
+challenges:
+  - id: your-loop
+    title: Your loop, on the ledger
+    goal: Run the live lesson on the loop you wrote and answer at least five of the six questions natively.
+    change: "Pass the exercise first, then run `make lesson N=14 ARGS=--mine`."
+    target: "mine == true and native_correct >= 5"
+
+  - id: hide-the-error
+    title: "Break it: a silence the model fills"
+    goal: >
+      Make the tool hide "not found" and watch LANTERN answer the NW-0500 question with an amount
+      the ledger does not hold.
+    change: >
+      In lessons/14-tool-calling/run.py, make ledger_lookup return an empty dict instead of
+      raising LookupError, and remove the sentence about errors from SYSTEM.
+    target: "native_invented_missing == true"
+    reset: git checkout lessons/14-tool-calling/run.py
+
+  - id: parallel-by-hand
+    title: Parallel calls by hand
+    goal: >
+      Let the hand-built protocol ask for several tools in one reply, so it needs no more model
+      calls than native tool calling and gets at least as many answers right.
+    change: >
+      In run.py, change HAND_SYSTEM and by_hand() so a reply may hold {"calls": [...]}, a list of
+      tool requests, and every request in it is run before the next turn.
+    target: "hand_turns <= native_turns and hand_correct >= native_correct"
+    reset: git checkout lessons/14-tool-calling/run.py

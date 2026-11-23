@@ -1,0 +1,6 @@
+# The prompt version each task runs at in the live check.
+tasks:
+  extract-invoice: v1
+  classify-message: v2
+local: null
+hosted: null

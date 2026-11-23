@@ -4,26 +4,26 @@
     "accuracy": 0.375,
     "extraction_ok": false,
     "latency_s": 0.0,
-    "tokens_per_s": 1050.6040300009786,
+    "tokens_per_s": 24048.049971052533,
     "memory_gb": 0.0,
-    "cold_start_s": 0.07825133402366191
+    "cold_start_s": 0.013477374915964901
   },
   {
     "model": "qwen3:1.7b",
     "accuracy": 0.375,
     "extraction_ok": false,
     "latency_s": 0.0,
-    "tokens_per_s": 6778.511585345741,
+    "tokens_per_s": 7178.750229404184,
     "memory_gb": 0.0,
-    "cold_start_s": 0.00625008309725672
+    "cold_start_s": 0.0003406659234315157
   },
   {
     "model": "qwen3:4b",
     "accuracy": 0.375,
     "extraction_ok": false,
     "latency_s": 0.0,
-    "tokens_per_s": 1101.2105013361156,
+    "tokens_per_s": 33510.03120864854,
     "memory_gb": 0.0,
-    "cold_start_s": 0.00019749999046325684
+    "cold_start_s": 0.00023137498646974564
   }
 ]

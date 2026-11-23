@@ -1,0 +1,133 @@
+# Chapter 16 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=16).
+chapter: "16"
+title: What it costs to ask
+
+objectives:
+  - Count what one call costs in tokens, time and money, and turn it into a cost per year and per correct answer.
+  - Lay out a prompt so its long fixed part is a stable prefix, and measure what the cache saves.
+  - Find what breaks a cache, a timestamp or ID early in the prompt or a reordered tool list, before it reaches the bill.
+  - Price a hosted run from its usage, cache reads and writes and the long-prompt tier included, and label an estimate as one.
+
+quiz:
+  - q: Two layouts sent the same sorting guide and the same messages. Only one reused the cached guide. What was different?
+    options:
+      - The second layout used a different model.
+      - The second layout put a request ID and timestamp before the guide, so every prompt differed from its first line.
+      - The second layout sent the guide as a user turn.
+      - The cache was full after the first layout.
+    answer: b
+    why: >
+      A prompt cache is a prefix match. The first character that differs ends the reuse, and
+      everything after it is processed again: here, the whole guide. Put what changes after what
+      does not.
+
+  - q: With the guide cached, which part of a call still costs the full input price on a hosted model?
+    options:
+      - The whole prompt, because caching only saves time.
+      - The tokens after the cached prefix (the message) and the output tokens, which have their own price.
+      - Nothing; cached calls are free.
+      - Only the output.
+    answer: b
+    why: >
+      A cache read is billed, at a tenth of the input price in config.yaml's Haiku entry. The
+      uncached tail of the prompt pays the input price and the output pays the output price.
+      The first call pays a quarter more than input for writing the cache.
+
+  - q: Ollama reported far fewer prompt tokens for a call that reused the guide. What does that mean for a cost estimate?
+    options:
+      - The prompt really was shorter.
+      - Ollama counts the tokens it processed, not the tokens you sent; size the prompt from a cold call, as a hosted bill counts every input token.
+      - The guide was truncated.
+      - Tokens are free locally, so it does not matter.
+    answer: b
+    why: >
+      `prompt_eval_count` on a cache hit counts only the new tokens. A hosted provider reports
+      every input token and says separately how many came from the cache. Estimate from the full
+      size, or you will price a year at a fraction of what it costs.
+
+  - q: Haiku's price table has a second tier above 100,000 prompt tokens. Someone proposes saving calls by packing a day's messages into one prompt of 120,000 tokens. What happens to the price?
+    options:
+      - Only the 20,000 tokens past the line cost more.
+      - The whole request is billed at the higher tier, five times the input price in config.yaml.
+      - Nothing; long prompts are cheaper per token.
+      - The request is rejected.
+    answer: b
+    why: >
+      The tier applies to the whole request, not the tokens past the line. A request just over
+      the threshold costs far more than one just under it. Smaller requests with a cached prefix
+      are cheaper.
+
+  - q: The estimate for a year on the hosted model is computed from Qwen's token counts. Which statement is honest?
+    options:
+      - It is the hosted cost.
+      - It is price arithmetic on another model's token counts; a hosted run, which reads usage from the reply, is what measures it.
+      - It is an upper bound.
+      - It is wrong and should not be shown.
+    answer: b
+    why: >
+      Different tokenizers split the same text into different numbers of tokens. The estimate is
+      useful for the order of magnitude and for comparing layouts, and must say it is an
+      estimate. The hosted run measures it.
+
+  - q: Which change keeps a prompt cache intact?
+    options:
+      - Adding the current date to the system prompt.
+      - Building the tool list from a set, so its order can change between calls.
+      - Putting the per-request ID in the last user turn, after the fixed part.
+      - Switching to a larger model for difficult messages.
+    answer: c
+    why: >
+      The last user turn is the input and is meant to change. A date at the top, an unordered
+      tool list or a different model all change the prefix, and caches are per model as well.
+
+exercise:
+  title: Price a run, and find what would break its cache
+  kind: function
+  task: |
+    Open `lessons/16-prompt-caching-and-cost/practice/exercise.py` and write two functions. The
+    tests need no model. They check that:
+
+    `run_cost(records, prices)`, given call-log records and a price table:
+    - prices input and output per million tokens,
+    - takes cache reads and writes out of the input and prices them at their own rates,
+      falling back to the input price when a model has none,
+    - bills a request above the long-prompt threshold entirely at the higher tier,
+    - lists a model with no price as unpriced, never as free.
+
+    `cache_breakers(messages, tools, previous)`:
+    - finds timestamps, clock times, UUIDs and request IDs in the fixed part of a prompt,
+    - ignores the last user turn, which is meant to change,
+    - finds tools reordered since the previous request, and the first fixed message that changed.
+  hints:
+    - |
+      run_cost: for each record, `p = prices.get(model)`. Unpriced if missing or input is None.
+      If `"over" in p` and the input tokens exceed `p["over"]["tokens"]`, set `p = p["over"]`.
+    - |
+      The uncached input is `input - cache_read - cache_write`. Each part times its price, plus
+      output times the output price, all divided by 1e6. `p.get("cache_read", p["input"])`
+      gives the fallback.
+    - |
+      cache_breakers: the last user turn is `max(i for i, m in enumerate(messages) if m["role"]
+      == "user")`; the fixed part is `messages[:that]`. Loop over VOLATILE with `finditer`. For
+      tools, compare the lists of names: different lists with the same sorted contents moved.
+  after: >
+    Point run_cost at your own log: `from lantern import calllog`, then
+    `run_cost(calllog.read(), load_config()["prices"])`. Local calls are listed as unpriced
+    (Ollama has no price), which is exactly what the function should say.
+
+challenges:
+  - id: break-the-cache
+    title: "Break it: a date at the top"
+    goal: Make the fixed-part-first layout miss its cache on almost every call, with the guide unchanged.
+    change: >
+      In lessons/16-prompt-caching-and-cost/run.py, in stable(), put the current time with
+      seconds at the start of the system content.
+    target: "cache_hits_stable <= 5"
+    reset: git checkout lessons/16-prompt-caching-and-cost/run.py
+
+  - id: move-the-header
+    title: Keep the request ID, keep the cache
+    goal: Keep a request ID and timestamp on every call in the varying layout, and still reuse the guide on most calls.
+    change: In run.py, in varying(), move the header out of the system content to where it cannot break the prefix.
+    target: "cache_hits_varying >= 40"
+    reset: git checkout lessons/16-prompt-caching-and-cost/run.py

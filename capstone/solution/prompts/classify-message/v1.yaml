@@ -1,0 +1,16 @@
+name: classify-message
+version: v1
+description: The zero-shot question from chapter 07, with the label set enforced by the schema.
+user: |
+  Is this message a threat, logistics or personal?
+
+  {{sender}}: {{text}}
+schema:
+  type: object
+  properties:
+    label: {type: string, enum: [threat, logistics, personal]}
+  required: [label]
+settings:
+  temperature: 0
+  max_tokens: 50
+  think: false

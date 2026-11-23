@@ -1,0 +1,141 @@
+# Chapter 17 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=17).
+chapter: "17"
+title: Forty thousand messages
+
+objectives:
+  - Measure a batch the way operations will judge it, in messages per minute and p50 and p95 latency, and read the numbers back from the call log.
+  - Explain why more concurrency stops helping once the server is saturated.
+  - Write a batch runner with bounded concurrency, a timeout, retries with exponential backoff and full jitter, a retry budget, and a log event per attempt.
+  - Tell which failures are worth retrying and which are not.
+
+quiz:
+  - q: The local run at concurrency 4 sorted about as many messages a minute as at concurrency 1, and each call took longer. Why?
+    options:
+      - Python threads cannot run at the same time, so the runner itself is the limit.
+      - The local Ollama server runs one request at a time, so the extra calls wait in its queue.
+      - Four threads use four times the memory, so the model slows down.
+      - The retries in the runner fire more often at higher concurrency.
+    answer: b
+    why: >
+      Throughput is set by the slowest stage, here the server's single parallel slot. Calls sent
+      beyond what the server can run at once only wait, and that waiting shows up as latency.
+      Python's threads are fine for this work, because they spend their time waiting on the
+      network. A hosted API serves many requests at once, which is why concurrency is where its
+      throughput comes from, up to the rate limit.
+
+  - q: Which failure should the runner NOT retry?
+    options:
+      - HTTP 429, rate limited.
+      - HTTP 503, the server is overloaded.
+      - A call that got no answer within the timeout.
+      - HTTP 400, the request has a schema the provider rejects.
+    answer: d
+    why: >
+      A 400 will fail the same way every time: sending it again only spends time and quota. 429,
+      5xx, timeouts and dropped connections are transient: the same request can succeed a moment
+      later. lantern.retry raises `Transient` only for those.
+
+  - q: What does "full jitter" add to exponential backoff?
+    options:
+      - It waits a random time between 0 and the exponential cap, so clients that failed together do not all retry together.
+      - It adds one second to every wait.
+      - It doubles the number of retries.
+      - It retries immediately the first time, then backs off.
+    answer: a
+    why: >
+      If a hundred workers hit a rate limit at the same moment and all wait exactly 2, 4, 8
+      seconds, they come back at the same moment and hit it again. A random wait spreads them out.
+      The exponential cap still grows, so a long outage gets longer waits.
+
+  - q: Step 3's whole message p95 was much higher than the model call p95. What is in the gap?
+    options:
+      - The time to parse the label from the reply.
+      - The backoff waits and the stuck calls the timeout cut off, which belong to the message but not to any successful call.
+      - The call log writing to disk.
+      - The time to load the model.
+    answer: b
+    why: >
+      The call log records each successful call. A message that failed twice and then succeeded
+      also waited out two backoffs, and maybe a full timeout. Users and queues feel the whole
+      message time; report both, and alert on the tail.
+
+  - q: Why have a retry budget for the whole batch, when every call already has a retry limit?
+    options:
+      - It makes each retry faster.
+      - In an outage, every message retrying its full limit multiplies the load on a service that is already failing; the budget caps the total.
+      - Providers require one.
+      - It stops the batch at the first error.
+    answer: b
+    why: >
+      Per-call limits bound one message's cost. A budget bounds the batch's: once retries stop
+      working, the batch fails fast, the failed messages are listed, and they are run again when
+      the service is back. That is the difference between an outage and a retry storm.
+
+  - q: A healthy call on the small model takes well under a second. Which timeout is right for this batch?
+    options:
+      - The config default of 300 seconds, to be safe.
+      - A few seconds, well above the healthy p95 and far below what a stuck call would hold a worker for.
+      - 0.1 seconds, to keep latency low.
+      - No timeout; retries handle stuck calls.
+    answer: b
+    why: >
+      Too short and healthy calls are cut off and retried for nothing. Too long and one stuck
+      call holds a worker for minutes. Set it from the measured tail with a margin, and per
+      workload: a cold 4B model on a CPU needs a different number from a warm 0.6B batch.
+
+exercise:
+  title: Write the batch runner
+  kind: component
+  task: |
+    Open `lessons/17-reliable-calls-at-scale/practice/exercise.py` and write `run_batch`: the
+    runner this chapter's run.py uses. The tests hand it a scripted model, so no Ollama is
+    needed. They check that:
+
+    - every item is sent once, with its prompt, and results keep the order of the items,
+    - every call carries the timeout and the extra options,
+    - a 429 or 503 is retried with full-jitter backoff, and a retry-after hint is a floor,
+    - an item stops after its last retry and is marked failed, and the batch goes on,
+    - an error that is not Transient fails at once, without a retry,
+    - a retry budget caps retries across the whole batch,
+    - no more than `concurrency` calls are in flight at once,
+    - every attempt is logged.
+  hints:
+    - |
+      Write `one(item)` first, with no threads: a `for attempt in range(retries + 1)` loop around
+      `chat(prompt(item), timeout=timeout, **options)`, returning the result dict on success.
+      Then `with ThreadPoolExecutor(max_workers=concurrency) as pool: return list(pool.map(one,
+      items))`.
+    - |
+      `except Transient as e:` on the last attempt returns ok False. Otherwise compute
+      `wait = backoff(attempt, base, cap, rng)`, raise it to `e.retry_after` when that is set,
+      and call `sleep(wait)`. A separate `except Exception` returns ok False at once.
+    - |
+      The budget is a counter shared by every thread: `lock = threading.Lock()` and a dict
+      `{"left": retry_budget}`. Before each retry, take one under the lock; if none is left, the
+      failure is final. None means no limit.
+  after: >
+    Now run the real batch on your runner: `make lesson N=17 ARGS=--mine`. The challenge
+    `your-runner` checks that it recovered the injected faults.
+
+challenges:
+  - id: your-runner
+    title: Your runner, on the real batch
+    goal: Run the whole batch, faults and all, on the runner you wrote, and lose no more than five messages.
+    change: "Pass the exercise first, then run `make lesson N=17 ARGS=--mine`."
+    target: "mine == true and batch >= 1000 and failed <= 5"
+
+  - id: no-retries
+    title: "Break it: no retries"
+    goal: Watch what the injected faults do with nothing to recover them.
+    change: In lessons/17-reliable-calls-at-scale/run.py, set RETRIES to 0.
+    target: "failed >= 50"
+    reset: git checkout lessons/17-reliable-calls-at-scale/run.py
+
+  - id: retry-storm
+    title: "Break it: a retry storm"
+    goal: Turn the outage in step 4 into a storm, with three times the attempts the budget allowed.
+    change: >
+      In run.py, step 4, raise the outage's retry_budget from 20 to 1000 and set BASE to 0, so
+      every failed message retries at once, up to its limit.
+    target: "outage_attempts >= 300"
+    reset: git checkout lessons/17-reliable-calls-at-scale/run.py

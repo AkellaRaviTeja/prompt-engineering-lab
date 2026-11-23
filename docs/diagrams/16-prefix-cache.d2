@@ -1,0 +1,20 @@
+direction: right
+stable: "Fixed part first" {
+  direction: down
+  style.fill: "#fdfaf3"
+  a1: "call 1: [sorting guide, 1,900 tokens] [message 1]" {style.fill: "#ffe8b3"}
+  a2: "call 2: [sorting guide: REUSED] [message 2]" {style.fill: "#dff5df"}
+  a3: "call 3: [sorting guide: REUSED] [message 3]" {style.fill: "#dff5df"}
+  a1 -> a2 -> a3
+}
+varying: "Something that changes, first" {
+  direction: down
+  style.fill: "#fdfaf3"
+  b1: "call 1: [Request ID 9f2c, 09:14:07] [sorting guide] [message 1]" {style.fill: "#ffe8b3"}
+  b2: "call 2: [Request ID 41ab, 09:14:09] [sorting guide: RECOMPUTED] [message 2]" {style.fill: "#ffd6d6"}
+  b3: "call 3: [Request ID c07e, 09:14:11] [sorting guide: RECOMPUTED] [message 3]" {style.fill: "#ffd6d6"}
+  b1 -> b2 -> b3
+}
+rule: "A cache is a prefix match. The first byte that differs ends the reuse:\neverything after it is processed again, and billed again on a hosted model.\nLocal: Ollama keeps the KV cache of the last prompt and skips the shared prefix.\nHosted: cache_control marks the prefix; reads cost a tenth of input, writes a quarter more." {shape: page; style.fill: "#ffffff"}
+stable -> rule
+varying -> rule

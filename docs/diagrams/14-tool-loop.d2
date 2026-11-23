@@ -1,0 +1,27 @@
+direction: down
+q: "Question\n\"What does the ledger record against NW-0388?\"" {style.fill: "#ffe8b3"}
+model: "Model call\nmessages + tools (name, description, JSON schema)" {style.fill: "#d9ecff"}
+reply: "Reply" {shape: diamond; style.fill: "#ffffff"}
+answer: "Text, no tool calls:\nthe answer" {style.fill: "#dff5df"}
+calls: "One or more tool calls\nledger_lookup({\"reference\": \"NW-0388\"})\n(several in one reply = parallel calls)" {style.fill: "#fdfaf3"}
+check: "Your code, for each call" {
+  style.fill: "#ffffff"
+  known: "Known tool?" {style.fill: "#fdfaf3"}
+  valid: "Arguments pass the schema?\nrequired, type, enum, pattern" {style.fill: "#fdfaf3"}
+  run: "Run the function\nover the case file" {style.fill: "#dff5df"}
+  err: "{\"error\": \"...\"}\nthe model reads it and corrects itself" {style.fill: "#ffd6d6"}
+  known -> valid: yes
+  valid -> run: yes
+  known -> err: no
+  valid -> err: no
+  run -> err: LookupError
+}
+back: "Append the assistant turn with its calls,\nthen one role \"tool\" turn per call, carrying its tool_call_id" {style.fill: "#d9ecff"}
+cap: "Step cap reached:\nstop with no answer" {style.fill: "#ffd6d6"}
+q -> model -> reply
+reply -> answer: no calls
+reply -> calls: calls
+calls -> check
+check -> back
+back -> model: next turn
+back -> cap: max_steps model calls

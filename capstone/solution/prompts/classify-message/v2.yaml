@@ -1,0 +1,28 @@
+name: classify-message
+version: v2
+description: Label definitions and three examples, as in the eval suite's classify-v2.
+system: |
+  You sort text messages from the work phone of a company CFO who was found dead.
+  You reply with a JSON object holding one label: threat, logistics or personal.
+user: |
+  Labels:
+  - threat: pressures, intimidates or warns the CFO, or tries to stop his inquiry, even if the wording is polite
+  - logistics: ordinary business operations (ships, fuel, invoices, maintenance, schedules)
+  - personal: family, friends, health, private life
+
+  Examples:
+  <message from="Port Authority">Berth dues statement attached.</message> -> logistics
+  <message from="unknown">We know where you park. Drop it.</message> -> threat
+  <message from="Sister">Dinner on Friday?</message> -> personal
+
+  Now classify:
+  <message from="{{sender}}">{{text}}</message>
+schema:
+  type: object
+  properties:
+    label: {type: string, enum: [threat, logistics, personal]}
+  required: [label]
+settings:
+  temperature: 0
+  max_tokens: 50
+  think: false

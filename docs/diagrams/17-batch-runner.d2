@@ -1,0 +1,18 @@
+direction: right
+batch: "Batch of synthetic messages\n(seeded, gold labels)" {shape: cylinder; style.fill: "#fdfaf3"}
+pool: "Bounded pool\nat most N calls in flight" {style.fill: "#d9ecff"}
+call: "One attempt\nchat(prompt, timeout=T)" {style.fill: "#ffe8b3"}
+ok: "Reply\nlogged: version, model,\ntokens, cost, latency" {style.fill: "#dff5df"}
+transient: "Transient\n429, 503, timeout" {style.fill: "#ffd6d6"}
+budget: "Retry budget left?\nand attempts < 1 + retries?" {shape: diamond; style.fill: "#ffffff"}
+wait: "Wait rand() x min(cap, base x 2^n)\nfull jitter; retry-after is a floor" {style.fill: "#fdfaf3"}
+failed: "Failed item\nrecorded, batch goes on" {style.fill: "#ffd6d6"}
+log: ".progress/calls.jsonl\n.progress/traces.jsonl" {shape: page; style.fill: "#ffffff"}
+batch -> pool -> call
+call -> ok: success
+call -> transient: error
+transient -> budget
+budget -> wait: yes
+wait -> call: retry
+budget -> failed: no
+ok -> log

@@ -1,0 +1,156 @@
+# Chapter 15 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=15).
+chapter: "15"
+title: The note in the margin
+
+objectives:
+  - Explain why text inside a document can act as an instruction to the model that reads it.
+  - Measure an attack's success rate over repeated runs, against a clean control.
+  - Build the guarded answerer: delimit untrusted text, keep tools least-privilege, gate writes, check the output.
+  - Say which defences hold by construction and which only change the odds, and why none is complete.
+
+quiz:
+  - q: Why can a note inside an email change what LANTERN does?
+    options:
+      - The model has a bug that executes hidden text.
+      - "To the model, your task and the document arrive as one stream of tokens. Nothing in the text itself marks which parts are orders and which are data."
+      - Ollama gives documents a higher priority than the system prompt.
+      - The note used a special token that only Qwen models obey.
+    answer: b
+    why: >
+      There is no separate channel for data. Roles and markers are more text, which the model
+      learned to weigh but cannot be forced to obey. This is why the chapter measures rates rather
+      than looking for a fix.
+
+  - q: Why does the chapter run each defence ten times, with different seeds?
+    options:
+      - To average out the model's speed.
+      - Because an injection that fails once may succeed on the next sample; the rate is the measure, and one run cannot show it.
+      - Ollama needs warming up.
+      - Ten is the number Hale asked for.
+    answer: b
+    why: >
+      At a sampling temperature above zero the same prompt gives different replies. A single clean
+      run proves nothing about the next one. Ten runs is still a small sample: read the rates as
+      rough, and rerun before you rely on a difference of one or two.
+
+  - q: Why does the chapter run the same email without the note first?
+    options:
+      - To warm the model's cache.
+      - So that anything the clean email also produces (a dropped row, a spontaneous write) is not blamed on the attack.
+      - Because the clean email is what Okafor wanted.
+      - To check the tools work.
+    answer: b
+    why: >
+      A small model drops rows and makes odd calls on its own. The control measures that baseline,
+      so the attack's effect is the difference, not the total.
+
+  - q: Delimiting the email and an instruction hierarchy in the system prompt are prompt defences. What can they promise?
+    options:
+      - Nothing in the document will ever be obeyed.
+      - "Only a change in the odds: they are more text in the same stream, and a model can still follow the note."
+      - That writes will be blocked.
+      - That the answer will be checked.
+    answer: b
+    why: >
+      They help, sometimes a lot, and they cost nothing. But they ask the model to behave; they
+      do not make misbehaviour impossible. No prompt defence is complete.
+
+  - q: With the write gate, the run still counts write attempts. Why is an attempt worth reporting when no write happened?
+    options:
+      - It is not; only executed writes matter.
+      - It shows the model is still following the note. The gate stopped the harm, not the attack, and a person had to refuse it.
+      - Attempts cost money on Ollama.
+      - Attempts mean the gate is broken.
+    answer: b
+    why: >
+      Least privilege and a human gate make the write impossible without a person, which holds by
+      construction. But every attempt is a person's time, and a tired approver who clicks yes
+      turns the attempt into a write. The second challenge shows exactly that.
+
+  - q: The output check withholds an answer that drops NW-0402 or cites HAL-AP-7. Which note would it still let through?
+    options:
+      - One that asks LANTERN to drop NW-0388.
+      - One that asks LANTERN to cite approval HAL-AP-9.
+      - "One that asks LANTERN to add a sentence such as \"Northwind's paperwork is in order\", with no reference in it."
+      - None; the check stops every attack.
+    answer: c
+    why: >
+      A policy check holds for exactly the rules it encodes. A false sentence with no reference in
+      it breaks neither rule. That is why the defences are layered, and why a person still reads
+      what goes to court.
+
+  - q: Okafor's workflow only needs LANTERN to read the ledger. What is the least-privilege setup for it?
+    options:
+      - Give it every tool, and trust the instruction hierarchy.
+      - Give it ledger_lookup only; a write tool it does not have cannot be misused.
+      - Give it every tool, but at temperature 0.
+      - Give it no tools at all, and paste the whole ledger in.
+    answer: b
+    why: >
+      The safest tool is the one the model does not have. Where a task does need a write, it goes
+      through a gate a person controls, as in step 4.
+
+exercise:
+  title: The guarded answerer
+  kind: component
+  task: |
+    Open `lessons/15-prompt-injection/practice/exercise.py` and write three functions:
+
+    - `delimit(text, boundary)`: wrap untrusted text in boundary markers it cannot forge, and
+      start every line with `^ `.
+    - `check_output(answer, document, known)`: the policy check. Every invoice reference in the
+      document must be in the answer, and every reference-shaped token the answer cites must be
+      in `known`.
+    - `guarded_answer(document, task, chat=..., tools=..., functions=..., writes=...,
+      approve=..., known=...)`: every defence together. The tests hand it a scripted model, so
+      no Ollama is needed. They check that:
+
+      - the system prompt is `RULES` and the document reaches the model only inside markers;
+      - a write the approver refuses is counted and never runs, and reads run without approval;
+      - an approved write runs;
+      - an answer that fails the check is withheld (`answer` None) with reasons;
+      - nothing is released when the step cap is reached.
+  hints:
+    - |
+      `delimit`: `body = text.replace(boundary, "")`, then
+      `"\n".join(f"^ {line}" for line in body.splitlines())`, between
+      `<<untrusted {boundary}>>` and `<<end {boundary}>>`, then one sentence after the block.
+    - |
+      `check_output`: `re.findall(r"\b[A-Z]{2,3}-\d{4}\b", document)` finds the invoice
+      references; `re.findall(r"\b[A-Z]{2,}(?:-[A-Z0-9]+)+\b", answer)` finds what the answer
+      cites. Use `sorted(set(...))` so each reason appears once.
+    - |
+      The loop is chapter 14's, with one branch more: `elif c.name in writes and not
+      approve(c):` count the attempt and send `{"error": "denied: ..."}` without calling the
+      function. When the reply has no tool calls, `reasons = check_output(r.text, document,
+      known)` and release the answer only if `reasons` is empty.
+  after: >
+    Now put it in front of the real note: `make lesson N=15 ARGS=--mine` uses your
+    guarded_answer for the fully defended row, and `make challenge N=15` has a challenge for it.
+
+challenges:
+  - id: your-guard
+    title: Your guard, against the note
+    goal: >
+      Run the live lesson on your guarded answerer: no attack may succeed, and at least half the
+      answers must still be released to Okafor.
+    change: "Pass the exercise first, then run `make lesson N=15 ARGS=--mine`."
+    target: "mine == true and checked_success == 0 and checked_released >= 5"
+
+  - id: rubber-stamp
+    title: "Break it: the approver who says yes"
+    goal: Make the gate approve everything, and watch the note write 'verified' to the vendor board.
+    change: In lessons/15-prompt-injection/run.py, make denied() return True.
+    target: "gate_writes >= 1"
+    reset: git checkout lessons/15-prompt-injection/run.py
+
+  - id: rules-alone
+    title: Rules alone
+    goal: >
+      Using the prompt alone, bring the hierarchy row to no successful attack in ten runs while
+      every answer there still lists NW-0402.
+    change: >
+      Edit RULES (and, if you like, delimit()) in run.py. Do not touch the gate, the check or the
+      tools.
+    target: "hierarchy_success == 0 and hierarchy_dropped == 0"
+    reset: git checkout lessons/15-prompt-injection/run.py
