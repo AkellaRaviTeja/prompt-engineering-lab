@@ -226,7 +226,9 @@ def _ollama(
     if r.status_code == 404:
         raise SystemExit(f"Model {model!r} is not pulled. Run `make models`.")
     if r.status_code == 429 or r.status_code >= 500:
-        raise retry.Transient(f"Ollama returned HTTP {r.status_code}")
+        detail = r.text.strip()[:300] if isinstance(getattr(r, "text", None), str) else ""
+        raise retry.Transient(f"Ollama returned HTTP {r.status_code}" + (f": {detail}" if detail
+                                                                          else ""))
     r.raise_for_status()
     data = r.json()
     msg = data["message"]
