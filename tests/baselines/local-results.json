@@ -1,0 +1,476 @@
+{
+  "01": {
+    "at": "2026-11-23T17:27:27",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "vague_prompt_tokens": 371,
+      "precise_prompt_tokens": 539,
+      "vague_found_gap": false,
+      "precise_found_gap": false,
+      "vague_invented_times": 1,
+      "precise_invented_times": 1,
+      "timeline_lines": 4,
+      "quotes_verbatim": 0,
+      "bang_at_2340": false,
+      "shift_rule_in_prompt": true
+    }
+  },
+  "02": {
+    "at": "2026-11-23T12:42:07",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "no_system_accuses": true,
+      "v1_sentences_after_nie": 2,
+      "v2_declined": true,
+      "v2_sentences_after_nie": 2,
+      "override_orders_stand": true,
+      "override_accuses": true,
+      "v1_citations": 1,
+      "v1_citations_verbatim": 0,
+      "v3_replaced": 2,
+      "v3_cannot_answer_exact": true,
+      "v3_can_answer_held": true,
+      "v3_override_accuses": false,
+      "mine": false
+    }
+  },
+  "03": {
+    "at": "2026-11-23T12:51:14",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "trained_context": 40960,
+      "small_prompt_tokens": 1026,
+      "small_found": false,
+      "big_prompt_tokens": 6370,
+      "big_found": false,
+      "big_seconds": 8.2,
+      "headtail_prompt_tokens": 3202,
+      "headtail_found": false,
+      "chunks": 4,
+      "chunk_hits": 1,
+      "chunk_found": true,
+      "chunk_quote_verbatim": true,
+      "chunk_seconds": 7.8,
+      "mine": false
+    }
+  },
+  "04": {
+    "at": "2026-11-23T17:33:18",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "briefing_tokens": 1177,
+      "free_tokens": 6215,
+      "chat_prompt_tokens": 1177,
+      "raw_prompt_tokens": 1177,
+      "tokens_match": true,
+      "chat_total": 227700.0,
+      "raw_total": 227700.0,
+      "chat_total_right": true,
+      "computed_total_right": true,
+      "invoices_listed": 3,
+      "reyes_line_in_answer": true,
+      "tight_dropped": 2,
+      "tight_prompt_tokens": 1020,
+      "tight_invoices_listed": 3,
+      "tight_reyes_kept": false,
+      "mine": false
+    }
+  },
+  "05": {
+    "at": "2026-11-23T14:22:41",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "live_distribution": true,
+      "top_token_raw": 0.3104,
+      "favourite_t02": 0.6674,
+      "top_k_kept": 3,
+      "top_p_kept": 6,
+      "chain_matches": true,
+      "sim_distinct": 6,
+      "sim_top_share": 0.365,
+      "distinct_t02": 4,
+      "distinct_t10": 7,
+      "distinct_t15": 8,
+      "plate_t0": true,
+      "plate_hot_reads": 2,
+      "mine": false
+    }
+  },
+  "06": {
+    "at": "2026-11-23T17:37:20",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "hosted": false,
+      "step1_distinct": 1,
+      "step1_correct": 5,
+      "step1_small_model": false,
+      "cache_distinct": 2,
+      "same_seed_distinct": 1,
+      "replays_match": true,
+      "replay_runs": 3
+    }
+  },
+  "07": {
+    "at": "2026-11-23T13:29:24",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "acc_zero_primed": 0.5,
+      "acc_zero": 0.8333,
+      "acc_one": 0.7778,
+      "acc_few_clear": 0.8333,
+      "acc_few_border": 0.6389,
+      "best_accuracy": 0.8333,
+      "few_beats_zero": false,
+      "threats_gold": 8,
+      "threats_zero_primed": 26,
+      "threats_zero": 4,
+      "threats_few_clear": 7,
+      "threats_missed_best": 4,
+      "invalid_total": 1,
+      "tokens_zero": 105,
+      "tokens_few_clear": 319,
+      "scored_messages": 36,
+      "mine": false
+    }
+  },
+  "08": {
+    "at": "2026-11-23T13:31:27",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "no_schema_valid": false,
+      "invoices": 8,
+      "valid_rows": 8,
+      "flagged": 0,
+      "calls_total": 8,
+      "retries_used": 0,
+      "source_problems": 3,
+      "northwind_rows": 3,
+      "northwind_in_trips": 3,
+      "mine": false
+    }
+  },
+  "09": {
+    "at": "2026-11-23T13:32:23",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "direct_says_supported": true,
+      "cot_says_not_supported": false,
+      "steps_says_not_supported": true,
+      "direct_output_tokens": 67,
+      "cot_output_tokens": 890,
+      "steps_output_tokens": 215,
+      "direct_seconds": 2.37,
+      "cot_seconds": 9.87,
+      "steps_seconds": 2.62,
+      "times_from_model": true,
+      "times_quoted_right": true,
+      "elapsed_minutes": 16.1,
+      "unaccounted_minutes": 11.1,
+      "stairwell_fits": true
+    }
+  },
+  "10": {
+    "at": "2026-11-23T14:23:51",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "think_off_right": 1,
+      "small_budget_right": 0,
+      "long_budget_right": 5,
+      "best_right": 5,
+      "credential_named": 2,
+      "think_off_tokens": 700,
+      "small_budget_tokens": 300,
+      "small_budget_answer_chars": 0,
+      "long_budget_tokens": 2184,
+      "long_budget_answer_chars": 1534,
+      "long_budget_thinking_chars": 6308,
+      "think_off_seconds": 8.5,
+      "long_budget_seconds": 25.4,
+      "large": false
+    }
+  },
+  "11": {
+    "at": "2026-11-23T14:24:40",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "plain_40_hits": 0,
+      "expert_40_hits": 3,
+      "plain_400_hits": 3,
+      "expert_400_hits": 4,
+      "plain_400_tokens": 105,
+      "expert_400_tokens": 45,
+      "hale_system_invented": 0,
+      "hale_user_invented": 1,
+      "hale_orders_invented": 0,
+      "accountant_invented": 0,
+      "voss_invented": 0
+    }
+  },
+  "12": {
+    "at": "2026-11-23T13:34:15",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "accuracy_small": 0.6875,
+      "accuracy_medium": 0.6875,
+      "accuracy_large": 0.8125,
+      "p50_s_small": 0.103,
+      "p50_s_medium": 0.138,
+      "p50_s_large": 0.346,
+      "p95_s_small": 0.133,
+      "p95_s_medium": 0.216,
+      "p95_s_large": 0.55,
+      "p95_over_p50_large": 1.59,
+      "extract_ok_small": false,
+      "extract_ok_medium": true,
+      "extract_ok_large": true,
+      "tokens_per_s_small": 184.1,
+      "tokens_per_s_medium": 94.8,
+      "tokens_per_s_large": 42.1,
+      "cold_start_s_large": 3.69,
+      "cost_per_correct_small": 0.0,
+      "cost_per_correct_large": 0.0,
+      "hosted": false
+    }
+  },
+  "13": {
+    "at": "2026-11-23T17:42:10",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "v1_today_parsed": false,
+      "v1_today_exact": 0,
+      "v2_today_exact": 3,
+      "v2_today_extra": 1,
+      "v1_tomorrow_parsed": false,
+      "v1_tomorrow_exact": 0,
+      "v2_tomorrow_exact": 3,
+      "v2_tomorrow_extra": 2,
+      "v1_contract": false,
+      "v2_contract": false,
+      "contract_passes": 1,
+      "v2_schema_sent": true
+    }
+  },
+  "14": {
+    "at": "2026-11-23T11:02:27",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "questions": 6,
+      "recall_correct": 0,
+      "hand_correct": 4,
+      "native_correct": 3,
+      "hand_requests": 12,
+      "hand_valid": 8,
+      "native_calls": 2,
+      "native_valid": 2,
+      "hand_right_args": 8,
+      "native_right_args": 2,
+      "hand_parse_failures": 4,
+      "hand_turns": 18,
+      "native_turns": 8,
+      "native_parallel": 0,
+      "hand_capped": 0,
+      "native_capped": 0,
+      "native_invented_missing": false,
+      "max_steps": 5,
+      "mine": false
+    }
+  },
+  "15": {
+    "at": "2026-11-23T11:27:51",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "runs": 10,
+      "temperature": 0.8,
+      "control_success": 0,
+      "control_dropped": 0,
+      "none_success": 10,
+      "delimit_success": 10,
+      "hierarchy_success": 10,
+      "gate_success": 1,
+      "checked_success": 0,
+      "none_writes": 10,
+      "hierarchy_writes": 10,
+      "gate_attempts": 10,
+      "gate_writes": 0,
+      "none_planted": 9,
+      "hierarchy_planted": 8,
+      "none_dropped": 0,
+      "hierarchy_dropped": 0,
+      "checked_withheld": 10,
+      "checked_released": 0,
+      "mine": false
+    }
+  },
+  "16": {
+    "at": "2026-11-23T13:36:21",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "model": "qwen3:1.7b",
+      "full_prompt_tokens": 1507,
+      "prefix_tokens": 1448,
+      "calls_per_layout": 48,
+      "cache_hits_stable": 48,
+      "cache_hits_varying": 0,
+      "tool_order_hits_same": 5,
+      "tool_order_hits_swapped": 5,
+      "median_prompt_s_stable": 0.0671,
+      "median_prompt_s_varying": 1.3621,
+      "median_call_s_stable": 0.095,
+      "median_call_s_varying": 1.469,
+      "prompt_speedup": 20.3,
+      "correct_stable": 34,
+      "correct_varying": 34,
+      "est_usd_per_call_uncached": 0.0001522,
+      "est_usd_per_call_cached": 2.188e-05,
+      "est_usd_year_uncached": 73.06,
+      "est_usd_year_cached": 10.58
+    }
+  },
+  "17": {
+    "at": "2026-11-23T13:40:08",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "model": "qwen3:0.6b",
+      "batch": 1200,
+      "sweep": 300,
+      "concurrency": 2,
+      "per_min_c1": 1455.6,
+      "per_min_c2": 1799.6,
+      "per_min_c4": 1809.2,
+      "p50_c1": 0.04,
+      "p95_c1": 0.048,
+      "p95_c4": 0.146,
+      "faults_injected": 98,
+      "retried_items": 94,
+      "retries_spent": 98,
+      "failed": 0,
+      "per_min_batch": 1158.3,
+      "call_p95_batch": 0.073,
+      "item_p95_batch": 0.198,
+      "correct": 351,
+      "outage_attempts": 120,
+      "outage_failed": 61,
+      "logged_calls": 2139,
+      "spans": 1200,
+      "mine": false
+    }
+  },
+  "18": {
+    "at": "2026-11-23T17:58:40",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "cells": 70,
+      "passed": 33,
+      "failed": 37,
+      "pass_rate": 0.471,
+      "providers": 2,
+      "tests": 23,
+      "extract_passed": 14,
+      "classify_v1_passed": 0,
+      "classify_v2_passed": 14,
+      "rules_passed": 5,
+      "judge_kappa": 1.0,
+      "judge_agreement": 1.0,
+      "judge_usable": true,
+      "judge_graded": 2,
+      "judge_refused_self": 0,
+      "minutes": 0.9,
+      "reused": false
+    }
+  },
+  "19": {
+    "at": "2026-11-23T12:32:23",
+    "argv": [
+      "--shot"
+    ],
+    "provider": "ollama",
+    "changed": false,
+    "metrics": {
+      "cells": 70,
+      "passed": 33,
+      "failing_tests": 14,
+      "some_cells": 9,
+      "every_cell_different": 4,
+      "reference_suspects": 1,
+      "nw0419_failed_cells": 2,
+      "nw0419_cells": 2,
+      "nw0419_suspect": true,
+      "nw0419_answer": "total=94000.00",
+      "worst_metric_rate": 0.292,
+      "lantern_timestamp_right": true,
+      "mine": false
+    }
+  }
+}

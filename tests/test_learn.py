@@ -154,3 +154,41 @@ def test_a_target_can_compare_two_metrics():
     assert not ok
     ok, _ = cli.evaluate("a <= missing", {"a": 1})
     assert not ok, "a missing metric on the right must not count as met"
+
+
+BASELINE = ROOT / "tests" / "baselines" / "local-results.json"
+
+
+def test_no_challenge_is_met_by_the_unchanged_lessons_recorded_run():
+    """Regression (review of 23 Nov 2026): four challenges were met by the unchanged run.
+
+    `tests/baselines/local-results.json` holds the metrics of each chapter's committed lesson,
+    run live on the local tier with nothing changed. A challenge asks for a change, so not one of
+    its targets may already be met there.
+    """
+    import json
+
+    base = json.loads(BASELINE.read_text(encoding="utf-8"))
+    met = []
+    for path in PRACTICE:
+        n = path.parents[1].name[:2]
+        assert n in base, f"chapter {n} has no unchanged run in {BASELINE.name}"
+        assert base[n]["changed"] is False, f"chapter {n}'s baseline run had local changes"
+        for c in yaml.safe_load(path.read_text())["challenges"]:
+            names = re.findall(r"\b([a-z][a-z0-9_]*)\s*(?:==|!=|<=|>=|<|>)", c["target"])
+            missing = [m for m in names if m not in base[n]["metrics"]]
+            assert not missing, f"{n} {c['id']}: baseline lacks {missing}; rerun the lesson"
+            if cli.evaluate(c["target"], base[n]["metrics"])[0]:
+                met.append(f"{n} {c['id']}")
+    assert not met, f"targets met with no change at all: {met}"
+
+
+def test_lessons_never_run_code_from_their_practice_folder():
+    """Regression: chapter 17 imported practice/solution.py, which the change check skips."""
+    for run in sorted((ROOT / "lessons").glob("[0-9][0-9]-*/run.py")):
+        tree = ast.parse(run.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom) and node.module in ("solution", "exercise"):
+                raise AssertionError(f"{run.parent.name}: imports {node.module} from practice/")
+            if isinstance(node, ast.Constant) and node.value == "practice":
+                raise AssertionError(f"{run.parent.name}: puts practice/ on the import path")
