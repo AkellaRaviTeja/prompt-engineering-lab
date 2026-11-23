@@ -134,14 +134,14 @@ challenges:
     reset: git checkout lessons/10-thinking-mode/run.py
 
   - id: match-the-check
-    title: Match the check
+    title: Match the check without thinking
     goal: >
-      Get at least one LANTERN answer to agree with the deterministic check on five or more of the
-      six candidates.
+      The run with room to think already agrees with the deterministic check on five of the six
+      candidates. Get the run with thinking off, step 1, to do the same: five or more of six.
     change: >
       The puzzle text in run.py (say what COULD means, list the codes' hours beside each
       candidate), the budgets, or --large. Do not touch door_candidates or the scoring.
-    target: "best_right >= 5"
+    target: "think_off_right >= 5"
     reset: git checkout lessons/10-thinking-mode/run.py
 
   - id: out-of-budget

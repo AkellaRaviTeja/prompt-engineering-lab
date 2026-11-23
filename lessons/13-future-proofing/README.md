@@ -192,7 +192,7 @@ make solution N=13          # the reference, once you have tried
 
 **Break it.** `make challenge N=13` checks your latest run against three targets: v2 on the
 small model with exactly the three Northwind rows; v1 rescued without a schema on both models;
-and v2 without structured output, failing the contract.
+and v2 sent without its schema (the run records whether one was sent), failing the contract.
 
 `make progress` shows every chapter.
 

@@ -176,7 +176,7 @@ make solution N=01          # the reference, once you have tried
 **Check yourself.** `make quiz N=01`: six questions, each with the reason behind the answer.
 
 **Break it.** `make challenge N=01` checks your latest run against three targets: the shift rule
-taken away, so the bang gets the wrong time; the vague prompt rescued with one sentence; and a
+taken out of the prompt (the run records whether it is there), so the bang gets the wrong time; the vague prompt rescued with one sentence; and a
 timeline in which every quote checks.
 
 `make progress` shows every chapter.

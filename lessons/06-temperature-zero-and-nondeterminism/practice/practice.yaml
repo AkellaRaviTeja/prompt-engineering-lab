@@ -133,11 +133,13 @@ challenges:
     reset: git checkout lessons/06-temperature-zero-and-nondeterminism/run.py
 
   - id: right-every-time
-    title: Reproducible and right
+    title: Reproducible and right on the smallest model
     goal: >
-      Make step 1 give the correct total, 227,700.00, in all five runs, with one distinct answer.
+      The default model already gives 227,700.00 five times out of five. Get the same from the
+      smallest model: the correct total in all five runs, with one distinct answer.
     change: >
-      Change how step 1 asks in lessons/06-temperature-zero-and-nondeterminism/run.py: the
-      question's wording, thinking, or the model. Keep the three invoice amounts.
-    target: "step1_distinct == 1 and step1_correct == 5"
+      Pass model="small" to the step 1 chat() call in
+      lessons/06-temperature-zero-and-nondeterminism/run.py, then change how it asks: the
+      question's wording or thinking. Keep the three invoice amounts.
+    target: "step1_small_model == true and step1_distinct == 1 and step1_correct == 5"
     reset: git checkout lessons/06-temperature-zero-and-nondeterminism/run.py

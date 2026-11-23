@@ -134,5 +134,5 @@ challenges:
       on one model would.
     change: >
       In run.py, remove format=fmt from the chat call, so v2 relies on the prompt alone to get JSON.
-    target: "v2_contract == false"
+    target: "v2_schema_sent == false and v2_contract == false"
     reset: git checkout lessons/13-future-proofing/run.py

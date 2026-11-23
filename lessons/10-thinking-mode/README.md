@@ -215,8 +215,9 @@ make solution N=10          # the reference, once you have tried
 **Check yourself.** `make quiz N=10`: seven questions, each with the reason behind the answer.
 
 **Break it.** `make challenge N=10` checks your latest run against three targets: a thinking run
-with just enough budget to answer (1,500 tokens or fewer); a LANTERN answer that agrees with the
-check on five of the six candidates; and step 3 starved until it thinks and never answers.
+with just enough budget to answer (1,500 tokens or fewer); the run with thinking off agreeing
+with the check on five of the six candidates, as the long thinking run already does; and step 3
+starved until it thinks and never answers.
 
 `make progress` shows every chapter.
 

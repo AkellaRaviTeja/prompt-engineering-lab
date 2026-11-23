@@ -64,7 +64,8 @@ if HOSTED:
          "these are five runs of the same request at the provider's own settings: this step "
          "measures its nondeterminism with no seed at all.")
 note("Greedy decoding. No randomness is drawn, so the seed does not matter. Five runs:")
-answers = [chat(QUESTION, temperature=0, max_tokens=60).text for _ in range(5)]
+step1 = [chat(QUESTION, temperature=0, max_tokens=60) for _ in range(5)]
+answers = [r.text for r in step1]
 for i, a in enumerate(answers, 1):
     console.print(f"  run {i}: {a}")
 console.print(f"[bold]{len(set(answers))} distinct answer(s) in 5 runs.[/bold] "
@@ -228,6 +229,7 @@ learn.record(
     hosted=HOSTED,
     step1_distinct=step1_distinct,
     step1_correct=step1_correct,
+    step1_small_model=step1[0].model == model_name("small"),
     cache_distinct=len(set(cache_values)) if cache_values else None,
     same_seed_distinct=same_seed_distinct,
     replays_match=ok,

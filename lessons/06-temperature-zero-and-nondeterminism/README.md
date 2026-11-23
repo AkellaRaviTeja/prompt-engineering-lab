@@ -207,8 +207,8 @@ make solution N=06     # the reference, once you have tried
 **Check yourself.** `make quiz N=06`: seven questions, each with the reason behind the answer.
 
 **Break it.** `make challenge N=06` checks your latest run against two targets: give Hale his
-two answers (three distinct totals from one unchanged question); and a step 1 that is both
-reproducible and right.
+two answers (three distinct totals from one unchanged question); and a step 1 on the smallest
+model that is both reproducible and right, as the default model already is.
 
 `make progress` shows every chapter.
 

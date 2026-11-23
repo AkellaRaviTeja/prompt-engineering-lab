@@ -141,6 +141,7 @@ learn.record(
     timeline_lines=len(rows),
     quotes_verbatim=verbatim,
     bang_at_2340=bang_at == 0,
+    shift_rule_in_prompt="night shift" in precise,
 )
 
 finding("""

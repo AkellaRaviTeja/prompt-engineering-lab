@@ -124,7 +124,7 @@ challenges:
     change: >
       In the `precise` prompt in lessons/01-prompt-engineering/run.py, delete the rule that
       converts spoken times (the two lines about the night shift). Change nothing else.
-    target: "bang_at_2340 == false and timeline_lines >= 3"
+    target: "shift_rule_in_prompt == false and bang_at_2340 == false and timeline_lines >= 3"
     reset: git checkout lessons/01-prompt-engineering/run.py
 
   - id: one-more-sentence

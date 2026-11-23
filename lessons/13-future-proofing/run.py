@@ -5,7 +5,7 @@ import re
 import string
 from pathlib import Path
 
-from lantern import case, chat, learn, load_config
+from lantern import calllog, case, chat, learn, load_config
 from lantern.ui import (
     Table,
     chapter,
@@ -86,6 +86,13 @@ p_v2 = learn.predict(
     f"On {tomorrow}, which nobody tuned these prompts for, how many of the three Northwind totals "
     "will v2 get exactly right?", ["0", "1", "2", "3"])
 
+
+
+def sent_schema(r) -> bool:
+    """Whether the call carried a response schema. Its prompt version hashes the schema sent."""
+    return r.prompt_version != calllog.prompt_hash([], None, None)
+
+
 rows, replies, measured = [], {}, {}
 for model in (today, tomorrow):
     for version, template, parser, fmt in (("v1", v1, parse_v1, None),
@@ -100,7 +107,8 @@ for model in (today, tomorrow):
         rows.append((model, version, len(got) > 0, f"{exact}/3", ", ".join(wrong) or "none"))
         who = "today" if model == today else "tomorrow"
         replies[version, who] = r.text
-        measured[version, who] = {"parsed": len(got) > 0, "exact": exact, "extra": len(wrong)}
+        measured[version, who] = {"parsed": len(got) > 0, "exact": exact, "extra": len(wrong),
+                                  "schema": sent_schema(r)}
         if (version, who) == ("v1", "today"):
             learn.reveal(p_v1, answer=0 if got else 1,
                          why="A parser written against one answer is a guess about a habit. "
@@ -231,6 +239,7 @@ learn.record(
     v1_contract=measured["v1", "today"]["contract"] and measured["v1", "tomorrow"]["contract"],
     v2_contract=measured["v2", "today"]["contract"] and measured["v2", "tomorrow"]["contract"],
     contract_passes=passes,
+    v2_schema_sent=measured["v2", "today"]["schema"] or measured["v2", "tomorrow"]["schema"],
 )
 
 v2_lines = []

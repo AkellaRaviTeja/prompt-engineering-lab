@@ -50,8 +50,7 @@ sort, how long the slowest ones take, and what happens when calls start to fail.
 MINE = learn.mine()
 run_batch = MINE.run_batch if MINE else None
 if run_batch is None:
-    sys.path.insert(0, str(Path(__file__).resolve().parent / "practice"))
-    from solution import run_batch  # noqa: E402  (the lesson's runner; --mine uses yours)
+    from batch import run_batch  # noqa: E402  (the lesson's runner; --mine uses yours)
 
 MODEL = model_name("small")
 VERSION = "classify-message@v1"
