@@ -42,6 +42,7 @@ OPS = {
     "<": operator.lt,
     ">": operator.gt,
 }
+METRIC_NAME = re.compile(r"[a-z_][a-z0-9_]*")
 CONDITION = re.compile(r"^\s*([a-z_][a-z0-9_]*)\s*(<=|>=|==|!=|<|>)\s*(.+?)\s*$")
 
 
@@ -249,16 +250,22 @@ def solution(n: str) -> int:
 
 
 def evaluate(target: str, metrics: dict[str, Any]) -> tuple[bool, list[str]]:
-    """Check a target like 'turns <= 6 and flows_in_report == 4' against a run's metrics."""
+    """Check a target like 'turns <= 6 and flows_in_report == 4' against a run's metrics.
+
+    The right-hand side is a value, or the name of another metric ('hand_turns <= native_turns').
+    """
     ok, lines = True, []
     for part in re.split(r"\s+and\s+", target.strip()):
         m = CONDITION.match(part)
         if not m:
             raise ValueError(f"cannot read target condition {part!r}")
         name, op, raw = m.groups()
-        want: Any = yaml.safe_load(raw)
+        if METRIC_NAME.fullmatch(raw) and raw not in ("true", "false", "null"):
+            want: Any = metrics.get(raw)  # another metric of the same run
+        else:
+            want = yaml.safe_load(raw)
         have = metrics.get(name)
-        good = have is not None and OPS[op](have, want)
+        good = have is not None and want is not None and OPS[op](have, want)
         ok &= good
         lines.append(
             f"{'[green]met[/green]' if good else '[red]not yet[/red]'}  {name} {op} "

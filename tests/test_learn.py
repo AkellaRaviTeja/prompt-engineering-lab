@@ -128,3 +128,29 @@ def test_shuffled_options_keep_the_right_answer(path):
         right = q["options"][learn.LETTERS.index(q["answer"])]
         assert s["options"][learn.LETTERS.index(s["answer"])] == right
         assert cli.shuffled(q) == s, "the order must be the same every time"
+
+
+@pytest.mark.parametrize("path", PRACTICE, ids=[p.parent.parent.name for p in PRACTICE])
+def test_challenge_targets_compare_with_values_or_recorded_metrics(path):
+    """A target's right-hand side is a number, a boolean, or a metric run.py records."""
+    run_py = (path.parent.parent / "run.py").read_text()
+    for c in yaml.safe_load(path.read_text())["challenges"]:
+        for part in re.split(r"\s+and\s+", c["target"].strip()):
+            m = cli.CONDITION.match(part)
+            assert m, f"{c['id']}: cannot read {part!r}"
+            raw = m.group(3)
+            if cli.METRIC_NAME.fullmatch(raw) and raw not in ("true", "false", "null"):
+                assert re.search(rf"\b{raw}\s*=", run_py), (
+                    f"{path.parent.parent.name} {c['id']}: {raw!r} is not a recorded metric")
+            else:
+                assert isinstance(yaml.safe_load(raw), (int, float, bool)), (
+                    f"{path.parent.parent.name} {c['id']}: {part!r} is not a value")
+
+
+def test_a_target_can_compare_two_metrics():
+    ok, _ = cli.evaluate("hand_turns <= native_turns", {"hand_turns": 8, "native_turns": 8})
+    assert ok
+    ok, _ = cli.evaluate("hand_turns <= native_turns", {"hand_turns": 18, "native_turns": 8})
+    assert not ok
+    ok, _ = cli.evaluate("a <= missing", {"a": 1})
+    assert not ok, "a missing metric on the right must not count as met"
