@@ -13,8 +13,8 @@ from lantern import calllog, chat, retry, trace
 
 
 class Resp:
-    def __init__(self, payload, status=200):
-        self.status_code, self._payload = status, payload
+    def __init__(self, payload, status=200, text=""):
+        self.status_code, self._payload, self.text = status, payload, text
 
     def raise_for_status(self):
         if self.status_code >= 400:
@@ -130,3 +130,18 @@ def test_chat_spans_carry_genai_attributes_and_nest(monkeypatch, tmp_path, log):
     assert a["gen_ai.operation.name"] == "chat" and a["gen_ai.usage.input_tokens"] == 900
     assert chat_span["parent_id"] == parent["context"]["span_id"]
     monkeypatch.setattr(trace, "_tracer", None)
+
+
+def test_a_looping_generation_is_an_empty_answer_not_a_retry(monkeypatch, log):
+    """Ollama's "token repeat limit" 500 is the model looping: the same seed loops again."""
+    calls = []
+
+    def looping(url, json, timeout):
+        calls.append(1)
+        return Resp({}, 500, '{"error":"prediction aborted, token repeat limit reached"}')
+
+    monkeypatch.setattr(httpx, "post", looping)
+    r = chat("x", seed=3)
+    assert len(calls) == 1, "a deterministic loop must not be retried"
+    assert r.text == "" and r.stop_reason.startswith("aborted")
+    assert calllog.read(log)[0]["gen_ai.response.finish_reasons"] == [r.stop_reason]

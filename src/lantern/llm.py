@@ -225,6 +225,11 @@ def _ollama(
         raise retry.Transient(f"Ollama did not answer within {timeout:.0f}s") from e
     if r.status_code == 404:
         raise SystemExit(f"Model {model!r} is not pulled. Run `make models`.")
+    if r.status_code >= 500 and "repeat limit" in getattr(r, "text", ""):
+        # The model looped on the same tokens and Ollama cut it off. That is the answer failing,
+        # not the server: the same seed loops again, so it is returned, not retried.
+        return Reply(text="", model=model, stop_reason="aborted: token repeat limit",
+                     raw={"error": r.text})
     if r.status_code == 429 or r.status_code >= 500:
         detail = r.text.strip()[:300] if isinstance(getattr(r, "text", None), str) else ""
         raise retry.Transient(f"Ollama returned HTTP {r.status_code}" + (f": {detail}" if detail
