@@ -38,5 +38,6 @@ def test_structure_gate_catches_placeholders():
     spec = importlib.util.spec_from_file_location("cl", ROOT / "scripts" / "check_lessons.py")
     cl = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(cl)
-    text = "Intro.\n\nSEE\n\n| a | b |\n@@T11@@\nNot run yet. LANTERN said NO.\n"
-    assert [p.strip() for p in cl.PLACEHOLDER.findall(text)] == ["SEE", "@@T11@@"]
+    text = "Intro.\n\nSEE\n\n| a | b |\n@@T11@@\nNot run yet. LANTERN said NO. See NUANCE3.\n"
+    found = [m.group(0).strip() for m in cl.PLACEHOLDER.finditer(text)]
+    assert found == ["SEE", "@@T11@@", "NUANCE3"]

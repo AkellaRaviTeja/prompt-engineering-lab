@@ -212,9 +212,17 @@ b.add_row("request ID and time first", f"{shared_prefix(*pair_b):,}", f"{total:,
 for name, hits in tool_runs.items():
     b.add_row(f"two tools, {name}", "", "", f"{hits}/{len(probe) - 1}")
 console.print(b)
-note("Ollama renders tools into the prompt ahead of the system text, so a reordered tool list "
-     "changes the very first bytes. Anthropic renders tools first too: reorder them and nothing "
-     "after is reused. Sort tools by name and build them once.")
+swapped, probes = tool_runs["order swapped each call"], len(probe) - 1
+if swapped == probes and local:
+    note(f"Swapping the two tools kept {swapped} of {probes} hits here: qwen3's chat template puts "
+         "the tool list after the system text, so the guide in front stayed cached and only what "
+         "followed it changed. Anthropic renders tools before the system prompt, so the same swap "
+         "there invalidates the whole prefix. Sort tools by name and build them once, and the "
+         "order never matters.")
+else:
+    note(f"Swapping the two tools kept {swapped} of {probes} hits. Where a provider renders tools "
+         "ahead of the system text (Anthropic does), a reordered list changes the first bytes and "
+         "nothing after is reused. Sort tools by name and build them once.")
 note("Other silent breakers: a date in the system prompt, a dict serialised in a different "
      "order, a per-user line near the top, a changed model or a different thinking setting.")
 
@@ -310,9 +318,9 @@ guide first and the message last, {A['hits']} of {len(messages)} calls reused th
 prompt processing was {speedup:.1f} times faster. A request ID in the first line cut the reuse to
 {B['hits']}, with the same guide and the same answers.
 
-On paper, at the listed prices, a year of {PER_YEAR:,} messages on {HOSTED} comes to about
-${year_cached:,.2f} with the guide cached and ${year_plain:,.2f} without. Varma reads the line
-that says it is an estimate twice. "Then the next thing we prove," she says, "is that LANTERN can
-take forty thousand messages without falling over."
+The hosted cost is price arithmetic until a hosted run measures it, and the screen says so.
+
+Varma reads the line that says it is an estimate twice. "Then the next thing we prove," she says,
+"is that LANTERN can take forty thousand messages without falling over."
 """)
 save_shot("16-prompt-caching-and-cost")
