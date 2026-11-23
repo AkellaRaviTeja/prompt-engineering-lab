@@ -59,7 +59,7 @@ flowchart TB
     Q --> E400[Expert persona, 400 tokens]
     N40 --> R1[0/4: still showing its working<br/>when the budget ran out]
     E40 --> R2[3/4: answers first]
-    N400 --> R3[4/4]
+    N400 --> R3[3/4: one answer looped<br/>and was cut off]
     E400 --> R4[4/4]
 ```
 
@@ -74,8 +74,11 @@ did not. They looked at different parts of the same evidence.
 persona scored 3 of 4 and the plain prompt 0 of 4, which looks like the persona made the model
 smarter. It did not. Without a persona the model starts by showing its working ("To determine which
 invoice has the largest total, let's sum...") and runs out of tokens before the answer. The expert
-answers first. Given 400 tokens, both scored 4 of 4; the plain prompt just used 141 tokens to the
-expert's 50. Always check whether a persona "improvement" is really a length or format change.
+answers first. Given 400 tokens, the expert scored 4 of 4 and the plain prompt 3 of 4, and the miss was not
+knowledge either: one plain answer fell into a repetition loop and Ollama cut it off with nothing
+written. The three plain answers that finished used 132 to 145 tokens to the expert's 45. Always
+check whether a persona "improvement" is really a length or format change, and look at a miss
+before you count it as a wrong answer.
 
 **3. System prompt or user prompt?** Both work for one turn. The system prompt is where standing
 roles belong (chapter 02): it persists across turns, and later user messages are less likely to
@@ -115,13 +118,22 @@ one to two minutes on a CPU.
 
 ![Chapter 11 terminal output](../../docs/screenshots/11-personas.png)
 
-- **Hale:** three objections about inference and route ambiguity, none disputing a timestamp.
-- **Accountant:** three questions about approvals, beneficiaries and supporting documents.
-- **Voss:** one line, saying she would need to check the records.
-- **Hale in the user prompt:** longer and more dramatic, and less faithful to the facts: in our
-  latest run it invents a contradiction by treating 23:36 as five minutes before 23:31:02.
-- **The expert table:** 0/4 against 3/4 at 40 tokens; 4/4 against 4/4 at 400 tokens, with the
-  plain prompt using about three times the tokens.
+What the 1.7B model did in the run captured above (local tier, Apple M1 Pro 16 GB, 23 November
+2026):
+
+- **Hale:** three objections, about inference of intent, the route and walking times, and the
+  override code. None disputes a timestamp, and the figure check found nothing invented.
+- **Accountant:** questions about approvals, beneficiaries and supporting documents; nothing
+  invented.
+- **Voss:** one line: she would need to check the records to give an accurate answer.
+- **Hale in the user prompt:** longer and more dramatic, and less faithful to the facts. It writes
+  the door time as 23:36:00 and builds a "five minutes" argument on it; the figure check flags one
+  invented figure.
+- **The expert table:** at 40 tokens, no persona 0/4 against the expert persona 3/4; at 400
+  tokens, 3/4 against 4/4. The plain answers used 105 tokens on average to the expert's 45. One of
+  the four plain answers at 400 tokens (seed 3) fell into a loop and Ollama cut it off with no
+  answer at all; it counts as wrong, and as 0 in the average. Without it the plain answers average
+  140 tokens.
 
 Even with a fixed seed, the persona replies can differ slightly between runs on the same machine.
 Chapter 06 explains why.
@@ -141,7 +153,13 @@ four independent samples at Claude's default sampling, not four repeatable ones.
 
 | Measure | Local: qwen3:1.7b, Ollama, Apple M1 Pro 16 GB | Hosted: claude-haiku-5-5 |
 |---|---|---|
-@@T11@@
+| Expert persona right at 40 tokens (of 4) | 3, against 0 with no persona | not run |
+| Expert persona right at 400 tokens (of 4) | 4, against 3 with no persona | not run |
+| Average tokens used at 400 | 45 expert, 105 no persona | not run |
+| Invented figures, Hale in the system prompt | 0 | not run |
+| Invented figures, Hale in the user prompt | 1 | not run |
+
+Live hosted numbers are not run: this lab has no hosted key, and no number here is estimated.
 
 What the hosted run will test: whether the 40-token gap is a small-model effect (a larger model
 may answer first with or without a persona, and the gap would vanish), and whether the figure
