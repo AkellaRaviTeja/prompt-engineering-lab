@@ -1,0 +1,18 @@
+{
+  "n": 24,
+  "agreement": 1.0,
+  "true_pass_rate": 1.0,
+  "true_fail_rate": 1.0,
+  "kappa": 1.0,
+  "confusion": {
+    "label_pass_judge_pass": 12,
+    "label_pass_judge_fail": 0,
+    "label_fail_judge_pass": 0,
+    "label_fail_judge_fail": 12
+  },
+  "judge_model": "qwen3:4b",
+  "tier": "local",
+  "date": "2026-11-23",
+  "machine": "Darwin arm64",
+  "min_kappa": 0.6
+}
