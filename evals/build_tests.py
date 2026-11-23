@@ -40,9 +40,10 @@ def extraction_tests() -> list[dict]:
                 {"type": "is-json", "metric": "valid_json"},
                 {"type": "javascript", "metric": "invoice_id",
                  "value": "JSON.parse(output).invoice_id === context.vars.ref"},
+                # A number, not a string Number() would coerce: the schema says total is one.
                 {"type": "javascript", "metric": "total_matches_ledger",
-                 "value": "Math.abs(Number(JSON.parse(output).total) - "
-                          "context.vars.ledger_total) < 0.01"},
+                 "value": "typeof JSON.parse(output).total === 'number' && "
+                          "Math.abs(JSON.parse(output).total - context.vars.ledger_total) < 0.01"},
             ],
         })
     return tests

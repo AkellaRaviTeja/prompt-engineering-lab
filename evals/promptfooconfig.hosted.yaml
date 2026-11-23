@@ -1,0 +1,41 @@
+# The same suite on the hosted tier: `make lesson N=18 TIER=hosted` (needs ANTHROPIC_API_KEY).
+# Same prompts, same tests, same assertions. Only the model under test changes.
+#
+# Every prompt goes through providers/lantern_provider.py, so every call uses lantern.chat on the
+# hosted tier: the extraction prompt with the invoice schema as native structured output, the
+# others as plain chat. Claude takes no temperature or seed; lantern.cloud reports them as not
+# applied instead of sending them. The no-speculation judge stays the calibrated local qwen3:4b
+# (judge/assert_no_speculation.py pins it to the tier it was calibrated on), so a hosted model
+# is never graded by an uncalibrated judge, or by itself.
+description: "Case File 01: can LANTERN's prompts be trusted in court? (hosted tier)"
+
+prompts:
+  - id: file://prompts/extract-invoice.json
+    label: extract-invoice
+  - id: file://prompts/classify-v1.json
+    label: classify-v1
+  - id: file://prompts/classify-v2.json
+    label: classify-v2
+  - id: file://prompts/evidence-rules.json
+    label: evidence-rules
+
+providers:
+  - id: file://providers/lantern_provider.py
+    label: claude-haiku-5-5
+    prompts: [classify-v1, classify-v2, evidence-rules]
+    config: {model: claude-haiku-5-5, tier: hosted, max_tokens: 300, prompt_version: v1}
+  - id: file://providers/lantern_provider.py
+    label: claude-haiku-5-5
+    prompts: [extract-invoice]
+    config: {model: claude-haiku-5-5, tier: hosted, schema: "file://schemas/invoice.json",
+             max_tokens: 300, prompt_version: v1}
+
+tests:
+  - file://tests/extraction.yaml
+  - file://tests/classification.yaml
+  - file://tests/rules.yaml
+
+evaluateOptions:
+  maxConcurrency: 1
+
+outputPath: output/results.hosted.json

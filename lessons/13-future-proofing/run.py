@@ -2,9 +2,10 @@
 
 import json
 import re
+import string
 from pathlib import Path
 
-from lantern import case, chat, load_config
+from lantern import case, chat, learn, load_config
 from lantern.ui import (
     Table,
     chapter,
@@ -78,7 +79,14 @@ today, tomorrow = cfg["default"], cfg["small"]
 note(f"'Today' is {today}. To simulate the swap, 'tomorrow' is {tomorrow}: a different model "
      "that nobody tuned these prompts for.")
 
-rows = []
+p_v1 = learn.predict(
+    f"v1 was written for {today} and its parser was written for v1's answers. Will that parser "
+    f"read v1's answer on {today}?", ["yes", "no"])
+p_v2 = learn.predict(
+    f"On {tomorrow}, which nobody tuned these prompts for, how many of the three Northwind totals "
+    "will v2 get exactly right?", ["0", "1", "2", "3"])
+
+rows, replies, measured = [], {}, {}
 for model in (today, tomorrow):
     for version, template, parser, fmt in (("v1", v1, parse_v1, None),
                                            ("v2", v2, parse_v2, SCHEMA)):
@@ -90,6 +98,19 @@ for model in (today, tomorrow):
         exact = sum(got.get(k) == v for k, v in EXPECTED.items())
         wrong = sorted(set(got) - set(EXPECTED))
         rows.append((model, version, len(got) > 0, f"{exact}/3", ", ".join(wrong) or "none"))
+        who = "today" if model == today else "tomorrow"
+        replies[version, who] = r.text
+        measured[version, who] = {"parsed": len(got) > 0, "exact": exact, "extra": len(wrong)}
+        if (version, who) == ("v1", "today"):
+            learn.reveal(p_v1, answer=0 if got else 1,
+                         why="A parser written against one answer is a guess about a habit. "
+                         "\"A nice list\" leaves the shape to the model, and the shape moves "
+                         "from run to run, even on the model the prompt was tuned for.")
+        if (version, who) == ("v2", "tomorrow"):
+            learn.reveal(p_v2, answer=exact,
+                         why="v2 states the task, the rules and the output schema, so any capable "
+                         "model can meet it. Whether the rows are the right ones is a separate "
+                         "question: count the rows that should not be there.")
 
 step("3. Did the findings survive the swap?")
 table = Table(title="Northwind payments: parsed by code, checked against the invoices")
@@ -100,10 +121,80 @@ for model, version, parsed, exact, extra in rows:
 console.print(table)
 
 note("v1's output is prose shaped by one model's habits. Its parser is a guess about those habits.")
+
 note("v2 states a contract (schema, rules, delimiters) that any capable model can meet.")
 note("A contract makes failures visible, not impossible: watch for extra rows on the small model.")
 note("The changelog in prompts/CHANGELOG.md records why each line changed. Read it.")
 note("What protects you on swap day is not the prompt. It is the eval that proves the prompt.")
+
+step("4. The contract, checked by code")
+MODEL_SPECIFIC = ("/no_think", "/think", "<|im_start|>", "<|im_end|>", "[INST]")
+CONTRACT = {"fields": {"invoice_id": "string", "total": "number"},
+            "id_field": "invoice_id", "id_pattern": r"^[A-Z]{2,4}-\d{4}$"}
+
+
+def render(template: str, variables: dict[str, str]) -> str:
+    """Fill a prompt template; refuse model-specific tokens and missing or unused variables."""
+    for token in MODEL_SPECIFIC:
+        if token in template:
+            raise ValueError(f"model-specific token {token!r} in the template")
+    names = {f for _, f, _, _ in string.Formatter().parse(template) if f}
+    if names - set(variables) or set(variables) - names:
+        raise ValueError(f"template needs {sorted(names)}, got {sorted(variables)}")
+    return template.format(**variables)
+
+
+def validate(text: str, contract: dict, *, source: str) -> list[str]:
+    """What is wrong with a reply under the contract. [] means it meets it. practice/ builds it."""
+    try:
+        data = json.loads(text)
+    except ValueError:
+        return ["not JSON: prose, a code fence or a thinking block around the data"]
+    if not isinstance(data, list):
+        return ["not a JSON list"]
+    kinds = {"string": str, "number": (int, float)}
+    problems, seen = [], set()
+    for i, row in enumerate(data):
+        if not isinstance(row, dict) or set(row) != set(contract["fields"]):
+            problems.append(f"row {i}: fields must be exactly {sorted(contract['fields'])}")
+            continue
+        for name, kind in contract["fields"].items():
+            if isinstance(row[name], bool) or not isinstance(row[name], kinds[kind]):
+                problems.append(f"row {i}: {name} must be a {kind}")
+        rid = str(row[contract["id_field"]])
+        if not re.match(contract["id_pattern"], rid):
+            problems.append(f"row {i}: {rid!r} does not match {contract['id_pattern']}")
+        elif rid not in source:
+            problems.append(f"row {i}: {rid} is not in the material")
+        if rid in seen:
+            problems.append(f"row {i}: {rid} appears twice")
+        seen.add(rid)
+    return problems
+
+
+p_meet = learn.predict("Of the four replies, how many meet the contract, checked by code?",
+                       ["0", "1", "2", "3", "4"])
+for label, template in (("v1", v1), ("v2", v2)):
+    try:
+        render(template, {"invoices": invoices})
+        note(f"render() accepts {label}.")
+    except ValueError as e:
+        note(f"render() refuses {label}: {e}.")
+contract = Table(title="Each reply against the contract")
+for col in ("model", "prompt", "meets the contract?", "first problem"):
+    contract.add_column(col)
+passes = 0
+for (version, who), text in replies.items():
+    problems = validate(text, CONTRACT, source=invoices)
+    passes += not problems
+    measured[version, who]["contract"] = not problems
+    contract.add_row(today if who == "today" else tomorrow, version,
+                     "yes" if not problems else "[red]no[/red]", problems[0] if problems else "")
+console.print(contract)
+learn.reveal(p_meet, answer=passes,
+             why="The contract checks shape, types and that every id exists in the material. It "
+             "does not check that a row is a Northwind invoice: that is substance, and only the "
+             "expected totals in step 3 test it.")
 
 your_turn(
     "13",
@@ -119,13 +210,27 @@ your_turn(
         "Copy prompts/v2.md to prompts/v3.md, set `version: 3`, add the rule \"vendor must be "
         "exactly 'Northwind Freight Ltd'\" and a v3 entry in prompts/CHANGELOG.md. In run.py, add "
         "a `vendor` string to `SCHEMA`, load v3 with `load_prompt` and add a v3 row to the loop.",
-        "Set `provider: anthropic` (or openai, gemini) in config.yaml, with the key in .env and "
-        "`uv sync --extra cloud`. Both models then become the cloud model. Do v1 and v2 parse?",
+        "Run make lesson N=13 TIER=hosted (ANTHROPIC_API_KEY in .env). Both 'today' and "
+        "'tomorrow' become the hosted model. Do v1 and v2 parse, and meet the contract?",
         "In run.py, change the regex in `parse_v1` so it also reads v1's bullet lines. Run it "
         "again tomorrow. Does your fix still match?",
         "Add /no_think to the start of the body in prompts/v2.md, after the front matter. Do the "
         "qwen3:1.7b rows change? What would another model family make of it?",
     ],
+)
+
+learn.record(
+    v1_today_parsed=measured["v1", "today"]["parsed"],
+    v1_today_exact=measured["v1", "today"]["exact"],
+    v2_today_exact=measured["v2", "today"]["exact"],
+    v2_today_extra=measured["v2", "today"]["extra"],
+    v1_tomorrow_parsed=measured["v1", "tomorrow"]["parsed"],
+    v1_tomorrow_exact=measured["v1", "tomorrow"]["exact"],
+    v2_tomorrow_exact=measured["v2", "tomorrow"]["exact"],
+    v2_tomorrow_extra=measured["v2", "tomorrow"]["extra"],
+    v1_contract=measured["v1", "today"]["contract"] and measured["v1", "tomorrow"]["contract"],
+    v2_contract=measured["v2", "today"]["contract"] and measured["v2", "tomorrow"]["contract"],
+    contract_passes=passes,
 )
 
 finding("""

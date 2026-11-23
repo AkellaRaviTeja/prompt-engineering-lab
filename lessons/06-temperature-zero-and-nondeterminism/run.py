@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 import random
+import re
 import sys
 from datetime import UTC, datetime
 from functools import reduce
@@ -17,8 +18,8 @@ sys.path.insert(0, str(ROOT / "lessons" / "05-temperature-and-top-k"))
 
 from sampling import first_token_distribution, northwind_messages  # noqa: E402
 
-from lantern import case, chat, load_config  # noqa: E402
-from lantern.config import model_name  # noqa: E402
+from lantern import case, chat, learn, load_config  # noqa: E402
+from lantern.config import model_name, tier  # noqa: E402
 from lantern.ui import (  # noqa: E402
     Table,
     chapter,
@@ -43,15 +44,40 @@ evidence("hale-letter.md", letter[letter.index("First,"):letter.index("Third,")]
 
 QUESTION = ("Northwind invoices: NW-0388 62,500.00; NW-0402 71,200.00; NW-0419 94,000.00. "
             "What is the total? Reply with one number only, no working.")
+TOTAL = 62500 + 71200 + 94000
+HOSTED = tier() == "hosted"
 
+
+def last_number(text: str) -> float | None:
+    """The last number in a reply, commas removed: the answer when a model shows working."""
+    found = re.findall(r"\d[\d,]*(?:\.\d+)?", text)
+    return float(found[-1].replace(",", "")) if found else None
+
+
+p_same = learn.predict("Five runs of the same question at temperature 0: how many distinct "
+                       "answers?", ["1", "2", "3 or more"])
+p_right = learn.predict("And how many of the five will be the correct total?",
+                        ["all five", "some", "none"])
 step("1. Temperature 0: always take the most likely token")
+if HOSTED:
+    note("Claude takes no temperature and no seed (both reported, not sent). On the hosted tier "
+         "these are five runs of the same request at the provider's own settings: this step "
+         "measures its nondeterminism with no seed at all.")
 note("Greedy decoding. No randomness is drawn, so the seed does not matter. Five runs:")
 answers = [chat(QUESTION, temperature=0, max_tokens=60).text for _ in range(5)]
 for i, a in enumerate(answers, 1):
     console.print(f"  run {i}: {a}")
 console.print(f"[bold]{len(set(answers))} distinct answer(s) in 5 runs.[/bold] "
-              f"The correct total is {62500 + 71200 + 94000:,.2f}.")
+              f"The correct total is {TOTAL:,.2f}.")
 note("Deterministic is not the same as correct. A model can be reliably wrong.")
+step1_distinct = len(set(answers))
+step1_correct = sum(last_number(a) == TOTAL for a in answers)
+learn.reveal(p_same, answer=learn.bucket(step1_distinct, [1, 2]),
+             why="Greedy decoding draws no random number, so one model on one idle server "
+                 "usually repeats itself. Usually: steps 2 to 4 show what can still move it.")
+learn.reveal(p_right, answer=0 if step1_correct == 5 else (2 if step1_correct == 0 else 1),
+             why=f"{step1_correct} of 5 were {TOTAL:,.2f}. Repeating an answer says the system "
+                 "is stable, not that it is right. Keep arithmetic in code.")
 
 step("2. Same input, different numbers: what the server did before matters")
 host = load_config()["ollama"]["host"]
@@ -64,17 +90,31 @@ def top_prob(**kw) -> tuple[str, float]:
     return tok, math.exp(lp)
 
 
-t = Table(title="Probability of the top next token after 'Northwind is most likely a'")
-t.add_column("server state")
-t.add_column("token")
-t.add_column("probability", justify="right")
-for label, kw in (("model just reloaded (num_ctx 4096)", {"num_ctx": 4096}),
-                  ("model just reloaded (num_ctx 8192)", {}),
-                  ("same request again, prompt cached", {}),
-                  ("and again", {})):
-    tok, p = top_prob(**kw)
-    t.add_row(label, repr(tok), f"{p:.4f}")
-console.print(t)
+cache_values: list[float] = []
+if HOSTED:
+    note("Skipped on the hosted tier: it reads Ollama's log-probabilities and reloads the model "
+         "with a different num_ctx. Claude exposes neither log-probabilities nor the server's "
+         "cache state, so the hosted run cannot show the probabilities moving; step 1 shows "
+         "their effect on the answers instead.")
+else:
+    p_cache = learn.predict("Four identical requests, two after a model reload and two from "
+                            "cache: will the top token's probability be the same in all four?",
+                            ["the same in all four", "two or more different values"])
+    t = Table(title="Probability of the top next token after 'Northwind is most likely a'")
+    t.add_column("server state")
+    t.add_column("token")
+    t.add_column("probability", justify="right")
+    for label, kw in (("model just reloaded (num_ctx 4096)", {"num_ctx": 4096}),
+                      ("model just reloaded (num_ctx 8192)", {}),
+                      ("same request again, prompt cached", {}),
+                      ("and again", {})):
+        tok, p = top_prob(**kw)
+        cache_values.append(round(p, 4))
+        t.add_row(label, repr(tok), f"{p:.4f}")
+    console.print(t)
+    learn.reveal(p_cache, answer=0 if len(set(cache_values)) == 1 else 1,
+                 why=f"{len(set(cache_values))} distinct value(s) for one request. The tokens "
+                     "were identical; the arithmetic path was not.")
 note("Identical tokens in. When the server computes the whole prompt fresh it does the "
      "arithmetic in one shape; when it reuses a cached prefix, in another. Floating point "
      "gives slightly different results for each, so the probabilities move.")
@@ -127,17 +167,35 @@ for row in (
     causes.add_row(*row)
 console.print(causes)
 
+p_seed = learn.predict("At T = 0.9, seed 7 three times: how many different texts?",
+                       ["1", "2", "3"])
 step("6. The seed: making randomness repeatable")
+if HOSTED:
+    note("Claude has no seed (reported, not sent): on the hosted tier these five rows are five "
+         "unseeded runs.")
+seeded: dict[int, set[str]] = {}
 for seed in (7, 7, 7, 8, 9):
     r = chat(northwind_messages(), temperature=0.9, seed=seed, max_tokens=8)
+    seeded.setdefault(seed, set()).add(r.text)
     console.print(f"  T=0.9 seed {seed}: {r.text!r}")
+same_seed_distinct = len(seeded[7])
+learn.reveal(p_seed, answer=same_seed_distinct - 1,
+             why="The seed fixes the sequence of random numbers, so the same distribution gives "
+                 "the same draws. Without a seed, or on a provider that takes none, it would not.")
 note("The seed fixes the random draws. Same seed, same draws, same text, provided the "
      "probabilities underneath are the same, which step 2 shows is not guaranteed.")
 
 step("7. A finding record Hale cannot dismiss")
-tags = {m["name"]: m for m in httpx.get(f"{host}/api/tags", timeout=10).json()["models"]}
-version = httpx.get(f"{host}/api/version", timeout=10).json()["version"]
 model = model_name(None)
+if HOSTED:
+    note("Ollama's /api/tags and /api/version are not available on the hosted tier. Claude "
+         "exposes no weights digest, so the record names the dated model and the provider; the "
+         "provider can still change the serving stack behind that name.")
+    digest, server = "not exposed by the hosted API", "anthropic"
+else:
+    tags = {m["name"]: m for m in httpx.get(f"{host}/api/tags", timeout=10).json()["models"]}
+    version = httpx.get(f"{host}/api/version", timeout=10).json()["version"]
+    digest, server = tags[model]["digest"], f"ollama {version}"
 plate_prompt = ("The gate camera recorded a partial plate 'KB 7?4 ?LR' where ? is unreadable. "
                 "Registered plates: KB 714 FLR (R. Malhotra), KB 2209 MN (T. Reyes). Which "
                 "plate matches? Reply with the plate only. Do not explain.")
@@ -147,8 +205,8 @@ first = chat(plate_prompt, **settings)
 record = {
     "finding": "Partial plate KB 7?4 ?LR matches KB 714 FLR",
     "model": model,
-    "model_digest": tags[model]["digest"],
-    "server": f"ollama {version}",
+    "model_digest": digest,
+    "server": server,
     "settings": settings,
     "prompt_sha256": hashlib.sha256(plate_prompt.encode()).hexdigest(),
     "output": first.text,
@@ -156,10 +214,25 @@ record = {
     "recorded_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
 }
 console.print_json(json.dumps(record))
+p_replay = learn.predict("Replayed three times from this record: will all three match it?",
+                         ["yes, all three", "no"])
 replays = [chat(plate_prompt, **settings).text for _ in range(3)]
 ok = all(r == first.text for r in replays)
 reply("replayed 3 times from the record", "\n\n".join(replays),
       meta="REPRODUCED" if ok else "NOT REPRODUCED", style="green" if ok else "red")
+learn.reveal(p_replay, answer=0 if ok else 1,
+             why="A short reading with one right answer, fixed settings and the same model and "
+                 "server replays exactly. That is what makes it a finding and not an opinion.")
+
+learn.record(
+    hosted=HOSTED,
+    step1_distinct=step1_distinct,
+    step1_correct=step1_correct,
+    cache_distinct=len(set(cache_values)) if cache_values else None,
+    same_seed_distinct=same_seed_distinct,
+    replays_match=ok,
+    replay_runs=len(replays),
+)
 
 your_turn(
     "06",
@@ -178,8 +251,8 @@ your_turn(
         "In run.py, step 7, change 'temperature': 0 to 0.8 in `settings`. Is it still REPRODUCED? "
         "Why, given the seed?",
         "With a key in .env and uv sync --extra cloud done, change range(5) to range(10) in the "
-        "`answers` line and run LANTERN_PROVIDER=anthropic make lesson N=06. Count the distinct "
-        "answers in step 1. Step 2 needs Ollama, so the run stops there.",
+        "`answers` line and run make lesson N=06 TIER=hosted. Count the distinct answers in "
+        "step 1. Steps 2 and 7's Ollama calls are skipped there, with a note.",
     ],
 )
 

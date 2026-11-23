@@ -1,4 +1,4 @@
-"""Take screenshots of the promptfoo web viewer for chapters 14 and 15.
+"""Take screenshots of the promptfoo web viewer for chapters 18 and 19.
 
 Start the viewer first (`make eval-view`, port 15500), then run:
     uv run python scripts/shoot_promptfoo.py

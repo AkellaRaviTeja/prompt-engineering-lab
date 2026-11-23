@@ -82,3 +82,17 @@ def draw(probs: list[tuple[str, float]], rng: random.Random) -> str:
         if r <= acc:
             return t
     return probs[-1][0]
+
+
+def captured_distribution(name: str = "northwind") -> list[tuple[str, float]]:
+    """A distribution captured from a live qwen3:1.7b run by `make charts`.
+
+    Used where the model cannot report its own log-probabilities (the hosted tier: Claude has
+    none), so the sampler arithmetic still runs on a real next-token distribution.
+    """
+    import json
+    from pathlib import Path
+
+    js = (Path(__file__).resolve().parents[2] / "docs" / "explorer" / "data.js").read_text("utf-8")
+    data = json.loads(js[js.index("{"): js.rindex("}") + 1])
+    return [(t, lp) for t, lp in data[name]["tokens"]]

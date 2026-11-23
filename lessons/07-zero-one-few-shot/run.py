@@ -3,7 +3,7 @@
 import time
 from collections import Counter
 
-from lantern import case, chat
+from lantern import case, chat, learn
 from lantern.ui import (
     Table,
     chapter,
@@ -35,6 +35,12 @@ evidence("messages.jsonl (first 4 of 48)", "\n".join(
 # Two example sets. Every message used as an example in any mode is held out of scoring.
 EASY = ["M03", "M02", "M01", "M12", "M04", "M05"]  # clear cases, two per label, interleaved
 BORDER = ["M16", "M24", "M33", "M26", "M15", "M10"]  # judgement calls on the label boundaries
+# With --mine, the classifier is yours (practice/exercise.py): it picks the clear examples per
+# label from the same six messages, and answers through a schema with one enum field.
+MINE = learn.mine()
+if MINE:
+    EASY = [m["id"] for m in MINE.choose_examples([by_id[i] for i in sorted(EASY)], LABELS,
+                                                  per_label=2)]
 scored = [m for m in messages if m["id"] not in EASY + BORDER]
 
 TASK = """Classify a text message from a company executive's work phone.
@@ -83,12 +89,24 @@ note("Each example is a user turn and the 'right' assistant reply. "
      "The model continues the pattern.")
 note("The task is `TASK` in run.py. The example sets are the `EASY` and `BORDER` lists.")
 
+gold = Counter(m["label"] for m in scored)
+p_best = learn.predict("Which prompt will agree with Okafor most often?", list(MODES))
+p_primed = learn.predict(
+    f"Okafor labelled {gold['threat']} of these messages threat. How many will the primed "
+    "zero-shot prompt label threat?",
+    [f"fewer than {gold['threat'] - 2}", f"{gold['threat'] - 2} to {gold['threat'] + 2}",
+     f"more than {gold['threat'] + 2}"],
+)
 step(f"2. Five prompts, {len(scored)} held-out messages each")
 results: dict[str, dict] = {}
 for mode, (system, ids) in MODES.items():
     start = time.perf_counter()
     preds, tokens = [], 0
-    for m in scored:
+    if MINE:
+        mine_res = MINE.score(scored, chat=chat, system=system,
+                              examples=[by_id[i] for i in ids], labels=LABELS)
+        preds, tokens = list(mine_res["preds"]), mine_res["prompt_tokens"]
+    for m in scored if not MINE else []:
         r = chat([*examples_as_turns(ids), {"role": "user", "content": ask(m)}], system=system,
                  temperature=0, max_tokens=8)
         preds.append(parse(r.text))
@@ -106,7 +124,6 @@ for mode, res in results.items():
     table.add_row(mode, str(len(MODES[mode][1])), f"{res['acc']:.0%}", str(c["threat"]),
                   str(c["logistics"]), str(c["personal"]), str(c["invalid"]),
                   str(res["tokens"] // len(scored)))
-gold = Counter(m["label"] for m in scored)
 table.add_row("[dim]Okafor (gold)[/dim]", "", "", str(gold["threat"]), str(gold["logistics"]),
               str(gold["personal"]), "", "")
 console.print(table)
@@ -114,6 +131,17 @@ note("One word in the task, 'murdered', changes how many messages look like thre
 note("Examples cost tokens on every call. They earn their place only if accuracy moves.")
 
 best = max(results, key=lambda k: results[k]["acc"])
+primed_threats = results["zero-shot, primed"]["counts"]["threat"]
+learn.reveal(p_best, answer=list(MODES).index(best),
+             why=f"{best} scored {results[best]['acc']:.0%}. Whether examples help, and which "
+                 "ones, is an empirical question: score every prompt on the same held-out set.")
+learn.reveal(p_primed,
+             answer=learn.bucket(primed_threats, [gold["threat"] - 3, gold["threat"] + 2]),
+             why=f"{primed_threats} threat labels against Okafor's {gold['threat']}, from one "
+                 "word in the task. Everything in a prompt is evidence about the expected answer.")
+
+p_missed = learn.predict(f"Of Okafor's {gold['threat']} threats, how many will the best prompt "
+                         "miss?", ["none", "1 or 2", "3 or more"])
 step(f"3. Where the best prompt ({best}) disagrees with Okafor")
 preds = results[best]["preds"]
 confusion = Counter((m["label"], p) for m, p in zip(scored, preds, strict=True))
@@ -131,11 +159,39 @@ for m, p in zip(scored, preds, strict=True):
     if p != m["label"]:
         wrong.add_row(m["id"], m["from"], m["text"], m["label"], p)
 console.print(wrong)
+missed = confusion[("threat", "logistics")] + confusion[("threat", "personal")] \
+    + confusion[("threat", "invalid")]
+learn.reveal(p_missed, answer=learn.bucket(missed, [0, 2]),
+             why=f"The best prompt missed {missed} of {gold['threat']} threats while scoring "
+                 f"{results[best]['acc']:.0%}. A headline accuracy can hide the errors that "
+                 "matter most; the confusion table shows them.")
 note("Read each disagreement before blaming the model. "
      "Some of Okafor's labels are judgement calls.")
 note("M47, Simon Clarke at 21:44 on the night: 'Are you still at the office?' Okafor says threat.")
 note("On its own the text is harmless. "
      "It is a threat only if you know what happened two hours later.")
+
+acc = {mode: round(res["acc"], 4) for mode, res in results.items()}
+per_msg = {mode: res["tokens"] // len(scored) for mode, res in results.items()}
+learn.record(
+    acc_zero_primed=acc["zero-shot, primed"],
+    acc_zero=acc["zero-shot"],
+    acc_one=acc["one-shot"],
+    acc_few_clear=acc["few-shot, clear examples"],
+    acc_few_border=acc["few-shot, boundary only"],
+    best_accuracy=acc[best],
+    few_beats_zero=acc["few-shot, clear examples"] > acc["zero-shot"],
+    threats_gold=gold["threat"],
+    threats_zero_primed=primed_threats,
+    threats_zero=results["zero-shot"]["counts"]["threat"],
+    threats_few_clear=results["few-shot, clear examples"]["counts"]["threat"],
+    threats_missed_best=missed,
+    invalid_total=sum(res["counts"]["invalid"] for res in results.values()),
+    tokens_zero=per_msg["zero-shot"],
+    tokens_few_clear=per_msg["few-shot, clear examples"],
+    scored_messages=len(scored),
+    mine=bool(MINE),
+)
 
 your_turn(
     "07",

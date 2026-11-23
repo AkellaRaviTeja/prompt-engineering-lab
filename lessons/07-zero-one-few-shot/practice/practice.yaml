@@ -1,0 +1,149 @@
+# Chapter 07 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=07).
+chapter: "07"
+title: Forty-eight messages
+
+objectives:
+  - Build zero-shot, one-shot and few-shot prompts, with examples as earlier chat turns.
+  - Choose and order examples per label so that balance and recency do not tilt the answers.
+  - Constrain a classifier's answer to its labels with a schema instead of parsing free text.
+  - Score a prompt on held-out messages and read the confusion table, not only the accuracy.
+
+quiz:
+  - q: Every message used as an example in any prompt is held out of scoring in every prompt. Why?
+    options:
+      - To save tokens.
+      - So no prompt is graded on a message it was shown the answer to, and the five scores are comparable.
+      - Because Ollama refuses to classify a message twice.
+      - To make the accuracy look higher.
+    answer: b
+    why: >
+      A prompt that has seen a message's label will usually get it right, which measures memory,
+      not the rule. One held-out set for all five prompts keeps the comparison fair.
+
+  - q: The primed prompt differs from plain zero-shot by one word, "murdered". What did it do, and what is the lesson?
+    options:
+      - Nothing measurable; one word is too small to matter.
+      - It raised accuracy, because context always helps.
+      - It multiplied the threat labels and lowered accuracy; everything in a prompt is evidence about the expected answer.
+      - It made the model refuse to classify.
+    answer: c
+    why: >
+      The model reads the framing as a hint about what it should find. Keep task descriptions
+      neutral unless you want that pull.
+
+  - q: Few-shot with six clear examples scored a few points above zero-shot at three times the prompt tokens. What follows?
+    options:
+      - Few-shot is always worth it.
+      - Examples are never worth it.
+      - Whether the examples pay for themselves depends on the volume and the price; measure both on held-out data before deciding.
+      - Use one example instead; it is always the best trade.
+    answer: c
+    why: >
+      Examples are paid for on every call. On ten thousand messages a few points may or may not
+      be worth hours of compute or real money. One-shot scored below zero-shot here, so fewer is
+      not automatically better either.
+
+  - q: Why interleave the examples (threat, logistics, personal, threat, ...) instead of grouping them by label?
+    options:
+      - The model sorts them itself, so it does not matter.
+      - "Recency bias: the last examples pull hardest, so a block of one label at the end tilts borderline messages toward it."
+      - Grouped examples use more tokens.
+      - Ollama rejects grouped examples.
+    answer: b
+    why: >
+      Models weight recent context heavily. Interleaving spreads every label through the prompt;
+      ending on the least dramatic label avoids pulling the boundary cases toward threat.
+
+  - q: "'Boundary only' used six judgement calls as examples, and the 1.7B model labelled almost everything logistics. What went wrong?"
+    options:
+      - The boundary examples were mislabelled.
+      - A small model cannot learn a rule from edge cases alone; it needs the clear cases first, then the edges.
+      - Six examples are too many for any model.
+      - The schema forced logistics.
+    answer: b
+    why: >
+      Edge cases only make sense against the clear cases they sit between. A larger model may
+      infer the rule; a small one copies the surface pattern instead.
+
+  - q: The lesson parses free text and counts "invalid" answers. With a schema whose label field is an enum, what changes?
+    options:
+      - Nothing; the model can still write any word.
+      - The reply can only be one of the three labels, so invalid answers disappear; wrong labels do not.
+      - Accuracy is guaranteed to rise to 100%.
+      - The model no longer needs a task description.
+    answer: b
+    why: >
+      Constrained decoding removes formatting failures, not judgement errors. Chapter 08 shows
+      the same thing for whole records: valid is not the same as correct.
+
+  - q: The best prompt scored well but missed some of Okafor's threats, including M47, "Are you still at the office?". How should you read that?
+    options:
+      - The model is broken.
+      - Okafor is wrong.
+      - Read the disagreement first; some gold labels depend on context the model was never given, and the misses that matter are hidden by the headline accuracy.
+      - Raise the temperature so it finds more threats.
+    answer: c
+    why: >
+      A gold label is a person's judgement. M47 is a threat only if you know what happened two
+      hours later. The confusion table shows which errors matter; the accuracy figure does not.
+
+exercise:
+  title: Write the few-shot classifier
+  kind: component
+  task: |
+    Open `lessons/07-zero-one-few-shot/practice/exercise.py` and write the classifier the
+    lesson runs five times: a schema that allows only the labels, examples chosen per label and
+    interleaved, examples as chat turns, one classification, and a scorer. The tests hand it a
+    scripted model, so no Ollama is needed. They check that:
+
+    - the schema is one object with a required `label` field limited to the labels,
+    - examples are the first of each label in the pool, interleaved, and a short pool is refused,
+    - each request has the system prompt, the example turns in JSON, the message last, the
+      schema as `format=` and temperature 0,
+    - the label is read from the JSON reply, and a bad reply is "invalid", not a crash,
+    - `score` returns predictions, accuracy against the gold labels, counts and total tokens.
+
+    With `--mine`, the lesson picks the clear examples with your `choose_examples` and runs all
+    five prompts through your `score`.
+  hints:
+    - |
+      The schema: `{"type": "object", "properties": {"label": {"type": "string", "enum":
+      labels}}, "required": ["label"]}`. Example answers are `json.dumps({"label": m["label"]})`,
+      so they look exactly like what the schema allows.
+    - |
+      Choosing: `{lab: [m for m in pool if m["label"] == lab][:per_label] for lab in labels}`,
+      then `[by_label[lab][i] for i in range(per_label) for lab in labels]`: the outer loop is
+      the round, the inner loop the label.
+    - |
+      Reading the reply: `json.loads(r.text).get("label")` inside `try/except (ValueError,
+      AttributeError)` (a JSON list has no `.get`). Anything not in `labels` is "invalid".
+  after: >
+    Run the lesson on your classifier: `make lesson N=07 ARGS=--mine`. Compare the invalid
+    column and the accuracies with the lesson's free-text run.
+
+challenges:
+  - id: your-classifier
+    title: Your classifier, on the real phone
+    goal: >
+      Run the lesson on the classifier you wrote: no invalid answers in any of the five prompts,
+      and the clear-example prompt still agreeing with Okafor at least 80% of the time.
+    change: "Pass the exercise first, then run `make lesson N=07 ARGS=--mine`."
+    target: "mine == true and invalid_total == 0 and acc_few_clear >= 0.8"
+
+  - id: a-leading-task
+    title: "Break it: a task that finds threats everywhere"
+    goal: >
+      Without touching PRIMED or the examples, make the plain zero-shot prompt label at least
+      twice as many threats as Okafor did.
+    change: Reword TASK in lessons/07-zero-one-few-shot/run.py (the framing, not the label list).
+    target: "threats_zero >= 16"
+    reset: git checkout lessons/07-zero-one-few-shot/run.py
+
+  - id: cheaper-examples
+    title: Fewer examples, same agreement
+    goal: >
+      Cut the clear-example prompt to at most 220 prompt tokens per message and keep it at 80%
+      agreement or better.
+    change: Change EASY in lessons/07-zero-one-few-shot/run.py.
+    target: "tokens_few_clear <= 220 and acc_few_clear >= 0.8"
+    reset: git checkout lessons/07-zero-one-few-shot/run.py

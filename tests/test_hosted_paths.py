@@ -25,7 +25,9 @@ ARGS = {"18": ["--reuse"], "19": []}
 
 def run(lesson: Path, extra_env: dict, log: Path) -> subprocess.CompletedProcess:
     env = {**os.environ, "FAKE_HOSTED_LOG": str(log), "LANTERN_CALL_LOG": "",
-           "LANTERN_TRACE": "0", "LANTERN_CHAPTER": lesson.name[:2], **extra_env}
+           "LANTERN_TRACE": "0", "LANTERN_CHAPTER": lesson.name[:2],
+           # fake answers must never reach the learner's progress or challenge results
+           "LANTERN_PROGRESS": str(log.parent / "progress"), **extra_env}
     return subprocess.run(
         [sys.executable, str(ROOT / "tests" / "fake_hosted.py"), str(lesson / "run.py"),
          *ARGS.get(lesson.name[:2], [])],
@@ -50,7 +52,8 @@ def test_chapter_replays_from_its_recording(lesson, tmp_path):
     if not rec.exists():
         pytest.skip(f"no recorded hosted run for chapter {lesson.name[:2]}: not run")
     env = {**os.environ, "LANTERN_TIER": "hosted", "LANTERN_REPLAY": "1",
-           "LANTERN_CALL_LOG": "", "LANTERN_TRACE": "0"}
+           "LANTERN_CALL_LOG": "", "LANTERN_TRACE": "0",
+           "LANTERN_PROGRESS": str(tmp_path / "progress")}
     r = subprocess.run([sys.executable, str(lesson / "run.py"), "--no-predict"], cwd=ROOT,
                        env=env, capture_output=True, text=True, timeout=300)
     assert r.returncode == 0, r.stderr[-3000:]

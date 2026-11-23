@@ -1,0 +1,138 @@
+# Chapter 13 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=13).
+chapter: "13"
+title: The swap
+
+objectives:
+  - Tell a prompt that depends on one model's habits from one that states a contract.
+  - Move settings out of prompt text and into the request.
+  - Version a prompt like code, with a changelog and a test.
+  - Write the template renderer and the contract check that catch a model swap's breakage.
+
+quiz:
+  - q: v1 begins with /no_think. Why does v2 drop it?
+    options:
+      - It is rude.
+      - It is a Qwen3 control token; other model families read it as words. The setting belongs in the request (think false), not the prompt text.
+      - It makes the prompt too long.
+      - It turns thinking on.
+    answer: b
+    why: >
+      Settings in prose tie a prompt to one family's training. Thinking, the output schema and
+      the temperature are request parameters; send them as parameters.
+
+  - q: v1's answer on the model it was written for was readable by a person but not by its parser. What was the real defect?
+    options:
+      - The model was too small.
+      - The output shape was never specified, so the parser was a guess about one run's habit, and the habit moved.
+      - The regex had a typo.
+      - Temperature 0 is not deterministic.
+    answer: b
+    why: >
+      "A nice list" lets the model pick the shape, and the shape changes from run to run and model
+      to model. Specify the output, and enforce it with a schema.
+
+  - q: v2 parsed on both models, but on the small model it listed suppliers that are not Northwind. What does that show?
+    options:
+      - The schema is broken.
+      - A contract makes shape reliable and failures visible; it does not make the content right. Only a test of substance catches wrong rows.
+      - The small model ignores schemas.
+      - v1 was better after all.
+    answer: b
+    why: >
+      Structured output guarantees shape. Whether each row belongs there is a question for a test
+      with known answers: chapter 18's eval suite.
+
+  - q: "Why does render() refuse a variable that has no placeholder in the template?"
+    options:
+      - It is slower.
+      - A typo such as {invoice} for {invoices} would otherwise send the prompt with the evidence silently missing, and the model would answer anyway.
+      - Python's format() requires it.
+      - To save tokens.
+    answer: b
+    why: >
+      A missing or unused variable is a prompt bug that produces a plausible answer from no
+      evidence. Fail loudly at render time, before any model sees it.
+
+  - q: Which of these belongs in a prompt's version record?
+    options:
+      - Only the prompt text.
+      - The prompt id and version, its status, the model (and digest) it was tested on, and a changelog entry saying what changed and why.
+      - The name of the person who wrote it, nothing else.
+      - Nothing; prompts are not code.
+    answer: b
+    why: >
+      When Hale asks which instructions produced a finding, the answer is a file and a version.
+      Pin the model's digest too: a re-pulled tag can change underneath you.
+
+  - q: Headquarters will swap the model next quarter. What actually protects the filed findings?
+    options:
+      - The best-worded prompt.
+      - Keeping the old model forever.
+      - An eval suite that runs every prompt on the new model before the switch and says what broke.
+      - Magic phrases that work on every model.
+    answer: c
+    why: >
+      No wording survives every model. A suite that proves each prompt on the candidate model is
+      what lets you switch with confidence. That is chapter 18.
+
+exercise:
+  kind: function
+  title: The prompt contract
+  task: |
+    Open `lessons/13-future-proofing/practice/exercise.py` and write `render` and `validate`.
+    Step 4 of the chapter runs the same checks on the four live replies. No model is needed.
+    The tests use the chapter's own prompt files and invoices, and check that:
+
+    - v2 renders, with the evidence inside its <invoices> tags,
+    - v1 is refused for its /no_think token, and missing or unused variables are refused,
+    - a JSON list with exactly invoice_id and a numeric total passes, and so does an empty list,
+    - prose, a code fence or a thinking block around the JSON is rejected as not JSON,
+    - a total written as a string or a boolean, or an extra field, is rejected,
+    - an id in the wrong form, one the material never mentions, or one repeated, is rejected.
+  hints:
+    - |
+      `{f for _, f, _, _ in string.Formatter().parse(template) if f}` is the set of placeholder
+      names. Compare it with `set(variables)` both ways before you call `template.format(**variables)`.
+    - |
+      `json.loads(reply)` raises ValueError on anything that is not pure JSON, which is exactly
+      the "worked on one model" case: return one problem and stop. Then check `isinstance(data,
+      list)`.
+    - |
+      For each row: `set(row) != set(contract["fields"])` is a problem. A number is
+      `isinstance(v, (int, float)) and not isinstance(v, bool)`. Then
+      `re.match(contract["id_pattern"], rid)`, `rid in source`, and a `seen` set for repeats.
+  after: >
+    Tighten CONTRACT in run.py so the small model's extra suppliers fail the contract, then ask
+    whether that rule is shape or substance. The challenges measure the rest.
+
+challenges:
+  - id: no-padding
+    title: Stop the padding
+    goal: >
+      Make v2 on the small model return exactly the three Northwind totals and no other rows.
+    change: >
+      Write prompts/v3.md (the Try this exercise: a vendor rule and a vendor field) and use it in
+      place of v2 in lessons/13-future-proofing/run.py, or tighten v2's rules.
+    target: "v2_tomorrow_exact == 3 and v2_tomorrow_extra == 0"
+    reset: git checkout lessons/13-future-proofing/run.py lessons/13-future-proofing/prompts
+
+  - id: v1-survives
+    title: Rescue v1 without a schema
+    goal: >
+      Get the v1 prompt read by its parser with all three totals exact on both models, still with
+      no structured output.
+    change: >
+      Edit prompts/v1.md: keep the request without `format`, but say exactly what shape each line
+      must have.
+    target: "v1_today_exact == 3 and v1_tomorrow_exact == 3"
+    reset: git checkout lessons/13-future-proofing/prompts
+
+  - id: break-the-contract
+    title: "Break it: a reply only one model's habit made readable"
+    goal: >
+      Make the v2 replies fail the contract on at least one model, the way a reply that only worked
+      on one model would.
+    change: >
+      In run.py, remove format=fmt from the chat call, so v2 relies on the prompt alone to get JSON.
+    target: "v2_contract == false"
+    reset: git checkout lessons/13-future-proofing/run.py

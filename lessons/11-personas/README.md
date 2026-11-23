@@ -126,6 +126,28 @@ one to two minutes on a CPU.
 Even with a fixed seed, the persona replies can differ slightly between runs on the same machine.
 Chapter 06 explains why.
 
+## On a hosted model
+
+```bash
+make lesson N=11 TIER=hosted     # needs ANTHROPIC_API_KEY in .env and `uv sync --extra cloud`
+make lesson N=11 TIER=hosted REPLAY=1   # once a run has been recorded, no key needed
+```
+
+The hosted path sends each persona as Claude's native `system` parameter, separate from the
+user turn, so step 2 compares the same two placements Claude was trained on. Claude does not take
+`temperature` or `seed` (current Claude models reject sampling settings, and there is no seed):
+`cloud.py` leaves them out and reports them on the console. The four "seeds" in step 3 become
+four independent samples at Claude's default sampling, not four repeatable ones.
+
+| Measure | Local: qwen3:1.7b, Ollama, Apple M1 Pro 16 GB | Hosted: claude-haiku-5-5 |
+|---|---|---|
+@@T11@@
+
+What the hosted run will test: whether the 40-token gap is a small-model effect (a larger model
+may answer first with or without a persona, and the gap would vanish), and whether the figure
+check still finds invented times or references in the user-message Hale. That a persona changes
+focus and not knowledge, and that a role-play is never evidence, should hold on both.
+
 ## Try this
 
 1. Remove "Never invent facts" from the Voss persona and ask the same question. What does she
@@ -136,6 +158,36 @@ Chapter 06 explains why.
    first, then explain." Does the 40-token score change the same way?
 4. Give the accountant persona the full ledger rows for Northwind and ask for three more questions.
    Which ones would you actually use?
+
+## Master it
+
+After this chapter you can say what a persona changes and what it cannot, tell a persona's real
+effect from a change of length, put a persona under standing orders, and check its reply against
+the evidence with code.
+
+**Predict, then see.** `make lesson N=11` stops twice to ask what will happen: whether the Hale
+persona in the user message states a figure the case does not contain, and which prompt wins the
+40-token invoice question. Each answer is checked against your own run. Add `ARGS=--no-predict`
+to watch without stopping.
+
+**Build it.** Write [`practice/exercise.py`](practice/exercise.py): `persona_system`, which puts
+the standing orders above the persona and says they win, and `broken_orders`, which lists every
+time, amount and reference in a reply that the evidence does not contain. Step 4 of the lesson
+does the same live.
+
+```bash
+make exercise N=11          # 8 offline tests, no model needed
+make hint N=11              # one hint at a time
+make solution N=11          # the reference, once you have tried
+```
+
+**Check yourself.** `make quiz N=11`: six questions, each with the reason behind the answer.
+
+**Break it.** `make challenge N=11` checks your latest run against two targets: the plain prompt,
+with no persona, at 4 of 4 on 40 tokens; and a Voss role-play without its limits that invents a
+figure the check catches.
+
+`make progress` shows every chapter.
 
 ## What the evidence now shows
 

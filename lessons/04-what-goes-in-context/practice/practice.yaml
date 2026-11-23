@@ -1,0 +1,154 @@
+# Chapter 04 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=04).
+chapter: "04"
+title: The briefing
+
+objectives:
+  - Name the parts of a context (rules, background, documents, history, computed facts, question, room for the answer) and the order they go in.
+  - Measure what each part costs in tokens, hidden template tokens included.
+  - Assemble a labelled context and trim it to a budget in a stated order of importance.
+  - Keep arithmetic and lookups in code, and put their results in the context.
+
+quiz:
+  - q: Why does the question go last in the briefing?
+    options:
+      - The model reads backwards.
+      - It sits right next to where the answer begins, so it gets the most attention when the answer is written.
+      - The chat template requires it.
+      - It is the shortest part.
+    answer: b
+    why: >
+      Order carries meaning. Background before documents, documents before the question, and the
+      question at the end, beside the answer. Instructions that must win go first, in the system
+      prompt, and can be repeated at the end (chapter 02).
+
+  - q: The budget table counts the role markers, /no_think and the empty think block. Why?
+    options:
+      - They are tokens the model reads and the window must hold, even though you never typed them.
+      - They are billed twice.
+      - They change the answer more than the documents do.
+      - Ollama adds them only on the local tier.
+    answer: a
+    why: >
+      The chat template wraps every turn in marker tokens. They take room in the window like any
+      other token, which is why the table measures what the server counted rather than estimating
+      from the text you wrote.
+
+  - q: The same rendered tokens at temperature 0 gave 227,700 through one endpoint and 255,700 through the other. What is the right fix?
+    options:
+      - Run it again until both agree.
+      - Use a larger model.
+      - Add the invoices up in code and put the total in the context as a computed fact.
+      - Ask the model to show its working.
+    answer: c
+    why: >
+      Code adds money exactly, every time. Small models are poor at six-digit arithmetic, and not
+      even consistently poor (chapter 06). The model's job is to read and explain; the
+      <computed> block gives it the number to read.
+
+  - q: Your assembler is over budget. Which should go first?
+    options:
+      - The standing orders, because the model knows them already.
+      - The question, because the history implies it.
+      - The case summary, because it is the longest.
+      - The oldest exchange of history, then the least important document.
+    answer: d
+    why: >
+      Rules, background and the question are what make the answer possible and checkable. Old
+      conversation is the cheapest loss. After that you drop documents in an order you chose in
+      advance, so the budget never decides for you what the model may cite.
+
+  - q: How does the model "remember" the earlier question about who found Reyes?
+    options:
+      - It keeps a memory of each session on the server.
+      - The client sends the earlier turns again in every request.
+      - The system prompt stores it.
+      - It does not; history is ignored.
+    answer: b
+    why: >
+      The model keeps nothing between calls. The conversation exists only because the client
+      resends all of it, which is also why history grows the bill on every turn.
+
+  - q: Why wrap each document in <file name="..."> inside <evidence>?
+    options:
+      - Tags make the documents cheaper in tokens.
+      - The model cannot read plain text.
+      - They say what each block is, keep evidence from being read as instructions, and let the model cite a file by name.
+      - Ollama requires XML.
+    answer: c
+    why: >
+      Labels give the model the structure it needs to cite, and give you something to check the
+      citation against. XML-style tags work across model families; pick one convention and keep
+      it.
+
+  - q: On the hosted tier, steps 1, 3 and the raw half of step 4 are skipped. Why?
+    options:
+      - Hosted models have no chat template.
+      - The hosted provider does not publish its template and has no endpoint that takes a pre-rendered prompt.
+      - Hosted models do not count tokens.
+      - Those steps are too expensive on a hosted model.
+    answer: b
+    why: >
+      Every chat model has a template; a hosted provider renders it on its side and takes
+      messages only. What you can still measure there is what goes in (the messages) and what it
+      counts (input tokens), which is all the budget needs.
+
+exercise:
+  title: The context assembler
+  kind: component
+  task: |
+    Open `lessons/04-what-goes-in-context/practice/exercise.py` and write `assemble`: it takes
+    the rules, the case summary, the documents (most important first), the conversation so far
+    and the question, and returns the messages in briefing order, each part labelled, trimmed
+    to a token budget. The tests call it with the real case files and no model. They check that:
+
+    - the order is rules (system), the briefing, its acknowledgement, the history, the question,
+    - the summary and every document are labelled, documents inside `<evidence>`, in order,
+    - nothing is dropped when it fits, and `tokens` is the counted size,
+    - over budget, the oldest exchange of history goes first, then the last document,
+    - rules, summary and question are never dropped (a budget too small raises ValueError),
+    - the budget is counted with the `count` function it is given.
+  hints:
+    - |
+      Write an inner `render()` that builds the whole message list from the current `docs` and
+      `hist`, and an inner `size(msgs)` that is `sum(count(m["content"]) for m in msgs)`. Then
+      trimming is: change `docs` or `hist`, render again, measure again.
+    - |
+      History goes in exchanges: `hist = hist[2:]` drops the oldest question and its answer.
+      Record `"history: " + hist[0]["content"][:40]` before you drop it.
+    - |
+      Then `while size(msgs) > budget and docs: dropped.append(docs.pop()[0])`, re-rendering each
+      time. After both loops, if it is still over budget, raise ValueError: the essentials do not
+      fit, and dropping them silently would be worse.
+  after: >
+    Now brief LANTERN with your own assembler: `make lesson N=04 ARGS=--mine` builds steps 3 to
+    6 with your `assemble`, including the tight budget in step 6.
+
+challenges:
+  - id: your-briefing
+    title: Your assembler, on the real briefing
+    goal: >
+      Run the live lesson on your assembler. The full briefing must list all three invoices, and
+      the tight one must still fit and drop something.
+    change: "Pass the exercise first, then run `make lesson N=04 ARGS=--mine`."
+    target: "mine == true and invoices_listed == 3 and tight_dropped >= 1"
+
+  - id: tight-but-complete
+    title: Tight, and nothing lost
+    goal: >
+      Keep the tight briefing in step 6 under the same budget, but make Reyes's entry survive
+      the trim, with all three invoices still listed.
+    change: >
+      Make the briefing smaller rather than the budget bigger: in
+      lessons/04-what-goes-in-context/run.py, trim what each document carries (an invoice's
+      address lines, for example) or reorder `docs`. Do not change TIGHT_BUDGET.
+    target: "tight_reyes_kept == true and tight_invoices_listed == 3 and tight_prompt_tokens <= 1100"
+    reset: git checkout lessons/04-what-goes-in-context/run.py
+
+  - id: bury-the-line
+    title: "Break it: a briefing that holds everything"
+    goal: >
+      Put Reyes's whole notes in the briefing instead of the one entry, and watch the answer lose
+      what he wrote about Northwind.
+    change: In lessons/04-what-goes-in-context/run.py, set `reyes_text = notes`.
+    target: "briefing_tokens >= 5000 and reyes_line_in_answer == false"
+    reset: git checkout lessons/04-what-goes-in-context/run.py

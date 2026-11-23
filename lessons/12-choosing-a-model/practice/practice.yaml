@@ -1,0 +1,140 @@
+# Chapter 12 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=12).
+chapter: "12"
+title: Three models, one case
+
+objectives:
+  - Choose a model from written constraints and measurements on your own tasks, not a leaderboard.
+  - Read accuracy, median and tail latency, memory, cold start and cost per correct answer as one trade.
+  - Explain why a latency figure must say what it includes, and why p95 matters beside p50.
+  - Build the scorecard that turns a list of answered questions into a defensible choice.
+
+quiz:
+  - q: Why is there no single best model for LANTERN?
+    options:
+      - All three models score the same.
+      - The best choice depends on the task and its constraints (privacy, latency, memory, features), so it is made per task from measurements.
+      - The largest model is always best, but too slow.
+      - Model quality cannot be measured.
+    answer: b
+    why: >
+      Write the constraints down first, shortlist what can meet them, then measure on your own
+      work. The medium model for bulk triage and the large one for findings that go to court is a
+      choice per task.
+
+  - q: The first version of this lesson reported 31 seconds per message for the smallest model. What went wrong?
+    options:
+      - The model was broken.
+      - It timed the wall clock while other jobs swapped models in and out, so it measured the queue and the reloads, not one model's answer.
+      - The network was slow.
+      - It counted tokens instead of seconds.
+    answer: b
+    why: >
+      A latency number must say what it includes. This chapter now times the whole call on the
+      wall clock, load and prompt processing included, and runs alone so nothing else is in it.
+      Measure the thing you mean, and say which thing it is.
+
+  - q: A model's p50 latency is 0.3 s and its p95 is 4 s. What does that tell you?
+    options:
+      - The model is fast; p95 is noise.
+      - Most calls are quick, but about one in twenty is far slower (a model load, a long answer), and a user waiting on a batch meets those.
+      - The model is slow.
+      - The two numbers measure different models.
+    answer: b
+    why: >
+      The median hides the tail. A cold start, a model swap or a long generation shows up in p95.
+      Size timeouts and promises on the tail, not on the median.
+
+  - q: Why report cost per correct answer instead of cost per call?
+    options:
+      - It is always smaller.
+      - A cheap model that is often wrong can cost more per useful answer than a dearer one that is right; and an unknown price must stay unknown, never become 0.
+      - Providers bill per correct answer.
+      - It removes the need to measure accuracy.
+    answer: b
+    why: >
+      What you buy is right answers. Dividing by correct answers puts accuracy and price in one
+      number. A model with no checked price reports "unknown", which is honest; 0 would be a lie.
+
+  - q: The 0.6B model classified as well as the 1.7B but put the vendor's name in the invoice_id field. What is the lesson?
+    options:
+      - The extraction test is unfair.
+      - Models are good or bad at different skills, so one task is not enough to rank them.
+      - The 0.6B model is broken.
+      - Extraction does not matter for LANTERN.
+    answer: b
+    why: >
+      Test every skill the job needs. A model that ties on one task can fail another outright.
+
+  - q: Without a JSON schema, the 4B model writes its reasoning into the answer even with thinking off. Which part of the choice does that belong to?
+    options:
+      - "Features: whether the model and server support what you depend on (structured output, tools, thinking), tested, not assumed."
+      - Accuracy.
+      - Licence.
+      - Memory.
+    answer: a
+    why: >
+      The schema is what made the 4B model's labels usable at all. Test the features you rely on,
+      on the server you will run.
+
+  - q: On the hosted tier, the memory and cold start columns read n/a. Why?
+    options:
+      - The lesson has a bug.
+      - Hosted models use no memory.
+      - A hosted provider does not expose the memory a model occupies, and there is no model to load into your machine; those are costs of running locally.
+      - The hosted run failed.
+    answer: c
+    why: >
+      Some measures belong to one tier. Locally you pay in memory and load time; hosted you pay
+      per token and in network latency. Report what each tier lets you measure, and say n/a for the
+      rest rather than inventing a figure.
+
+exercise:
+  kind: function
+  title: The scorecard
+  task: |
+    Open `lessons/12-choosing-a-model/practice/exercise.py` and write `percentile` and
+    `scorecard`. The chapter's run.py builds its scorecard the same way, one row per model from
+    the sixteen timed classifications. No model is needed. The tests check that:
+
+    - percentile is nearest-rank: p50 of 1 to 4 is 2, p95 of sixteen calls is the slowest,
+    - the scorecard has one row per model, in first-seen order, with n and accuracy,
+    - p50 and p95 come from the wall-clock seconds, so one slow call shows in p95 and not p50,
+    - cost per correct answer divides total cost by correct answers,
+    - an unknown price makes the cost unknown (None), and no correct answers is None, not a crash,
+    - an empty list is an error, never an empty scorecard.
+  hints:
+    - |
+      Nearest rank: `ordered = sorted(values)`, `rank = max(math.ceil(q / 100 * len(ordered)), 1)`,
+      return `ordered[rank - 1]`.
+    - |
+      `dict.fromkeys(r["model"] for r in rows)` gives the models once each, in the order they
+      first appear. For each, filter the rows and count `sum(bool(r["correct"]) ...)`.
+    - |
+      `unknown = any(r["cost_usd"] is None for r in mine)`. Then
+      `None if unknown or right == 0 else sum(costs) / right`.
+  after: >
+    Run the lesson and compare each model's p50 with its p95. Which model has the longest tail,
+    and what in the call is it paying for? Then try the challenges.
+
+challenges:
+  - id: cold-in-the-tail
+    title: Put the cold start in the tail
+    goal: >
+      Make the large model's first classification pay for loading it, so its p95 is at least
+      three times its p50. The median should barely move.
+    change: >
+      In lessons/12-choosing-a-model/run.py, stop the model being loaded before the loop: skip
+      the "Reply with: ready" warm-up and measure memory after the loop instead of before it.
+    target: "p95_over_p50_large >= 3"
+    reset: git checkout lessons/12-choosing-a-model/run.py
+
+  - id: no-schema
+    title: "Break it: take the schema away"
+    goal: >
+      Remove the structured output from the classification and watch the large model's accuracy
+      fall to half or less, because it writes its reasoning where the label should be.
+    change: >
+      In run.py, delete format=LABEL_SCHEMA from the classification chat call, and change the
+      "Reply as JSON" line in CLASSIFY to "Reply with one word: threat, logistics or personal."
+    target: "accuracy_large <= 0.5"
+    reset: git checkout lessons/12-choosing-a-model/run.py

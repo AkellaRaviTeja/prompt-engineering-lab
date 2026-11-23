@@ -114,6 +114,7 @@ standard Hale asked for.
 
 ```bash
 make lesson N=06
+make lesson N=06 ARGS=--no-predict   # without stopping for predictions
 ```
 
 The model reloads a few times in step 2, so expect a couple of minutes.
@@ -131,6 +132,42 @@ The model reloads a few times in step 2, so expect a couple of minutes.
 - Step 6: seed 7 three times, identical; seeds 8 and 9 different.
 - Step 7: a JSON record with the model digest and hashes, and "REPRODUCED" on the replays.
 
+## On a hosted model
+
+```bash
+make lesson N=06 TIER=hosted            # needs ANTHROPIC_API_KEY in .env, uv sync --extra cloud
+make lesson N=06 TIER=hosted REPLAY=1   # once a hosted run is recorded (RECORD=1), no key
+```
+
+Claude takes no `temperature` and no `seed`, and returns no log-probabilities. `lantern.cloud`
+does not send them and reports each one (see `src/lantern/cloud.py`). There is no native
+feature for determinism to use instead, so the hosted run measures nondeterminism with no seed
+at all:
+
+- Step 1 sends the same question five times at the provider's own settings and counts the
+  distinct answers. That is the honest hosted version of Hale's question.
+- Step 2 is skipped with a note: it reads Ollama's log-probabilities and reloads the model with
+  a different `num_ctx`, and a hosted API exposes neither.
+- Step 6's five rows are five unseeded runs.
+- Step 7's record names the dated model and the provider; Ollama's `/api/tags` digest and
+  `/api/version` do not exist there, and the record says the digest is not exposed.
+
+| Measure | Local: qwen3:1.7b | Hosted: claude-haiku-5-5 |
+|---|---|---|
+| Distinct answers, 5 runs of step 1 | 1 | not run |
+| Step 1 answers equal to 227,700.00 (of 5) | not recorded | not run |
+| Distinct probabilities, 4 identical requests (step 2) | 2 (about 0.30 after a reload, about 0.38 from cache) | not run (no logprobs) |
+| Distinct texts, seed 7 three times at T = 0.9 | 1 | not run (no seed) |
+| Step 7 record replays exactly (3 replays) | yes | not run |
+
+Local numbers are the ones this README already gives (qwen3:1.7b, local tier; the machine was not recorded).
+
+What the hosted run will test: whether a batched, shared service gives more distinct answers to
+step 1 than one local model on an idle machine (nuance 2 expects it can), and whether the short
+plate reading still replays without a seed. Whether the sum is right is a separate question on
+both: a larger model may add correctly, which still would not make a model the place to do
+arithmetic.
+
 ## Try this
 
 1. In step 2, add a row that calls with `num_ctx=4096` again after the cached calls. Which value do
@@ -139,8 +176,38 @@ The model reloads a few times in step 2, so expect a couple of minutes.
    answers?
 3. Change step 7's settings to `temperature: 0.8` and replay. Is it still REPRODUCED? Why, given
    the seed?
-4. If you have a cloud key, run step 1 against a hosted model (`LANTERN_PROVIDER=anthropic`) ten
-   times and count the distinct answers.
+4. If you have a cloud key, change step 1 to ten runs and run it on the hosted tier
+   (`make lesson N=06 TIER=hosted`). Count the distinct answers.
+
+## Master it
+
+After this chapter you can explain why temperature 0 can still change an answer, tell
+reproducible apart from correct, write a check that measures whether a finding reproduces, and
+say what a finding record must hold.
+
+**Predict, then see.** `make lesson N=06` asks five times (four on the hosted tier): how many
+distinct answers five runs at T = 0 give, and how many are right; whether four identical requests get the same
+probability (local only); how many texts seed 7 gives three times; and whether the record
+replays. Each answer is checked against your own run. Add `ARGS=--no-predict` to watch without
+stopping.
+
+**Build it.** Write the reproducibility check in [`practice/exercise.py`](practice/exercise.py):
+run a prompt N times under fixed settings, count the distinct answers, and report whether it
+reproduces.
+
+```bash
+make exercise N=06     # 7 offline tests, scripted model, no Ollama needed
+make hint N=06         # one hint at a time
+make solution N=06     # the reference, once you have tried
+```
+
+**Check yourself.** `make quiz N=06`: seven questions, each with the reason behind the answer.
+
+**Break it.** `make challenge N=06` checks your latest run against two targets: give Hale his
+two answers (three distinct totals from one unchanged question); and a step 1 that is both
+reproducible and right.
+
+`make progress` shows every chapter.
 
 ## What the evidence now shows
 

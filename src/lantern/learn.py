@@ -37,7 +37,7 @@ from rich.panel import Panel
 from lantern.config import ROOT, load_config
 from lantern.ui import SHOT, console
 
-PROGRESS = ROOT / ".progress"
+PROGRESS = Path(os.getenv("LANTERN_PROGRESS") or ROOT / ".progress")
 LETTERS = "abcdefghij"
 
 __all__ = [
@@ -99,7 +99,7 @@ def _chapter_progress(data: dict[str, Any], chapter: str) -> dict[str, Any]:
 
 
 def changed_since_head(chapter: str) -> bool | None:
-    """True if the lesson (outside practice/), case/, src/ or config.yaml differs from git HEAD.
+    """True if the lesson (outside practice/), case/, src/, config.yaml or evals/ differs.
 
     A challenge that asks for a change only counts on a run made with one. None when git cannot
     tell (no git, not a checkout), and then challenges are not held back.
@@ -115,6 +115,7 @@ def changed_since_head(chapter: str) -> bool | None:
         "case",
         "src",
         "config.yaml",
+        "evals",
         f":(exclude){name}/practice",
         f":(exclude){name}/lesson.ipynb",
     ]

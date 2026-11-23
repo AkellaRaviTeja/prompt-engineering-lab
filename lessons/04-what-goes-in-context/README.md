@@ -111,7 +111,13 @@ its hash) next to it. Chapter 06 turns this into a record for court.
 
 ```bash
 make lesson N=04
+make lesson N=04 ARGS=--mine        # steps 3 to 6 use your practice/exercise.py
+make lesson N=04 ARGS=--no-predict  # no stops for predictions
 ```
+
+Steps 3 to 6 build the briefing with `assemble()` in run.py: the same parts, labelled and in
+order, trimmed to a token budget when they do not fit. Step 6 shows the trim at a budget of 850
+(counted roughly, four characters to a token).
 
 ## What you should see
 
@@ -134,6 +140,33 @@ make lesson N=04
    change?
 3. Add the full Reyes notes as a fourth document. Watch the budget table and the answer.
 4. Delete the conversation history. Is anything in the answer worse?
+
+## Master it
+
+After this chapter you can name the parts of a context and their order, measure what each costs,
+assemble a labelled briefing that fits a budget, and keep arithmetic in code.
+
+**Predict, then see.** `make lesson N=04` stops four times to ask what will happen: which part
+costs the most, how many tokens the whole briefing takes, whether the two endpoints agree on the
+total, and whether the computed total comes back right. Each answer is checked against your own
+run, not a fixed key. Add `ARGS=--no-predict` to watch without stopping.
+
+**Build it.** Write the context assembler in [`practice/exercise.py`](practice/exercise.py):
+
+```bash
+make exercise N=04             # 7 offline tests, no model needed
+make hint N=04                 # one hint at a time
+make solution N=04             # the reference, once you have tried
+make lesson N=04 ARGS=--mine   # then steps 3 to 6 of the live lesson use your assembler
+```
+
+**Check yourself.** `make quiz N=04`: seven questions, each with the reason behind the answer.
+
+**Break it.** `make challenge N=04` checks your latest run against three targets: your assembler
+on the real briefing; a tight briefing that keeps Reyes's entry; and the whole notes in the
+briefing, so the answer loses what he wrote.
+
+`make progress` shows every chapter.
 
 ## What the evidence now shows
 

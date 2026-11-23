@@ -125,6 +125,29 @@ v1 failed on both models, including the one it was written for. A person could r
 answer, but the code could not. v2 parsed everywhere. It was perfect on 1.7B and padded with two
 wrong vendors on 0.6B. Your exact output may differ. The pattern is the point.
 
+## On a hosted model
+
+```bash
+make lesson N=13 TIER=hosted     # needs ANTHROPIC_API_KEY in .env and `uv sync --extra cloud`
+make lesson N=13 TIER=hosted REPLAY=1   # once a run has been recorded, no key needed
+```
+
+On the hosted tier v2's schema goes through Claude's native structured outputs
+(`output_config` with a strict JSON schema), and `think: false` becomes Claude's own thinking
+setting, so v1's `/no_think` is just three words of text. `temperature` is not sent (current
+Claude models reject sampling settings) and is reported on the console. Both "today" and
+"tomorrow" resolve to claude-haiku-5-5 (`hosted.anthropic.models` in `config.yaml`), so the hosted
+run is a swap to a different family, not between two hosted models.
+
+| Measure | Local: qwen3:1.7b today, qwen3:0.6b tomorrow, Ollama, Apple M1 Pro 16 GB | Hosted: claude-haiku-5-5 |
+|---|---|---|
+@@T13@@
+
+What the hosted run will test: whether v1's prose happens to fit its parser on a model it was
+never tuned for (if it does, that is luck, not a contract), and whether the extra non-Northwind
+rows were a small-model effect. That v2 meets the contract wherever the schema is enforced
+natively should hold on both.
+
 ## Try this
 
 1. Tighten v2 for the small model. Add a rule such as "vendor must be exactly 'Northwind Freight
@@ -137,6 +160,35 @@ wrong vendors on 0.6B. Your exact output may differ. The pattern is the point.
 4. Add `/no_think` to the front of v2. Does it change anything on `qwen3:1.7b`? Would it on a
    model that is not Qwen?
 
+## Master it
+
+After this chapter you can tell a prompt that leans on one model's habits from one that states a
+contract, keep settings in the request, version a prompt like code, and write the renderer and the
+contract check that catch what a model swap breaks.
+
+**Predict, then see.** `make lesson N=13` stops three times to ask what will happen: whether v1's
+own parser reads v1 on the model it was written for, how many Northwind totals v2 gets exactly
+right on the model nobody tuned it for, and how many of the four replies meet the contract. Each
+answer is checked against your own run. Add `ARGS=--no-predict` to watch without stopping.
+
+**Build it.** Write [`practice/exercise.py`](practice/exercise.py): `render`, which fills a
+template and refuses model-specific tokens and missing or unused variables, and `validate`, which
+lists everything wrong with a reply under the contract. Step 4 of the lesson runs both live.
+
+```bash
+make exercise N=13          # 8 offline tests on the chapter's own prompts, no model needed
+make hint N=13              # one hint at a time
+make solution N=13          # the reference, once you have tried
+```
+
+**Check yourself.** `make quiz N=13`: six questions, each with the reason behind the answer.
+
+**Break it.** `make challenge N=13` checks your latest run against three targets: v2 on the
+small model with exactly the three Northwind rows; v1 rescued without a schema on both models;
+and v2 without structured output, failing the contract.
+
+`make progress` shows every chapter.
+
 ## What the evidence now shows
 
 The three Northwind invoices total 227,700.00 KBD, and each is dated inside one of Malhotra's trips
@@ -147,4 +199,4 @@ contract was met in shape but broken in substance. Only a test would have caught
 Varma initials the changelog. "Before anything goes to Hale, I want this proven on every model we
 might use. Not demonstrated. Proven."
 
-**Next:** [Chapter 18: Proven, not demonstrated](../18-evals-with-promptfoo/README.md)
+**Next:** [Chapter 14: Ask the ledger](../14-tool-calling/README.md)

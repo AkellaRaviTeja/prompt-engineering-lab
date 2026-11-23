@@ -1,0 +1,127 @@
+# Chapter 19 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=19).
+chapter: "19"
+title: The test that would not pass
+
+objectives:
+  - Read an eval in order (headline, metrics, prompts, failure patterns, one failure in full) and say what each step can and cannot tell you.
+  - Tell a bad prompt, a model limit, a bad test and bad data apart from the pattern of a test's failures across models.
+  - Write a triage that flags tests every model fails the same way as reference-data suspects.
+  - Check a model's summary of a source against the source, value by value.
+
+quiz:
+  - q: A test fails on qwen3:1.7b and on qwen3:0.6b, and both give exactly the same answer. What should you suspect first?
+    options:
+      - Both models share a bug, so use a bigger model.
+      - The prompt; rewrite it until the test passes.
+      - "The expected value: models of different sizes make different mistakes, so the same answer from both, failing, points at the reference."
+      - The temperature; set it higher.
+    answer: c
+    why: >
+      Failing identically everywhere is the signature of bad reference data or a bad test.
+      Read the output, then the expectation, then the source document: two of the three will
+      agree, and the odd one out is the problem. For NW-0419 it was the ledger.
+
+  - q: A classification test fails under classify-v1 on both models and passes under classify-v2 on both. Whose fault is it?
+    options:
+      - The model's.
+      - The prompt's.
+      - The gold label's.
+      - The assertion's.
+    answer: b
+    why: >
+      Same models, same test, different prompt: the only thing that changed is the prompt, so
+      the difference is the prompt's doing. Comparing prompts on the same tests and models is
+      what makes that conclusion safe.
+
+  - q: The four quiet threats ("Stairwell C. 23:30.") fail in every cell, with different answers. What is the most careful reading?
+    options:
+      - The models are broken; replace them.
+      - The test data is wrong, like NW-0419.
+      - "A hard task, and a gold label a person might dispute without the context the models were not given."
+      - The assertion is too strict.
+    answer: c
+    why: >
+      Different wrong answers mean the models disagree with each other as well as with the
+      label: the task is hard, not the reference corrupted. Ask whether a careful person reading
+      only that message would agree with the label before calling it a model limit.
+
+  - q: "You could make NW-0419 pass by adding a rule to the extraction prompt: 'Northwind totals are in tenths.' Why must you not?"
+    options:
+      - It would slow the eval down.
+      - "The suite would turn green for the wrong reason, and the evidence that the ledger was altered would disappear from every future run."
+      - promptfoo would reject the prompt.
+      - It would break the other invoices.
+    answer: b
+    why: >
+      An eval that is green for the wrong reason is worse than one that is red: it hides the
+      signal and looks like proof. Do not tune prompts to a broken test. Find out why the
+      reference is wrong.
+
+  - q: valid_json is 16/16 and total_matches_ledger is 14/16. What does that narrow down before you open a single output?
+    options:
+      - The models cannot follow the format.
+      - "The format is fine everywhere; the problem is in the values, in two cells."
+      - The assertions are broken.
+      - Nothing; per-metric numbers mean nothing without the headline.
+    answer: b
+    why: >
+      Named metrics point at the property, not the test. A perfect format score with a value
+      failure tells you where to look: the totals, and which two cells.
+
+  - q: LANTERN's summary of the audit log names the right account, row and field. Can you put it in the report?
+    options:
+      - Yes, it got the important parts right.
+      - Yes, at temperature 0 it is reproducible.
+      - "Only after checking every quoted value against the log: a fluent summary can take a time from a neighbouring line, and a login is not a person."
+      - No, a model may never summarise evidence.
+    answer: c
+    why: >
+      The run checks the quoted timestamp against the one 'modify' line in code. Reproducible
+      is not the same as right. And the log shows that the pk.dsouza login was used, not who
+      typed the password: the report must keep that distinction.
+
+exercise:
+  kind: function
+  title: Triage the failures
+  task: |
+    Open `lessons/19-reading-eval-results/practice/exercise.py` and write `triage(rows)`: group
+    promptfoo's result rows by test, across models and prompts, and for each failing test say how
+    many cells failed, whether it failed in every cell, which distinct answers the failures gave,
+    and whether it is a **reference-data suspect**: failed in every cell, on at least two
+    models, with one answer. Then `suspects(rows)`, the names of those tests.
+
+    The tests hand it rows in the shape of `evals/output/results.json`: a suspect like NW-0419,
+    a hard test with different answers, a test that fails in some cells, a test on one model
+    only, and a key that compares raw text instead of totals.
+  hints:
+    - |
+      Three dictionaries keyed by the test's description, filled in one pass: cells per test,
+      the set of models per test (`row["provider"]["label"]`), and the list of `key(row)` for
+      the failed cells. `collections.defaultdict` keeps it short.
+    - |
+      `every_cell` is `len(failed_answers) == cells[test]`. `suspect` needs three things at
+      once: every cell, `len(set(answers)) == 1`, and at least two models.
+    - |
+      `sorted(out, key=lambda t: (-t["failed"], t["test"]))` gives most failed first, then
+      name order. `suspects` is a list comprehension over `triage(rows, key)`.
+  after: >
+    Run the lesson's step 4 on your triage: `make lesson N=19 ARGS=--mine`. Then read the
+    challenges, one of which makes the suite go green for the wrong reason.
+
+challenges:
+  - id: your-triage
+    title: Your triage, on the real results
+    goal: Run the lesson on the triage you wrote, and have it flag NW-0419 as the suspect.
+    change: "Pass the exercise first, then run `make lesson N=19 ARGS=--mine`."
+    target: "mine == true and nw0419_suspect == true and reference_suspects == 1"
+
+  - id: green-for-the-wrong-reason
+    title: "Break it: make the suite stop telling you"
+    goal: >
+      Make NW-0419 pass on every model by changing the expected value, not the prompt. Then see
+      what the triage has stopped telling you.
+    change: >
+      In `extraction_tests()` in evals/build_tests.py, set `total = 94000.0` when `ref` is
+      NW-0419. Run make lesson N=18, then make lesson N=19.
+    target: "nw0419_failed_cells == 0 and reference_suspects == 0"
+    reset: git checkout evals/ lessons/19-reading-eval-results/run.py

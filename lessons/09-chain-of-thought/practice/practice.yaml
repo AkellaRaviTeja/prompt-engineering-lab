@@ -1,0 +1,146 @@
+# Chapter 09 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=09).
+chapter: "09"
+title: Sixteen minutes
+
+objectives:
+  - Explain what chain of thought is in terms of tokens, and why writing steps changes the answer.
+  - Choose between a direct answer, free reasoning and set steps for a task, and say what each costs.
+  - Tell a right verdict reached by wrong steps from a right verdict reached by right steps.
+  - Split a reasoning task so the model reads and code computes, and write the code half.
+
+quiz:
+  - q: Why can asking for steps before the verdict change the verdict?
+    options:
+      - The model switches to a more careful internal mode when it sees "step by step".
+      - Every token the model writes becomes input for the next, so the verdict is generated from the steps.
+      - The steps are sent back to the model in a second call.
+      - It does not change the verdict, only how long the reply is.
+    answer: b
+    why: >
+      A model writes one token at a time, each conditioned on everything before it. A direct
+      verdict is one jump from the evidence. Written steps put intermediate results into the
+      context the verdict is generated from. That is all chain of thought is.
+
+  - q: The set-steps reply copied both times right, wrote 16 minutes for the walk in step 4, and still reached "not supported". What should you conclude?
+    options:
+      - The prompt works; the verdict is what matters.
+      - The verdict is right but the steps are not a reliable account of how it was reached, so it is a warning, not a pass.
+      - Step 4 does not matter because step 3 was right.
+      - The model is lying on purpose.
+    answer: b
+    why: >
+      Written reasoning is not always faithful to how the answer was produced. A right answer on
+      wrong steps would not survive cross-examination, and on the next case the same slip could
+      flip the verdict. Set steps are valuable because they make the slip visible.
+
+  - q: Which part of the alibi check should the model do, and which should code do?
+    options:
+      - The model does everything; code only prints it.
+      - The model reads the two times from the log; code subtracts, compares with the walk and decides.
+      - Code reads the times; the model does the arithmetic.
+      - The model decides the verdict; code checks the spelling.
+    answer: b
+    why: >
+      The small model was reliable at copying timestamps and unreliable at arithmetic and
+      comparison. Give each job to what does it well. The code half is also the half you can
+      show a court line by line.
+
+  - q: Free chain of thought used many times the output tokens of the direct answer. When is that cost worth paying?
+    options:
+      - Always; more reasoning is always more accurate.
+      - Never; direct answers are always as good.
+      - When the answer depends on combining several facts, and especially when a person must audit the steps.
+      - Only for questions with a yes or no answer.
+    answer: c
+    why: >
+      For a lookup ("what time did he badge out?") reasoning adds tokens and chances to drift.
+      For a question that combines several facts, the steps can carry the answer, and with set
+      steps a reader can check each one. Every token is paid for in time.
+
+  - q: Chapter 10's models think on their own before answering. What happens to chain-of-thought prompting there?
+    options:
+      - It becomes essential; a thinking model needs "think step by step" to start.
+      - It adds little, and can interfere; give the procedure as requirements instead, and use set steps when people must audit the steps.
+      - It is forbidden by the API.
+      - Nothing changes.
+    answer: b
+    why: >
+      A reasoning model already writes a hidden chain of thought. Asking it to recite another
+      adds tokens. Prompted steps still matter for small models, for steps that must appear in
+      the answer, and for forcing a procedure such as "quote before you compute".
+
+  - q: The alibi check finds 16.1 minutes elapsed and an 11.1 minute gap. What does it prove?
+    options:
+      - That Malhotra opened the stairwell C door.
+      - That the walk he described does not account for the time between his two swipes; where he was is a separate question.
+      - That his badge was used by someone else.
+      - Nothing, because the camera time differs from the badge time by 11 seconds.
+    answer: b
+    why: >
+      The check tests one claim, "walked straight to his car", against the records, and the claim
+      fails. It does not say where the eleven minutes went. Chapter 10 asks who could have opened
+      the door. Keep what a check shows apart from what it suggests.
+
+exercise:
+  kind: function
+  title: The alibi check, in code
+  task: |
+    Open `lessons/09-chain-of-thought/practice/exercise.py` and write `check_alibi`: the code
+    half of step 4, generalised. It takes the badge log and the camera log as CSV text, a person,
+    the door they left by, the door they arrived at, the camera that watches it and the walking
+    time, and returns the times, the elapsed minutes, the unaccounted gap and whether the alibi
+    holds. No model is needed. The tests use the real case files and a few small logs, and check
+    that:
+
+    - the times are Malhotra's ADMIN-MAIN swipe out and his first GATE-2-PED swipe after it,
+    - 16.1 minutes elapse, 11.1 are unaccounted, and the alibi does not hold,
+    - the gate camera at 23:47:20 corroborates the swipe, and an event outside the window does not,
+    - only the person's own rows count, and a short walk holds,
+    - a missing swipe raises ValueError instead of a guessed time.
+  hints:
+    - |
+      `csv.DictReader(io.StringIO(badge_csv))` gives one dict per row with the header names as
+      keys. Keep the rows where `row["holder"] == holder`, then use `next(..., None)` to find the
+      first row that matches the door (and direction "out" for the start).
+    - |
+      Compare times as seconds after midnight with the `seconds_of` helper. "After `left`" means
+      `seconds_of(row["time"]) > seconds_of(left)`, which skips the 23:58:30 swipe back in only
+      because it comes after the first gate swipe; take the first match, not the last.
+    - |
+      For the camera: the first row with `row["camera"] == camera` and
+      `0 <= seconds_of(row["time"]) - seconds_of(arrived) <= corroborate_within_s`.
+      Then `elapsed = (seconds_of(arrived) - seconds_of(left)) / 60`,
+      `gap = round(elapsed - walk_minutes, 1)`, and `holds = gap <= tolerance_minutes`.
+  after: >
+    Run your function on Reyes: she left ADMIN-MAIN at 23:12:40 and entered STAIR-C-TOP at
+    23:13:31, a 3 minute walk by the site facts. Does that one hold? Then try the challenges.
+
+challenges:
+  - id: direct-but-right
+    title: A direct answer that notices the gap
+    goal: >
+      Get the direct prompt to say the records do not support Malhotra, still in one short answer
+      of no more than 150 output tokens.
+    change: Edit the "direct" entry of PROMPTS in lessons/09-chain-of-thought/run.py.
+    target: "direct_says_supported == false and direct_output_tokens <= 150"
+    reset: git checkout lessons/09-chain-of-thought/run.py
+
+  - id: lean-steps
+    title: Fewer steps, same verdict
+    goal: >
+      Make the set-steps prompt cheaper: at most 120 output tokens, with the verdict still "not
+      supported" and both times still copied right.
+    change: Edit the "set steps" entry of PROMPTS in run.py. Which steps does code already do?
+    target: "steps_output_tokens <= 120 and steps_says_not_supported == true and times_quoted_right == true"
+    reset: git checkout lessons/09-chain-of-thought/run.py
+
+  - id: misread
+    title: "Break it: right arithmetic on a wrong reading"
+    goal: >
+      Make LANTERN copy a wrong time in the set steps, so Python does perfect arithmetic on the
+      wrong numbers. The program is only as good as what the model read.
+    change: >
+      Give the model the whole badge log: in run.py set `rows = badge` and drop the
+      rows="R. Malhotra only" attribute from `material`.
+    target: "times_from_model == true and times_quoted_right == false"
+    reset: git checkout lessons/09-chain-of-thought/run.py

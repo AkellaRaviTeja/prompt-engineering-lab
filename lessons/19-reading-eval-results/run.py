@@ -3,7 +3,7 @@
 import json
 from collections import defaultdict
 
-from lantern import case, chat
+from lantern import case, chat, learn
 from lantern.config import ROOT
 from lantern.ui import (
     Table,
@@ -43,12 +43,19 @@ for r in rows:
         metric = (c.get("assertion") or {}).get("metric") or (c.get("assertion") or {}).get("type")
         by_metric[metric][0] += bool(c.get("pass"))
         by_metric[metric][1] += 1
+metric_names = sorted(by_metric)
+worst = min(metric_names, key=lambda m: (by_metric[m][0] / by_metric[m][1], m))
+p_metric = learn.predict("Which named metric will be furthest from full marks?", metric_names)
 table = Table(title="Assertions passed, by named metric")
 table.add_column("metric")
 table.add_column("passed", justify="right")
 for metric, (ok, n) in sorted(by_metric.items()):
     table.add_row(metric, f"{ok}/{n}")
 console.print(table)
+learn.reveal(p_metric, answer=metric_names.index(worst),
+             why=f"{worst}: {by_metric[worst][0]}/{by_metric[worst][1]}. A metric names a "
+                 "property, so the weakest one tells you which kind of work to do before you "
+                 "open a single output.")
 
 step("3. Compare prompts on the same tests")
 prompt_scores = defaultdict(lambda: defaultdict(lambda: [0, 0]))
@@ -70,31 +77,55 @@ def answer(r: dict) -> str:
     """The part of an output the test cares about, normalised so equal answers compare equal."""
     out = ((r.get("response") or {}).get("output") or "").strip()
     try:
-        return f"total={json.loads(out.replace('```json', '').replace('```', ''))['total']}"
+        # 94000 and 94000.0 are the same total: compare numbers, not their spelling.
+        return f"total={float(json.loads(out)['total']):.2f}"
     except (ValueError, KeyError, TypeError):
         return "".join(c for c in out.lower() if c.isalpha())[:24]
 
 
-failing = defaultdict(list)
-cells_per_test = defaultdict(int)
-for r in rows:
-    desc = r["testCase"]["description"]
-    cells_per_test[desc] += 1
-    if not r["success"]:
-        failing[desc].append(answer(r))
+def triage(rows: list[dict]) -> list[dict]:
+    """One entry per failing test: where it failed, and whether every model failed it the same
+    way. A test every model fails with the same answer is a reference-data suspect."""
+    cells, failed, models = defaultdict(int), defaultdict(list), defaultdict(set)
+    for r in rows:
+        desc = r["testCase"]["description"]
+        cells[desc] += 1
+        models[desc].add(r["provider"].get("label") or r["provider"]["id"])
+        if not r["success"]:
+            failed[desc].append(answer(r))
+    out = []
+    for desc, answers in failed.items():
+        every = len(answers) == cells[desc]
+        same = every and len(set(answers)) == 1
+        out.append({"test": desc, "failed": len(answers), "cells": cells[desc],
+                    "answers": sorted(set(answers)), "every_cell": every,
+                    "suspect": same and len(models[desc]) >= 2})
+    return sorted(out, key=lambda t: (-t["failed"], t["test"]))
+
+
+mine = learn.mine()
+triaged = (mine.triage if mine else triage)(rows)
+suspects = [t for t in triaged if t["suspect"]]
+p_suspects = learn.predict("How many tests will fail on every model with the same answer?",
+                           ["none", "one", "two or more"])
 table = Table(title="Failing tests")
 table.add_column("test")
 table.add_column("failed in")
 table.add_column("pattern")
-for desc, answers in sorted(failing.items(), key=lambda kv: -len(kv[1])):
-    if len(answers) < cells_per_test[desc]:
+for t in triaged:
+    if not t["every_cell"]:
         pattern = "some cells"
-    elif len(set(answers)) == 1:
-        pattern = f"[red]every cell, same answer ({answers[0]})[/red]"
+    elif t["suspect"]:
+        pattern = f"[red]every cell, same answer ({t['answers'][0]})[/red]"
     else:
-        pattern = f"every cell, {len(set(answers))} different answers"
-    table.add_row(desc, f"{len(answers)}/{cells_per_test[desc]}", pattern)
+        pattern = f"every cell, {len(t['answers'])} different answers"
+    table.add_row(t["test"], f"{t['failed']}/{t['cells']}", pattern)
 console.print(table)
+learn.reveal(p_suspects, answer=min(len(suspects), 2),
+             why="Models of different sizes make different mistakes. When every one of them gives "
+                 "the same answer and the test still fails, the likeliest wrong party is the "
+                 "expected value: " + (", ".join(t["test"] for t in suspects) or "none this run")
+                 + ".")
 note("Some cells: a prompt or a model problem. Every cell with different answers: the task is "
      "hard, or the gold label is debatable. Every cell with the SAME answer: suspect the "
      "expected value.")
@@ -135,11 +166,36 @@ reply("LANTERN reads the audit log", r.text, meta="temperature 0, standing order
 step("7. Check LANTERN against the log, line by line")
 modify = next(line for line in audit.splitlines() if ",modify," in line)
 note(f"The only 'modify' line: {modify.split(',')[0]} by {modify.split(',')[1]}.")
-if modify.split(",")[0].split()[1] not in r.text:
+p_time = learn.predict("Did LANTERN quote the time of the 'modify' line correctly?",
+                       ["yes, the exact time", "no, a time from another line, or none"])
+timestamp_right = modify.split(",")[0].split()[1] in r.text
+learn.reveal(p_time, answer=0 if timestamp_right else 1,
+             why="A summary can be fluent and still put a fact on the wrong line. The only "
+                 "defence is to check each quoted value against its source, which is what this "
+                 "step does in code.")
+if not timestamp_right:
     note("[red]LANTERN's timestamp does not match that line.[/red] It took a time from a "
          "neighbouring row. Quote-checking catches what fluency hides.")
 note("An account is not a person. The log shows the pk.dsouza login was used. It does not "
      "show who typed the password. LANTERN's wording blurs that; your report must not.")
+
+nw = [r for r in rows if r["testCase"]["description"] == "extract NW-0419"]
+nw_answers = sorted({answer(r) for r in nw if not r["success"]})
+learn.record(
+    cells=len(rows),
+    passed=passed,
+    failing_tests=len(triaged),
+    some_cells=sum(not t["every_cell"] for t in triaged),
+    every_cell_different=sum(t["every_cell"] and not t["suspect"] for t in triaged),
+    reference_suspects=len(suspects),
+    nw0419_failed_cells=sum(not r["success"] for r in nw),
+    nw0419_cells=len(nw),
+    nw0419_suspect=any(t["test"] == "extract NW-0419" for t in suspects),
+    nw0419_answer=nw_answers[0] if len(nw_answers) == 1 else None,
+    worst_metric_rate=round(by_metric[worst][0] / by_metric[worst][1], 3),
+    lantern_timestamp_right=timestamp_right,
+    mine=bool(mine),
+)
 
 your_turn(
     "19",

@@ -15,7 +15,8 @@
     value: JSON.parse(output).invoice_id === context.vars.ref
   - type: javascript
     metric: total_matches_ledger
-    value: Math.abs(Number(JSON.parse(output).total) - context.vars.ledger_total) < 0.01
+    value: typeof JSON.parse(output).total === 'number' && Math.abs(JSON.parse(output).total - context.vars.ledger_total)
+      < 0.01
 - description: extract GTS-1182
   prompts:
   - extract-invoice
@@ -32,7 +33,8 @@
     value: JSON.parse(output).invoice_id === context.vars.ref
   - type: javascript
     metric: total_matches_ledger
-    value: Math.abs(Number(JSON.parse(output).total) - context.vars.ledger_total) < 0.01
+    value: typeof JSON.parse(output).total === 'number' && Math.abs(JSON.parse(output).total - context.vars.ledger_total)
+      < 0.01
 - description: extract HCS-0554
   prompts:
   - extract-invoice
@@ -49,7 +51,8 @@
     value: JSON.parse(output).invoice_id === context.vars.ref
   - type: javascript
     metric: total_matches_ledger
-    value: Math.abs(Number(JSON.parse(output).total) - context.vars.ledger_total) < 0.01
+    value: typeof JSON.parse(output).total === 'number' && Math.abs(JSON.parse(output).total - context.vars.ledger_total)
+      < 0.01
 - description: extract KFS-7710
   prompts:
   - extract-invoice
@@ -66,7 +69,8 @@
     value: JSON.parse(output).invoice_id === context.vars.ref
   - type: javascript
     metric: total_matches_ledger
-    value: Math.abs(Number(JSON.parse(output).total) - context.vars.ledger_total) < 0.01
+    value: typeof JSON.parse(output).total === 'number' && Math.abs(JSON.parse(output).total - context.vars.ledger_total)
+      < 0.01
 - description: extract MCH-0291
   prompts:
   - extract-invoice
@@ -83,7 +87,8 @@
     value: JSON.parse(output).invoice_id === context.vars.ref
   - type: javascript
     metric: total_matches_ledger
-    value: Math.abs(Number(JSON.parse(output).total) - context.vars.ledger_total) < 0.01
+    value: typeof JSON.parse(output).total === 'number' && Math.abs(JSON.parse(output).total - context.vars.ledger_total)
+      < 0.01
 - description: extract NW-0388
   prompts:
   - extract-invoice
@@ -100,7 +105,8 @@
     value: JSON.parse(output).invoice_id === context.vars.ref
   - type: javascript
     metric: total_matches_ledger
-    value: Math.abs(Number(JSON.parse(output).total) - context.vars.ledger_total) < 0.01
+    value: typeof JSON.parse(output).total === 'number' && Math.abs(JSON.parse(output).total - context.vars.ledger_total)
+      < 0.01
 - description: extract NW-0402
   prompts:
   - extract-invoice
@@ -117,7 +123,8 @@
     value: JSON.parse(output).invoice_id === context.vars.ref
   - type: javascript
     metric: total_matches_ledger
-    value: Math.abs(Number(JSON.parse(output).total) - context.vars.ledger_total) < 0.01
+    value: typeof JSON.parse(output).total === 'number' && Math.abs(JSON.parse(output).total - context.vars.ledger_total)
+      < 0.01
 - description: extract NW-0419
   prompts:
   - extract-invoice
@@ -134,4 +141,5 @@
     value: JSON.parse(output).invoice_id === context.vars.ref
   - type: javascript
     metric: total_matches_ledger
-    value: Math.abs(Number(JSON.parse(output).total) - context.vars.ledger_total) < 0.01
+    value: typeof JSON.parse(output).total === 'number' && Math.abs(JSON.parse(output).total - context.vars.ledger_total)
+      < 0.01

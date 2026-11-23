@@ -9,11 +9,15 @@ prompt version, model, tokens, cost and latency (`.progress/calls.jsonl`).
       - id: file://providers/lantern_provider.py
         label: qwen3-1.7b
         config: {model: qwen3:1.7b, schema: file://schemas/invoice.json}
+
+`tier: hosted` in the config (or LANTERN_TIER=hosted in the environment) sends the call to the
+hosted provider instead of Ollama: promptfooconfig.hosted.yaml uses it for every prompt.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -21,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
 from lantern import chat  # noqa: E402
+from lantern.config import load_config  # noqa: E402
 
 
 def _schema(value):
@@ -29,8 +34,16 @@ def _schema(value):
     return value
 
 
+def use_tier(name: str | None) -> None:
+    """Point lantern at a tier for the calls that follow (config is cached, so clear it)."""
+    if name and os.environ.get("LANTERN_TIER") != name:
+        os.environ["LANTERN_TIER"] = name
+        load_config.cache_clear()
+
+
 def call_api(prompt: str, options: dict, context: dict) -> dict:
     cfg = options.get("config", {})
+    use_tier(cfg.get("tier"))
     try:
         messages = json.loads(prompt)
     except ValueError:
@@ -53,4 +66,6 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
                        "cached": r.cached_tokens},
         "cost": r.cost_usd or 0.0,
         "latencyMs": int(r.seconds * 1000),
+        # Settings the hosted provider does not take (temperature, seed), reported, not dropped.
+        "metadata": {"model": r.model, "unsupported": list(r.unsupported or [])},
     }

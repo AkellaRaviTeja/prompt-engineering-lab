@@ -124,6 +124,34 @@ prompt at temperature 0. Both replies show the token counts underneath.
    bang." Does the model find the gap on its own now?
 4. Run with the bigger model: `LANTERN_MODEL=qwen3:4b make lesson N=01`. Compare.
 
+## Master it
+
+After this chapter you can name the parts of a precise prompt, build one whose evidence cannot
+pass itself off as instructions, and check a reply against its source.
+
+**Predict, then see.** `make lesson N=01` stops four times to ask what will happen: whether
+"Summarise this." finds the gap, how many tokens the precise prompt costs, what time the bang
+gets in the timeline, and how many of its quotes are really in the statement. Each answer is
+checked against your own run, not a fixed key. Add `ARGS=--no-predict` to watch without
+stopping.
+
+**Build it.** Write the prompt builder and its check in
+[`practice/exercise.py`](practice/exercise.py):
+
+```bash
+make exercise N=01          # 8 offline tests, no model needed
+make hint N=01              # one hint at a time
+make solution N=01          # the reference, once you have tried
+```
+
+**Check yourself.** `make quiz N=01`: six questions, each with the reason behind the answer.
+
+**Break it.** `make challenge N=01` checks your latest run against three targets: the shift rule
+taken away, so the bang gets the wrong time; the vague prompt rescued with one sentence; and a
+timeline in which every quote checks.
+
+`make progress` shows every chapter.
+
 ## What the evidence now shows
 
 Petrov says he heard a bang at about 23:40. He says the hut is two minutes from stairwell C. He

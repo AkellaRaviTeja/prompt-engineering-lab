@@ -151,6 +151,35 @@ Malhotra's badge was not used, but he cannot be ruled out of knowing the code.
 5. Remove the `<other_facts>` block. Which candidates can no longer be ruled out, by you or the
    model?
 
+## Master it
+
+After this chapter you can say where thinking tokens come from and what they do to a budget,
+predict an empty answer before it happens, decide per task whether thinking is worth its time, and
+write the deterministic check that scores a thinking model's answer.
+
+**Predict, then see.** `make lesson N=10` stops three times to ask what will happen: what a
+300-token thinking run returns, how many tokens the 4,000-token run spends, and how many of the
+six candidates the best LANTERN answer gets right against the check in step 5. Each answer is
+checked against your own run. Add `ARGS=--no-predict` to watch without stopping.
+
+**Build it.** Write the door check in [`practice/exercise.py`](practice/exercise.py): from the
+badge log, the override codes and who was where, return who could have opened the door, who is
+ruled out and why, and who cannot be ruled out.
+
+```bash
+make exercise N=10          # 8 offline tests on the real badge log, no model needed
+make hint N=10              # one hint at a time
+make solution N=10          # the reference, once you have tried
+```
+
+**Check yourself.** `make quiz N=10`: seven questions, each with the reason behind the answer.
+
+**Break it.** `make challenge N=10` checks your latest run against three targets: a thinking run
+with just enough budget to answer (1,500 tokens or fewer); a LANTERN answer that agrees with the
+check on five of the six candidates; and step 3 starved until it thinks and never answers.
+
+`make progress` shows every chapter.
+
 ## What the evidence now shows
 
 The door was not opened with a badge. It was opened with OVR-AUD-02, a contractor override code

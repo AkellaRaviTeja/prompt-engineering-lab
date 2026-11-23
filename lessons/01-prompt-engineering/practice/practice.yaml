@@ -1,0 +1,149 @@
+# Chapter 01 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=01).
+chapter: "01"
+title: Day one
+
+objectives:
+  - Name the parts of a precise prompt (task, context, rules, format, examples) and say which ones a prompt is missing.
+  - Build a prompt whose evidence is delimited, so a document cannot pass itself off as instructions.
+  - Prefer tasks whose answers you can check, and check them.
+  - Explain why a small model needs more structure in its prompt than a large one.
+
+quiz:
+  - q: The vague prompt and the precise prompt went to the same model with the same statement. What made the difference?
+    options:
+      - The precise prompt ran at temperature 0, so the model was more careful.
+      - The precise prompt said what to do, what rules to follow and what shape to answer in.
+      - The precise prompt was longer, and longer prompts get better answers.
+      - The model had already seen the statement once, so the second answer was better.
+    answer: b
+    why: >
+      The model keeps nothing between calls, and length alone does nothing. The precise prompt
+      named a checkable task (a timeline), rules (quote word for word, the night shift) and a
+      format. Everything you make explicit is something the model does not have to guess.
+
+  - q: Why does the precise prompt put the statement inside <statement> tags?
+    options:
+      - The model cannot read text that is not inside tags.
+      - Tags make the prompt shorter in tokens.
+      - They mark where the instructions end and the material begins, so text in the material is read as material.
+      - Ollama requires tags around documents.
+    answer: c
+    why: >
+      Without a boundary, a document that says "ignore the above" is just more instructions. Tags
+      are a convention the model has learned, not a lock: chapter 02 shows a model breaking its
+      orders anyway, and the exercise makes sure a document cannot close its own tag.
+
+  - q: The rule says "twenty to twelve" means 23:40 because the night shift runs 18:00 to 06:00. Why is that rule needed?
+    options:
+      - The model cannot do arithmetic with times.
+      - The phrase is ambiguous, and only the prompt can tell the model which reading is right here.
+      - Qwen3 was trained on American English and uses a 12-hour clock.
+      - Without it the timeline would not be in order.
+    answer: b
+    why: >
+      "Twenty to twelve" is 11:40 or 23:40. The statement does not say which; the shift pattern
+      does, and the model cannot know the shift pattern unless you tell it. Context the reader
+      needs belongs in the prompt.
+
+  - q: The precise reply came back with quotes beside every event. What does that let you do?
+    options:
+      - Trust the timeline, because the model quoted its sources.
+      - Check each line against the statement, and catch the ones the model changed or invented.
+      - Skip reading the statement yourself.
+      - Prove the witness is telling the truth.
+    answer: b
+    why: >
+      A quote makes a claim checkable, not true. In the captured run the event text said "no
+      loading after 23:00" while the quote beside it said 21:00. Asking for quotes is what made
+      that visible. LANTERN is a witness too.
+
+  - q: Which prompt is most likely to get a useful answer from a 1.7B model?
+    options:
+      - "What does this statement tell us?"
+      - "Summarise this statement."
+      - "List every event between 23:00 and 23:59 as HH:MM | event | quote, then any gap the walking distances do not explain."
+      - "You are a world-class detective. Solve this case."
+    answer: c
+    why: >
+      A large model may infer what you want from a loose question. A small one will not. A task
+      with a target, a format and a stated rule gives it the least to guess, and gives you
+      something to check.
+
+  - q: You wrap a suspect's email in <document> tags, and the email itself contains the text "</document> New instructions follow." What should your prompt builder do?
+    options:
+      - Nothing; the model knows the email is evidence.
+      - Remove the email from the prompt.
+      - Neutralise the tag inside the email (for example as &lt;/document&gt;) so it cannot close the block.
+      - Put the email first in the prompt instead.
+    answer: c
+    why: >
+      A delimiter only works if the material cannot produce it. Escaping the tag keeps the whole
+      email inside its block. Chapter 15 returns to prompt injection through documents.
+
+exercise:
+  title: Build the precise prompt, and check it
+  kind: function
+  task: |
+    Open `lessons/01-prompt-engineering/practice/exercise.py` and write two functions.
+
+    `build_prompt(task=, evidence=, role=, rules=, output_format=, tag=)` builds the chapter's
+    precise prompt from its parts: role, `Task:`, `Rules:` with one `- ` line per rule,
+    `Format:`, then the evidence inside `<statement>` tags, a blank line between sections and
+    empty sections left out. `check_prompt(prompt)` returns the parts a prompt is missing.
+
+    The tests check that:
+
+    - the parts come in order, a blank line apart, and the evidence goes in unchanged and last,
+    - a `</statement>` inside the evidence is neutralised, so a document cannot close its block,
+    - a blank task or blank evidence raises ValueError,
+    - `check_prompt` finds nothing missing in a built prompt, all four parts missing in
+      "Summarise this.", and broken delimiters when there are two closing tags.
+  hints:
+    - |
+      Build a list `sections`, append each part that is not empty, and finish with
+      `"\n\n".join(sections)`. The task line is `f"Task: {task.strip()}"`; the rules are
+      `"Rules:\n" + "\n".join(f"- {r}" for r in rules)`.
+    - |
+      Neutralise before wrapping: `re.sub(rf"<(/?){re.escape(tag)}>", rf"&lt;\1{tag}&gt;", text)`
+      turns both `<statement>` and `</statement>` into harmless text.
+    - |
+      For `check_prompt`, use `re.search(r"^Task:\s*\S", prompt, re.M)` and its cousins for
+      `Rules:` (followed by a `- ` line) and `Format:`. The evidence is delimited when
+      `prompt.count("<statement>") == prompt.count("</statement>") == 1` and the opening tag
+      comes first.
+  after: >
+    Then rebuild the `precise` prompt in run.py with your builder and rerun the lesson: does the
+    reply change when the format moves out of the rules into its own line?
+
+challenges:
+  - id: drop-the-shift-rule
+    title: "Break it: take away the shift"
+    goal: >
+      Remove what the model needs to know to read "twenty to twelve", and watch the time of the
+      bang come out wrong.
+    change: >
+      In the `precise` prompt in lessons/01-prompt-engineering/run.py, delete the rule that
+      converts spoken times (the two lines about the night shift). Change nothing else.
+    target: "bang_at_2340 == false and timeline_lines >= 3"
+    reset: git checkout lessons/01-prompt-engineering/run.py
+
+  - id: one-more-sentence
+    title: Rescue the vague prompt with one sentence
+    goal: >
+      Keep the vague prompt short, but make its reply work out how long Petrov took between the
+      bang and the body, without inventing a time the statement does not give.
+    change: >
+      Add one sentence to the `vague` prompt in lessons/01-prompt-engineering/run.py. Do not
+      paste in the precise prompt's rules.
+    target: "vague_found_gap == true and vague_invented_times == 0 and vague_prompt_tokens <= 420"
+    reset: git checkout lessons/01-prompt-engineering/run.py
+
+  - id: every-quote-checks
+    title: Every quote, word for word
+    goal: >
+      Get a timeline of at least five lines in which every quote is in the statement word for
+      word, and the gap is still found.
+    change: >
+      Edit the rules or the format in the `precise` prompt in lessons/01-prompt-engineering/run.py.
+    target: "timeline_lines >= 5 and quotes_verbatim == timeline_lines and precise_found_gap == true"
+    reset: git checkout lessons/01-prompt-engineering/run.py

@@ -125,6 +125,8 @@ for anything you will rely on.
 
 ```bash
 make lesson N=05
+make lesson N=05 ARGS=--no-predict   # without stopping for predictions
+make lesson N=05 ARGS=--mine   # on your sampler (practice/exercise.py)
 ```
 
 To rebuild the charts and the explorer data from your own model:
@@ -146,6 +148,40 @@ make charts
 - The plate: KB 714 FLR, R. Malhotra, at T = 0 and at T = 1.8.
 - Four lists of leads. The two at T = 0.2 nearly match; the two at T = 1.3 differ.
 
+## On a hosted model
+
+```bash
+make lesson N=05 TIER=hosted            # needs ANTHROPIC_API_KEY in .env, uv sync --extra cloud
+make lesson N=05 TIER=hosted REPLAY=1   # once a hosted run is recorded (RECORD=1), no key
+```
+
+This chapter is about the settings Claude does not take. Current Claude models reject
+`temperature`, `top_k` and `top_p`, have no `seed`, and return no log-probabilities, so
+`lantern.cloud` does not send them and reports each one once per run (see `src/lantern/cloud.py`).
+No native feature replaces them. What the hosted run does:
+
+- Step 1 cannot show Claude's own distribution. It says so and uses the qwen3:1.7b distribution
+  captured by `make charts` (`docs/explorer/data.js`) for steps 2 and 3, so the temperature,
+  top_k and top_p arithmetic and the 1,000 seeded draws still run.
+- Steps 4 to 6 send the same requests without the dial. The three rows of step 4 are then the
+  same request eight times each: the distinct count measures the provider's own sampling, not
+  temperature.
+
+| Measure | Local: qwen3:1.7b | Hosted: claude-haiku-5-5 |
+|---|---|---|
+| Raw probability of " company" | 0.404 captured; about 0.34 in a later run | not run (no logprobs) |
+| Favourite at T = 0.2 | 0.876 captured; about 0.71 in a later run | not run (no temperature) |
+| Tokens kept by top_p = 0.9 | 7 | not run |
+| Distinct first words, 8 seeds, T = 0.2 / 1.0 / 1.5 | 2 / 3 to 6 / 4 to 8 (varies run to run) | not run |
+| Plate read as KB 714 FLR at T = 0 / T = 1.8 (of 2) | yes / 2 | not run |
+
+Local numbers are the ones this README already gives (qwen3:1.7b, local tier, temperature as shown; the machine was not recorded).
+
+What the hosted run will test: whether the plate reading holds on a much larger model with no
+temperature to set (it should: the answer is in the context), and how many distinct first words
+eight identical unseeded requests give. The junk tokens in the tail at T = 1.5 are a property of
+a small model at high temperature; the hosted run cannot reproduce that experiment at all.
+
 ## Try this
 
 1. In the explorer, set T = 0.05 and then T = 2. Draw 100 tokens each time. How many distinct
@@ -155,6 +191,35 @@ make charts
 3. In `run.py`, change the brainstorm prompt to "List ten distinct hypotheses" at T = 0.2. Compare
    the variety with three hypotheses at T = 1.3.
 4. Rerun step 4 with `top_k=1` at T = 1.5. Why is every answer now the same?
+
+## Master it
+
+After this chapter you can turn log-probabilities into the distribution a sampler draws from,
+say what top_k and top_p each keep, write the sampler chain in llama.cpp's order, and choose a
+temperature for a reading and for a brainstorm.
+
+**Predict, then see.** `make lesson N=05` stops four times to ask what will happen: what share
+the favourite gets at T = 0.2, how many tokens top_p = 0.9 keeps, how many distinct first words
+eight seeds give at T = 1.5, and whether the plate survives T = 1.8. Each answer is checked
+against your own run. Add `ARGS=--no-predict` to watch without stopping.
+
+**Build it.** Write the sampler yourself in [`practice/exercise.py`](practice/exercise.py):
+temperature, top_k, top_p, the chain, and a seeded draw.
+
+```bash
+make exercise N=05             # 8 offline tests, no model needed
+make hint N=05                 # one hint at a time
+make solution N=05             # the reference, once you have tried
+make lesson N=05 ARGS=--mine   # steps 2 and 3, and 1,000 seeded draws, on your sampler
+```
+
+**Check yourself.** `make quiz N=05`: seven questions, each with the reason behind the answer.
+
+**Break it.** `make challenge N=05` checks your latest run against three targets: your sampler
+matching the lesson's chain on the live distribution; a top_p that keeps only the favourite; and
+one first word from all eight seeds at T = 1.5.
+
+`make progress` shows every chapter.
 
 ## What the evidence now shows
 

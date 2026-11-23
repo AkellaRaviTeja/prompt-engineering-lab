@@ -116,6 +116,11 @@ make lesson N=03
 
 Expect two to three minutes on a CPU: the full file is processed twice.
 
+```bash
+make lesson N=03 ARGS=--mine        # step 5 reads with your practice/exercise.py
+make lesson N=03 ARGS=--no-predict  # no stops for predictions
+```
+
 ## What you should see
 
 ![Chapter 03 terminal output](../../docs/screenshots/03-context-window.png)
@@ -136,6 +141,35 @@ Expect two to three minutes on a CPU: the full file is processed twice.
    the model answer now that the question is the part that gets dropped?
 3. Set `num_ctx` to 6,400 (just above the prompt) with `max_tokens` at 200. How long is the answer?
 4. Split into 8 chunks instead of 4. Is it faster or slower overall? Does it still find the line?
+
+## Master it
+
+After this chapter you can tell the trained context length from the window, spot a silent
+overflow, explain why fitting is not reading, and read a long document in overlapping chunks
+whose hits are checked.
+
+**Predict, then see.** `make lesson N=03` stops three times to ask what will happen: how many
+tokens survive the 2,048 window, whether the full file finds the line once it all fits, and how
+many chunks come back with it. Each answer is checked against your own run, not a fixed key. Add
+`ARGS=--no-predict` to watch without stopping.
+
+**Build it.** Write the chunker and the map step in
+[`practice/exercise.py`](practice/exercise.py):
+
+```bash
+make exercise N=03             # 7 offline tests, scripted model, no Ollama needed
+make hint N=03                 # one hint at a time
+make solution N=03             # the reference, once you have tried
+make lesson N=03 ARGS=--mine   # then step 5 of the live lesson reads with your code
+```
+
+**Check yourself.** `make quiz N=03`: seven questions, each with the reason behind the answer.
+
+**Break it.** `make challenge N=03` checks your latest run against three targets: your reader on
+the real notes; one chunk instead of four, so the line is lost again; and a cut that sends under
+half the notes but keeps the evidence.
+
+`make progress` shows every chapter.
 
 ## What the evidence now shows
 

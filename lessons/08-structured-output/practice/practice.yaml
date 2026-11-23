@@ -1,0 +1,149 @@
+# Chapter 08 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=08).
+chapter: "08"
+title: Rows for the link chart
+
+objectives:
+  - Turn a Pydantic model into a schema and constrain a model's output with it.
+  - Validate every record and retry with the validation error, with a cap and a human fallback.
+  - Explain why a valid record can still be wrong, and check fields against the source.
+  - Keep extraction in the model and reasoning (joins, sums, dates) in code.
+
+quiz:
+  - q: Asked nicely for JSON, the model began "Here is the extracted invoice data". Why does that fail, and what fixes it at the root?
+    options:
+      - A longer prompt fixes it.
+      - The reply is not JSON from its first character; constraining decoding with a schema makes such tokens impossible to choose.
+      - Strip the first line with a regular expression.
+      - A higher temperature.
+    answer: b
+    why: >
+      Without a schema nothing stops the model writing what JSON answers usually look like:
+      a sentence, a fence, numbers with commas. A schema turned into a grammar, or a provider's
+      native structured output, removes those choices.
+
+  - q: With the schema, all eight invoices validated first time. The three Northwind rows still had a VAT number. What was wrong?
+    options:
+      - Nothing; the schema guarantees correct values.
+      - The model put the bank account number in vat_number; a nullable field allows null but does not make the model use it.
+      - Pydantic changed the value.
+      - The invoices do carry a VAT number.
+    answer: b
+    why: >
+      A schema guarantees shape and type, not truth. Only a check against the source text found
+      it. Valid is not the same as correct.
+
+  - q: Where should a `reasoning` field go in the schema if you want the model to reason before answering?
+    options:
+      - Before the answer field, because the model writes fields top to bottom and each is context for the next.
+      - After the answer field, so the answer is not delayed.
+      - Anywhere; field order does not matter to the model.
+      - In a separate request.
+    answer: a
+    why: >
+      Generation order is field order. A reasoning field after the answer is a justification
+      written after the decision.
+
+  - q: What does the retry in extract() send back to the model?
+    options:
+      - The same request again, unchanged.
+      - The failed reply as its own turn, then a user turn quoting the validation error and asking for a fix.
+      - Only the error message, in a new conversation.
+      - A higher temperature.
+    answer: b
+    why: >
+      The model can only correct what it can see: its own output and exactly what was wrong with
+      it. The same request again usually gives the same failure.
+
+  - q: Why cap the attempts, and what happens to a record that still fails?
+    options:
+      - The cap is only to save tokens; the record is dropped silently.
+      - Each retry costs a call and a failure that repeats will keep repeating; after the cap the record is flagged for a person.
+      - There is no need for a cap with constrained decoding.
+      - After the cap, accept the last reply as it is.
+    answer: b
+    why: >
+      An uncapped retry loop can spend without limit on an input the model cannot handle.
+      Flagging keeps the bad record visible instead of letting it vanish or slip through.
+
+  - q: When does the retry earn its place, given that constrained decoding made it unnecessary in the lesson's run?
+    options:
+      - Never.
+      - For rules a grammar cannot express, such as a cross-field check or a format rule in a validator, and for providers or paths without schema enforcement.
+      - Only on the hosted tier.
+      - Only when the temperature is above 0.
+    answer: b
+    why: >
+      A grammar enforces types and enums. A Pydantic validator can enforce anything you can write
+      in Python, and only the retry gives the model a chance to meet it.
+
+  - q: Why is the join with Malhotra's travel done in Python and not by asking the model?
+    options:
+      - The model cannot read dates.
+      - Python is faster than the model at extraction.
+      - A date comparison in code is exact, cheap and gives the same result every time; the model's job was only to produce rows a program can trust.
+      - The travel records are too long for the context window.
+    answer: c
+    why: >
+      Chapter 06 showed that model answers can vary. Code does not, and Hale cannot argue with a
+      date comparison.
+
+exercise:
+  title: Write extract()
+  kind: component
+  task: |
+    Open `lessons/08-structured-output/practice/exercise.py` and write `extract`: a
+    schema-constrained call, Pydantic validation, and a retry that shows the model its
+    validation error, with an attempt cap. The tests hand it a scripted model, so no Ollama is
+    needed. They check that:
+
+    - the first request sends the invoice text, with the model class's JSON schema as `format=`
+      and temperature 0,
+    - a valid reply comes back as a typed record, attempt 1,
+    - an invalid reply goes back as an assistant turn, followed by a user turn with the error,
+    - a reply that is not JSON at all is retried, not a crash,
+    - after `max_attempts` failures it returns (None, max_attempts) with no extra calls,
+    - `max_attempts` below 1 is refused.
+
+    With `--mine`, the lesson extracts all eight invoices with your extract().
+  hints:
+    - |
+      `schema = model_cls.model_json_schema()`, then a loop
+      `for attempt in range(1, max_attempts + 1):` with
+      `r = chat(messages, format=schema, temperature=0, max_tokens=400)` inside it.
+    - |
+      `model_cls.model_validate_json(r.text)` raises `ValidationError` both for wrong fields and
+      for text that is not JSON at all, so one `except ValidationError as e:` covers both.
+    - |
+      On failure: `messages = [*messages, {"role": "assistant", "content": r.text},
+      {"role": "user", "content": f"That failed validation: {e}. Fix it."}]`. After the loop,
+      `return None, max_attempts`.
+  after: >
+    Run the lesson on your extract(): `make lesson N=08 ARGS=--mine`. Then try the break-it
+    challenge: a validator the grammar cannot enforce, so your retry has real work to do.
+
+challenges:
+  - id: your-extract
+    title: Your extract(), on the real invoices
+    goal: Run the lesson on the extract() you wrote and get all eight invoices as valid rows.
+    change: "Pass the exercise first, then run `make lesson N=08 ARGS=--mine`."
+    target: "mine == true and valid_rows == 8"
+
+  - id: a-rule-the-grammar-cannot-enforce
+    title: "Break it: make the retry work for its living"
+    goal: >
+      Add a rule to Invoice that the schema cannot express, so that at least one first reply
+      fails validation and the retry has to run. Keep all eight rows valid in the end if you can.
+    change: >
+      In lessons/08-structured-output/run.py, add a Pydantic field_validator to Invoice, for
+      example one that rejects a vendor name written entirely in capitals.
+    target: "retries_used >= 1"
+    reset: git checkout lessons/08-structured-output/run.py
+
+  - id: no-bank-account-as-vat
+    title: A field description that holds
+    goal: >
+      Make the constrained extraction stop putting anything but a VAT number in vat_number, so
+      the source check finds no problems, with all eight rows still valid.
+    change: Change the descriptions in Invoice in lessons/08-structured-output/run.py.
+    target: "source_problems == 0 and valid_rows == 8"
+    reset: git checkout lessons/08-structured-output/run.py

@@ -1,0 +1,153 @@
+# Chapter 10 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=10).
+chapter: "10"
+title: The locked door
+
+objectives:
+  - Explain where thinking tokens come from and what they do to a max_tokens budget.
+  - Predict when a thinking run will return an empty answer, and size the budget so it does not.
+  - Decide per task whether thinking is worth its time, and say what it cannot fix.
+  - Write the deterministic check that scores a thinking model's answer.
+
+quiz:
+  - q: With think=True and max_tokens=300, the model returned 300 tokens and an empty answer. Why?
+    options:
+      - The model refused the question.
+      - Thinking tokens are output tokens from the same budget, and it spent all 300 thinking before it reached the answer.
+      - Ollama drops the answer when thinking is on.
+      - The temperature was too high.
+    answer: b
+    why: >
+      Thinking and answer share max_tokens (Ollama's num_predict). The model thinks first, so a
+      small budget can run out mid-thought. Treat an empty reply.text as "budget exhausted", not
+      as "no answer", and raise the budget when thinking is on.
+
+  - q: With 4,000 tokens to think, the 1.7B model reasoned at length and still swapped the two override codes. What does that show?
+    options:
+      - The budget was still too small.
+      - Thinking cannot make a model good at a task it is too small for; a longer wrong answer is still wrong.
+      - The thinking text was faithful but the answer was not.
+      - Thinking mode is broken on Qwen3.
+    answer: b
+    why: >
+      Thinking gives a capable model room to work. It does not add knowledge or reliability the
+      weights do not have. Measure the answer, not the length of the reasoning.
+
+  - q: The 4B model finished in 3,905 tokens on one run and used all 4,000 with no answer on a run with almost the same prompt. How should you budget?
+    options:
+      - Use the average of the two.
+      - Set max_tokens to exactly 3,905.
+      - Budget for the long tail, and treat an empty answer as a result to handle, not an error to ignore.
+      - Turn thinking off; it is unpredictable.
+    answer: c
+    why: >
+      Thinking length varies run to run and prompt to prompt. The budget must cover the slow
+      cases, and the code must notice when even that was not enough. Chapter 12's p95 is the same
+      idea for latency.
+
+  - q: "reply.thinking shows exactly where the model went wrong. Can you cite it as the reason for the answer?"
+    options:
+      - Yes; it is the model's reasoning.
+      - No; it is useful for debugging but is not evidence, and is not always a faithful account of how the answer was produced.
+      - Yes, if the thinking and the answer agree.
+      - Only on the hosted tier.
+    answer: b
+    why: >
+      The thinking channel is generated text like any other. Read it to see where a run slipped;
+      check the answer against the records; never put the musings in the file.
+
+  - q: For which of these tasks is thinking mode most worth its cost on a laptop?
+    options:
+      - Pulling the total from one invoice into JSON.
+      - Classifying a text message as threat, logistics or personal.
+      - Working out who could have opened a door from rules, a log and who was where.
+      - Rewriting a paragraph more formally.
+    answer: c
+    why: >
+      Thinking pays on multi-step logic: several facts combined under rules. Extraction,
+      classification and formatting gain little and pay the full cost in time and tokens.
+
+  - q: The first version of the puzzle asked who "CAN" open the door, with the two contractors on one line. Rewriting the question helped more than any setting. Why?
+    options:
+      - Shorter prompts are always better.
+      - The model read "can" as a question about badge levels and the two contractors as one party; a precise question removed the ambiguity thinking could not.
+      - Thinking mode ignores the question text.
+      - Capital letters confuse small models.
+    answer: b
+    why: >
+      A model can only reason about the question it was given. Thinking longer about an ambiguous
+      question gives a confident answer to the wrong one.
+
+  - q: Step 5 answers Q2 with a dozen lines of code. Why keep asking the model at all?
+    options:
+      - The code might be wrong, so the model checks it.
+      - The code only works because someone wrote down the rules, codes and alibis; the model is for reading messy material into that form, and the code is the standard its answers are scored against.
+      - Courts prefer model answers.
+      - There is no reason; delete the model calls.
+    answer: b
+    why: >
+      Where the rules are known, code decides faster and every time. The model's value is
+      upstream, in turning documents into facts, and the check is how you know when it got
+      them wrong.
+
+exercise:
+  kind: function
+  title: Who could have opened the door
+  task: |
+    Open `lessons/10-thinking-mode/practice/exercise.py` and write `door_candidates`: the
+    deterministic check that step 5 of the chapter scores every model answer against. From the
+    badge log, the override codes and their hours, and who the records place where, it returns
+    the credential used, who could have used it, who is ruled out and why, and who cannot be
+    ruled out. No model is needed. The tests use the real badge log and a few one-line logs, and
+    check that:
+
+    - the 23:36:15 entry was OVR-AUD-02, and Brightwater & Co held it,
+    - the lift contractor is ruled out by OVR-MNT-01's 18:00 limit,
+    - Reyes, Voss and Petrov are ruled out by their alibis, and Malhotra is not ruled out,
+    - a code outside its hours makes nobody a candidate, and the same code inside its hours does,
+    - an entry made with a badge names the badge's holder,
+    - a time with no entry raises ValueError.
+  hints:
+    - |
+      `next((r for r in csv.DictReader(io.StringIO(log_csv)) if ...), None)` finds the row.
+      Match `door`, `time == at` and `direction == "in"`. Its `badge_id` is the credential.
+    - |
+      For each override code: `start, end = o["valid"] or ("00:00", "23:59")`, then
+      `minutes(start) <= minutes(at) <= minutes(end)`. The credential's holder could only if the
+      code was valid; every other code's holder is ruled out, with the code (and its hours) in
+      the reason.
+    - |
+      If the credential is not in `overrides`, it is a badge: `could.append(row["holder"])`.
+      Then: `ruled_out[person] = alibi` for each person with an alibi who is not in `could`, and
+      `not_ruled_out = [p for p, a in alibis.items() if not a and p not in could]`.
+  after: >
+    Read step 5's table after a live run: which candidates did each thinking budget get wrong,
+    and which reason in your check would have caught it?
+
+challenges:
+  - id: room-to-answer
+    title: Room to answer
+    goal: >
+      Give step 2 just enough budget to answer: a non-empty answer from the thinking run, with no
+      more than 1,500 output tokens in all.
+    change: Change max_tokens in step 2's run(...) call in lessons/10-thinking-mode/run.py.
+    target: "small_budget_answer_chars > 0 and small_budget_tokens <= 1500"
+    reset: git checkout lessons/10-thinking-mode/run.py
+
+  - id: match-the-check
+    title: Match the check
+    goal: >
+      Get at least one LANTERN answer to agree with the deterministic check on five or more of the
+      six candidates.
+    change: >
+      The puzzle text in run.py (say what COULD means, list the codes' hours beside each
+      candidate), the budgets, or --large. Do not touch door_candidates or the scoring.
+    target: "best_right >= 5"
+    reset: git checkout lessons/10-thinking-mode/run.py
+
+  - id: out-of-budget
+    title: "Break it: think until the budget runs out"
+    goal: >
+      Make step 3, the run with room to finish, come back empty: all thinking and no answer.
+    change: Lower max_tokens in step 3's run(...) call in run.py.
+    target: "long_budget_answer_chars == 0"
+    reset: git checkout lessons/10-thinking-mode/run.py

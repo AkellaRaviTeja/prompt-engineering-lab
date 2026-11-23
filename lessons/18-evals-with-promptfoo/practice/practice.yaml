@@ -1,0 +1,148 @@
+# Chapter 18 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=18).
+chapter: "18"
+title: Proven, not demonstrated
+
+objectives:
+  - Describe an eval as prompts x providers x tests, and count the cells a suite will run.
+  - Write a suite's assertions as code, and say what each one does and does not check.
+  - Explain why a model judge must be calibrated against labels, and why it may not grade its own model.
+  - Read a judge's calibration (agreement, true-pass and true-fail rates, Cohen's kappa) and decide whether to use it.
+
+quiz:
+  - q: The no-speculation rubric used to be graded by qwen3:1.7b, one of the two models under test. What is wrong with that?
+    options:
+      - Nothing, as long as the temperature is 0.
+      - "A model grading its own answers shares their blind spots: if it does not see a hint at a suspect when it writes one, it will not see it when it grades one."
+      - A 1.7B model is too slow to grade.
+      - promptfoo does not allow a provider to also be a grader.
+    answer: b
+    why: >
+      Self-grading is not independent. The mistakes a model makes when it answers are the
+      mistakes it fails to notice when it grades. The judge is now qwen3:4b, a model not under
+      test, and the assertion refuses to grade a provider that is the judge's own model.
+
+  - q: A judge passes every answer it is shown. On the 24 labelled answers (12 pass, 12 fail), what are its agreement and Cohen's kappa?
+    options:
+      - Agreement 1.0, kappa 1.0.
+      - Agreement 0.5, kappa 0.5.
+      - Agreement 0.5, kappa 0.
+      - Agreement 0, kappa 0.
+    answer: c
+    why: >
+      It agrees on the 12 passes and gets all 12 fails wrong: 0.5. Kappa measures agreement
+      beyond what chance would give, and a judge that ignores the answer is pure chance, so 0.
+      That is why the suite gates on kappa (0.6 needed) and reports the true-fail rate: a
+      lenient judge looks half right on agreement alone.
+
+  - q: Why are the 24 calibration answers half "pass" and half "fail", with several that break the rule only by hinting?
+    options:
+      - So the judge is trained on them.
+      - "Because a judge is only tested where it can be wrong: an all-pass set cannot catch a lenient judge, and only the hints separate a careful judge from a keyword match."
+      - To make the calibration run faster.
+      - Because promptfoo needs an even number of tests.
+    answer: b
+    why: >
+      Labels are a test set for the grader. They must contain both verdicts and the hard
+      cases, or a judge that always says pass, or one that only looks for a name, scores well.
+      The judge is not trained on them; it is measured against them.
+
+  - q: The extraction suite used to strip code fences with a regex transform. Now it does not, and valid_json still passes. Why?
+    options:
+      - promptfoo strips fences on its own since 0.124.
+      - The extraction prompt now says "no code fences" more firmly.
+      - "The provider calls lantern.chat with the invoice schema, so Ollama constrains decoding to JSON that fits it: the reply is JSON by construction."
+      - The is-json assertion ignores fences.
+    answer: c
+    why: >
+      Chapter 08's schema-constrained path turns the schema into a grammar on Ollama, and into
+      native structured output on a hosted provider. A transform hid a format failure; the
+      constrained path removes it. The assertion still runs, because "by construction" is a
+      claim worth checking.
+
+  - q: An extraction cell is green. What does that tell you about the extracted vendor?
+    options:
+      - It is right, because the cell passed.
+      - Nothing. No assertion in the suite checks vendor.
+      - It is right if valid_json passed.
+      - It is right on the larger model only.
+    answer: b
+    why: >
+      A green cell means the checks you wrote passed. A field you never assert is a field you
+      never measured. Before you trust a pass rate, read what the assertions do not cover.
+
+  - q: The expected totals in the extraction tests come from the seized ledger, not from the invoices. What follows from that?
+    options:
+      - The tests are wrong and should use the invoices.
+      - "The suite checks the pipeline against the record the EOW must verify, so a failure can mean the model is wrong, or the record is."
+      - The models will be graded more leniently.
+      - Nothing; both always agree.
+    answer: b
+    why: >
+      An eval is only as trustworthy as its reference data. Taking expected values from the
+      record under suspicion is deliberate: it is how the suite can surface a disagreement
+      between the documents and the ledger. Chapter 19 follows the one that appears.
+
+  - q: "`promptfoo eval` exits with code 100 after a run in which some tests fail. What should a CI job do with that?"
+    options:
+      - Retry until it exits 0.
+      - Ignore it; 100 is a warning.
+      - "Fail the build: a prompt or model change that breaks a test should not merge."
+      - Treat it as a crash in promptfoo.
+    answer: c
+    why: >
+      Exit code 100 means the run finished and tests failed: a result. In CI that should block
+      the change. `make eval` reports it as expected here only because chapter 19 reads the
+      failures on purpose.
+
+exercise:
+  kind: function
+  title: Assertions as code
+  task: |
+    Open `lessons/18-evals-with-promptfoo/practice/exercise.py` and write the suite's graders in
+    Python, given a model's output and the test's expected values:
+
+    - `grade_extraction(output, ref, ledger_total)`: the three named metrics of the extraction
+      suite (`valid_json`, `invoice_id`, `total_matches_ledger`), as a dict of booleans,
+    - `grade_label(output, label)`: the classification suite's one-word label check,
+    - `score(cells)`: `[passed, run]` per metric over many cells, promptfoo's named-metric view.
+
+    The tests check fenced or wrapped JSON, a total off by a cent, a total given as a string,
+    an id with "INVOICE" left in, and a classifier that explains itself. No model and no
+    promptfoo are needed.
+  hints:
+    - |
+      Parse first, and decide on the failure case before anything else: `json.loads` raises
+      ValueError on fences or prose, and `"[1, 2]"` parses but is not an object. Either way,
+      return all three metrics False.
+    - |
+      `isinstance(True, int)` is True in Python, so a boolean total would pass a plain
+      `isinstance(total, (int, float))` check. Rule it out explicitly.
+    - |
+      For the label: `re.sub(r"[^a-z]", "", output.lower()) == label`. For score, start with
+      `{m: [0, 0] for m in ("valid_json", "invoice_id", "total_matches_ledger")}` and add
+      `ok` (a bool counts as 0 or 1) and 1 per cell.
+  after: >
+    Open evals/tests/extraction.yaml and compare your Python with the javascript there. Then try
+    the challenges: one adds a provider and watches the judge refuse to grade its own model.
+
+challenges:
+  - id: judge-grades-itself
+    title: "Break it: let the judge's own model into the suite"
+    goal: >
+      Add qwen3:4b, the judge's model, as a third model under test, and run the suite. The
+      no-speculation assertion must refuse to grade it rather than mark its own work.
+    change: >
+      In evals/promptfooconfig.yaml, add a provider `id: ollama:chat:qwen3:4b`,
+      `label: qwen3-4b`, `prompts: [classify-v1, classify-v2, evidence-rules]`,
+      `config: *settings`. Then make lesson N=18.
+    target: "providers == 3 and judge_refused_self >= 1"
+    reset: git checkout evals/promptfooconfig.yaml lessons/18-evals-with-promptfoo/run.py
+
+  - id: one-line-classifier
+    title: Make the terse classifier pass
+    goal: >
+      classify-v1 is one line and fails every test because the models answer in a paragraph.
+      Keep it to two lines and make it pass at least 12 of its 24 cells.
+    change: Edit only evals/prompts/classify-v1.json. Then make lesson N=18.
+    target: "classify_v1_passed >= 12"
+    reset: git checkout evals/prompts/classify-v1.json lessons/18-evals-with-promptfoo/run.py

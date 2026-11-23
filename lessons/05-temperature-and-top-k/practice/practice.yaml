@@ -1,0 +1,157 @@
+# Chapter 05 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=05).
+chapter: "05"
+title: Two kinds of question
+
+objectives:
+  - Turn a list of log-probabilities into the distribution a sampler draws from, at any temperature.
+  - Say what top_k and top_p each keep, and why top_p adapts to how sure the model is.
+  - Write the sampler chain in llama.cpp's order and draw from it with a seed.
+  - Choose a temperature for a reading and for a brainstorm, and say what each costs.
+
+quiz:
+  - q: You ask Ollama for log-probabilities at T = 1.0 and again at T = 0.2. The favourite's reported probability barely moves. Why?
+    options:
+      - The model ignores temperature on short prompts.
+      - The reported numbers are the model's raw scores; the sampler applies temperature after they are reported.
+      - Temperature only affects tokens after the first one.
+      - Ollama caches the first answer and returns it again.
+    answer: b
+    why: >
+      The model scores every token the same way whatever the temperature. Temperature is
+      arithmetic the sampler does on those scores just before the draw, so it never shows in the
+      log-probabilities. Chapter 06 explains the small movement you may still see.
+
+  - q: At T = 1.8 the plate question still came back as KB 714 FLR. What does that show?
+    options:
+      - High temperature is safe for every question.
+      - Temperature makes a model random only where it was unsure; here nearly all the probability sat on one token at each step.
+      - The seed overrode the temperature.
+      - The vehicle list was too short for the model to choose wrongly.
+    answer: b
+    why: >
+      Flattening a distribution where one token holds about 99.9% still leaves that token far
+      ahead. Temperature does not create uncertainty; it exposes the uncertainty that is already
+      there.
+
+  - q: top_k = 3 and top_p = 0.9 are both applied to the Northwind distribution and to the plate distribution. Which statement is right?
+    options:
+      - Both keep three tokens on both distributions.
+      - top_k keeps three on both; top_p keeps several on Northwind and one on the plate.
+      - top_p keeps three on both; top_k adapts.
+      - Neither changes anything because temperature is applied first.
+    answer: b
+    why: >
+      top_k is a fixed count. top_p keeps the smallest set that reaches 90% of the probability,
+      so it keeps many tokens when the model is unsure and one when it is certain. That is why
+      most providers default to top_p.
+
+  - q: Your sampler applies temperature first and then cuts with top_p = 0.9 at T = 0.2. llama.cpp cuts first. What differs?
+    options:
+      - Nothing; the operations commute.
+      - Your version keeps fewer tokens, because sharpening first pushes the favourite past 0.9 on its own.
+      - Your version keeps more tokens, because temperature adds tokens.
+      - Your version cannot draw at all.
+    answer: b
+    why: >
+      At T = 0.2 the favourite can hold more than 90% after reshaping, so a top_p cut applied
+      afterwards keeps it alone. Cutting the raw distribution first keeps several. The same three
+      numbers behave differently on servers that chain them in a different order.
+
+  - q: What does T = 0 mean, and what does the seed do there?
+    options:
+      - The flattest distribution; the seed picks the token.
+      - Greedy decoding, the single most likely token every time; no random number is drawn, so the seed has no effect.
+      - A very small temperature such as 0.01; the seed still matters.
+      - The model refuses to answer.
+    answer: b
+    why: >
+      You cannot divide by zero, so T = 0 is defined as greedy decoding. Nothing is drawn, so
+      there is nothing for a seed to fix. Whether greedy decoding is truly repeatable is chapter
+      06's question.
+
+  - q: Okafor wants more varied leads on Northwind. Which is the most reliable way to get variety of ideas, not only variety of wording?
+    options:
+      - Raise the temperature to 2.
+      - Set top_k to 1.
+      - Ask for many distinct hypotheses in one prompt, or use different prompts, at a moderate temperature.
+      - Use T = 0 with several seeds.
+    answer: c
+    why: >
+      Heat mostly buys rephrasing and junk tokens from the tail. Asking for distinct ideas puts
+      the variety in the request, where the model can keep the ideas apart from each other.
+
+  - q: A hosted model takes no temperature, top_k, top_p or seed, and returns no log-probabilities. What can a hosted run of this chapter still show?
+    options:
+      - Everything the local run shows.
+      - Nothing at all.
+      - How varied the provider's own sampling is for the same request repeated, and whether the plate reading holds; not the distribution or the effect of the dial.
+      - Only the distribution, through the provider's logprobs.
+    answer: c
+    why: >
+      With no settings to turn and no scores to read, the hosted run can only measure behaviour:
+      repeat the same request and count distinct answers. The arithmetic steps run on the
+      distribution captured from qwen3:1.7b instead.
+
+exercise:
+  title: Write the sampler
+  kind: component
+  task: |
+    Open `lessons/05-temperature-and-top-k/practice/exercise.py` and write the sampler: five
+    functions that turn the model's scores into one drawn token. The tests need no model. They
+    check that:
+
+    - `with_temperature` gives back the raw probabilities at T = 1, sharpens below 1, flattens
+      above 1, and is greedy at T = 0,
+    - `top_k` keeps exactly k tokens, most likely first, renormalised,
+    - `top_p` keeps the smallest set that reaches p, including the token that crosses it,
+    - `sampler_chain` cuts with top_k and top_p on the raw probabilities, then applies
+      temperature (llama.cpp's order),
+    - `draw` is repeatable for a seed, follows the probabilities, and never draws a token with
+      probability 0.
+
+    With `--mine`, the lesson runs steps 2 and 3, and 1,000 seeded draws, on your sampler.
+  hints:
+    - |
+      Temperature: `scaled = [(t, lp / temperature) for t, lp in dist]`, then
+      `peak = max(s for _, s in scaled)`, then `exp(s - peak)` for each and divide by the sum.
+      The order of the tokens never changes.
+    - |
+      top_p: sort by probability, highest first, then a running total. Append the token *before*
+      you test `total >= p`, so the token that crosses p is kept. Renormalise at the end, as
+      top_k does.
+    - |
+      The chain: `probs = normalise([(t, math.exp(lp)) for t, lp in dist])`, then
+      `kept = top_p(top_k(probs, k), p)`, then
+      `with_temperature([(t, math.log(w)) for t, w in kept], temperature)`.
+      draw: `r = rng.random()`, walk with a running total, return the first token where
+      `r < total`.
+  after: >
+    Run the lesson on your sampler: `make lesson N=05 ARGS=--mine`. The step 3 line with 1,000
+    seeded draws comes from your chain, and `make challenge N=05` checks it against the lesson's.
+
+challenges:
+  - id: your-sampler
+    title: Your sampler, on the real distribution
+    goal: >
+      Run the lesson on the sampler you wrote. Its chain must give exactly the lesson's
+      probabilities on the live Northwind distribution.
+    change: "Pass the exercise first, then run `make lesson N=05 ARGS=--mine`."
+    target: "mine == true and chain_matches == true"
+
+  - id: keep-only-the-favourite
+    title: A top_p that keeps one token
+    goal: >
+      On the Northwind distribution, where no token is dominant, make top_p keep exactly one
+      token, and see what that does to the 1,000 draws.
+    change: Change TOP_P in step 3 of lessons/05-temperature-and-top-k/run.py.
+    target: "top_p_kept == 1 and sim_distinct == 1"
+    reset: git checkout lessons/05-temperature-and-top-k/run.py
+
+  - id: no-variety-at-1-5
+    title: "Break it: one answer at T = 1.5"
+    goal: >
+      Keep T = 1.5 and the eight seeds in step 4, and make every seed give the same first word.
+      Then explain why the temperature no longer matters.
+    change: Change one sampling setting in the step 4 chat() call in lessons/05-temperature-and-top-k/run.py.
+    target: "distinct_t15 == 1"
+    reset: git checkout lessons/05-temperature-and-top-k/run.py

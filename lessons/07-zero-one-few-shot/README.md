@@ -111,6 +111,8 @@ laptop, and real money on a paid API.
 
 ```bash
 make lesson N=07
+make lesson N=07 ARGS=--no-predict   # without stopping for predictions
+make lesson N=07 ARGS=--mine   # on your classifier (practice/exercise.py)
 ```
 
 180 classification calls (5 prompts x 36 messages) at temperature 0. Allow two to six minutes on a
@@ -138,6 +140,37 @@ blood pressure results as logistics. The plain zero-shot prompt labelled only 4 
 threats, against Okafor's 8. A model that sorts 86% correctly can still miss the messages that
 matter most, which is why the confusion table matters more than the headline number.
 
+## On a hosted model
+
+```bash
+make lesson N=07 TIER=hosted              # needs ANTHROPIC_API_KEY in .env, uv sync --extra cloud
+make lesson N=07 TIER=hosted ARGS=--mine  # your classifier, with native structured outputs
+make lesson N=07 TIER=hosted REPLAY=1     # once a hosted run is recorded (RECORD=1), no key
+```
+
+The lesson's own path asks for one word and parses it, on both tiers. Your classifier from the
+exercise (`--mine`) sends the label schema as `format=`, which the hosted tier turns into
+Claude's native structured outputs (`output_config` with a JSON schema), so every answer is one
+of the three labels. Claude takes no `temperature`: the lesson's `temperature=0` is reported and
+not sent (see `src/lantern/cloud.py`), so the hosted scores are at the provider's own sampling.
+
+| Measure | Local: qwen3:1.7b | Hosted: claude-haiku-5-5 |
+|---|---|---|
+| Accuracy: zero-shot, primed | 61% | not run |
+| Accuracy: zero-shot | 83% | not run |
+| Accuracy: one-shot | 75% | not run |
+| Accuracy: few-shot, clear examples | 86% | not run |
+| Accuracy: few-shot, boundary only | 64% | not run |
+| Threat labels, primed (gold: 8) | 21 | not run |
+| Prompt tokens per message, zero-shot / six examples | 105 / 319 | not run |
+
+Local numbers are from the run in "What you should see" (qwen3:1.7b, local tier, CPU, temperature 0).
+
+What the hosted run will test: the collapse of "boundary only" to almost all logistics is
+expected to be a small-model effect, since a larger model can infer the rule from edge cases;
+the pull of the word "murdered" toward threat, and the cost of examples on every call, should
+hold on both. M47 should stay a disagreement on any model: the text does not carry the context.
+
 ## Try this
 
 1. Swap the order of `EASY` so both threat examples come last. Does the threat count rise?
@@ -146,6 +179,36 @@ matter most, which is why the confusion table matters more than the headline num
 3. Put the six examples inside the user message as text instead of chat turns. Count the
    `invalid` answers.
 4. Run with `LANTERN_MODEL=qwen3:4b make lesson N=07`. Does "boundary only" still collapse?
+
+## Master it
+
+After this chapter you can build zero, one and few-shot prompts with examples as chat turns,
+choose and order examples per label, constrain a classifier's answer with a schema, and read a
+confusion table instead of trusting one accuracy figure.
+
+**Predict, then see.** `make lesson N=07` stops three times to ask which prompt agrees with
+Okafor most, how many threats the primed prompt finds against his count, and how many of his
+threats the best prompt misses. Each answer is checked against your own run. Add
+`ARGS=--no-predict` to watch without stopping.
+
+**Build it.** Write the few-shot classifier in [`practice/exercise.py`](practice/exercise.py):
+a label schema, examples chosen per label and interleaved, examples as turns, and a scorer.
+
+```bash
+make exercise N=07             # 8 offline tests, scripted model, no Ollama needed
+make hint N=07                 # one hint at a time
+make solution N=07             # the reference, once you have tried
+make lesson N=07 ARGS=--mine   # all five prompts through your classifier
+```
+
+**Check yourself.** `make quiz N=07`: seven questions, each with the reason behind the answer.
+
+**Break it.** `make challenge N=07` checks your latest run against three targets: your
+classifier with no invalid answers and at least 80% on clear examples; a reworded task that
+finds twice Okafor's threats; and clear examples at 220 tokens a message or fewer without
+losing agreement.
+
+`make progress` shows every chapter.
 
 ## What the evidence now shows
 

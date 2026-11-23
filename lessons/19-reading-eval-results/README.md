@@ -119,6 +119,10 @@ make eval-view   # the same results in the browser
 
 ![Chapter 19 terminal output](../../docs/screenshots/19-reading-eval-results.png)
 
+These numbers come from the previous version of chapter 18's suite (fence-stripping transform,
+no-speculation graded by a model under test). The current suite has not been run yet; see
+chapter 18.
+
 What the script found in the run captured here (34 of 70 cells passed):
 
 **By metric.** `valid_json` 16/16, `invoice_id` 16/16, `total_matches_ledger` 14/16, `grounded`
@@ -147,6 +151,30 @@ checks LANTERN's answer against the log and flags it. It also writes "Detective 
 changed the ledger", when the log only shows that his login was used. A fluent summary, two
 errors, both caught only by checking against the source.
 
+## On a hosted model
+
+```bash
+make lesson N=18 TIER=hosted   # the hosted eval first (needs ANTHROPIC_API_KEY)
+make lesson N=19 TIER=hosted
+```
+
+Chapter 19 reads the eval results and makes one model call: LANTERN's summary of the audit log,
+plain chat on the hosted model. Claude takes no `temperature` (the lesson asks for 0): it is
+reported as not applied, not sent. The triage reads `evals/output/results.json`, the local run,
+since no hosted eval has been recorded.
+
+| Measure | Local: qwen3:1.7b (CPU, previous suite) | Hosted: claude-haiku-5-5 |
+|---|---|---|
+| cells passed | 34/70 | not run |
+| reference-data suspects | 1 (extract NW-0419, total=94000 on both models) | not run |
+| quiet threats failing every cell | 4 | not run |
+| audit-log summary quotes the modify time (02:47:36) | no (gave 10:20:55) | not run |
+
+What the hosted run will test: whether quoting a timestamp from the wrong line is a small-model
+effect, and whether a larger model still writes "D'Souza changed the ledger" when the log shows
+only his login. The NW-0419 finding should hold on any model, because it is in the data, not the
+model.
+
 ## Try this
 
 1. In the viewer, switch the display filter to failures only. Which failures are "some cells" and
@@ -156,6 +184,35 @@ errors, both caught only by checking against the source.
 3. Change `build_tests.py` to take NW-0419's expected total from the invoice instead of the ledger.
    What does the suite say now, and what has it stopped telling you?
 4. Open `case/evidence-store-audit.csv` yourself. What else in that file should worry you?
+
+## Master it
+
+After this chapter you can read an eval in order, tell a bad prompt from a model limit, a bad
+test and bad data by the pattern of a test's failures, and check a model's summary against its
+source.
+
+**Predict, then see.** `make lesson N=19` stops three times to ask: which named metric is
+furthest from full marks, how many tests fail on every model with the same answer, and whether
+LANTERN quotes the time of the ledger change correctly. Each answer is checked against your own
+run, not a fixed key. Add `ARGS=--no-predict` to watch without stopping.
+
+**Build it.** Write the triage in [`practice/exercise.py`](practice/exercise.py): group failures
+by test across models and flag the tests every model fails the same way.
+
+```bash
+make exercise N=19             # 8 offline tests on hand-made promptfoo rows, no model needed
+make hint N=19                 # one hint at a time
+make solution N=19             # the reference, once you have tried
+make lesson N=19 ARGS=--mine   # then step 4 runs on your triage
+```
+
+**Check yourself.** `make quiz N=19`: six questions, each with the reason behind the answer.
+
+**Break it.** `make challenge N=19` checks your latest run against its targets: your triage on
+the real results, with NW-0419 flagged; and the suite made green for the wrong reason, by
+changing NW-0419's expected total.
+
+`make progress` shows every chapter.
 
 ## What the evidence now shows
 

@@ -151,6 +151,34 @@ What to read from it:
 4. Run the lesson twice in a row. Which numbers are stable and which move? What does that tell you
    about measuring latency once?
 
+## Master it
+
+After this chapter you can choose a model from written constraints and your own measurements,
+read accuracy, median and tail latency, memory and cost per correct answer as one trade, and build
+the scorecard that defends the choice.
+
+**Predict, then see.** `make lesson N=12` stops three times to ask what will happen: whether the
+small model extracts the invoice correctly, how long the large model takes per message given the
+medium model's median, and which model classifies best. Each answer is checked against your own
+run. Add `ARGS=--no-predict` to watch without stopping.
+
+**Build it.** Write the scorecard in [`practice/exercise.py`](practice/exercise.py): from a list
+of answered questions, accuracy, p50 and p95 latency, and cost per correct answer, per model.
+
+```bash
+make exercise N=12          # 8 offline tests, no model needed
+make hint N=12              # one hint at a time
+make solution N=12          # the reference, once you have tried
+```
+
+**Check yourself.** `make quiz N=12`: seven questions, each with the reason behind the answer.
+
+**Break it.** `make challenge N=12` checks your latest run against two targets: a cold start
+moved into the large model's tail, so its p95 is three times its p50; and the schema taken away,
+so the large model's accuracy falls to half or less.
+
+`make progress` shows every chapter.
+
 ## What the evidence now shows
 
 On these sixteen messages the small and medium models both score 69% and the large one 81%. The

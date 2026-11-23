@@ -112,6 +112,8 @@ Hale cannot argue with a date comparison.
 
 ```bash
 make lesson N=08
+make lesson N=08 ARGS=--no-predict   # without stopping for predictions
+make lesson N=08 ARGS=--mine   # on your extract() (practice/exercise.py)
 ```
 
 Nine model calls: one unconstrained, eight constrained. About one to two minutes on a CPU.
@@ -128,6 +130,34 @@ Nine model calls: one unconstrained, eight constrained. About one to two minutes
   schema, and neither is quite right.
 - The final table puts each Northwind invoice inside one of Malhotra's Port Sabran trips.
 
+## On a hosted model
+
+```bash
+make lesson N=08 TIER=hosted              # needs ANTHROPIC_API_KEY in .env, uv sync --extra cloud
+make lesson N=08 TIER=hosted ARGS=--mine  # your extract()
+make lesson N=08 TIER=hosted REPLAY=1     # once a hosted run is recorded (RECORD=1), no key
+```
+
+The hosted path uses Claude's **native structured outputs**: `format=schema` becomes
+`output_config` with a strict JSON schema (`lantern.cloud.strict_schema`: every object closed,
+every property required, nullable fields kept nullable). Step 1 sends no schema on purpose, as
+locally. Claude takes no `temperature`, so the lesson's `temperature=0` is reported and not sent
+(see `src/lantern/cloud.py`).
+
+| Measure | Local: qwen3:1.7b | Hosted: claude-haiku-5-5 |
+|---|---|---|
+| No-schema reply passes validation | no | not run |
+| Valid rows / calls, 8 invoices | 8 / 8 calls | not run |
+| Fields contradicted by the source check | 3 (vat_number) | not run |
+| Northwind invoices inside Malhotra's trips | 3 of 3 | not run |
+
+Local numbers are the ones this README already gives (qwen3:1.7b, local tier, temperature 0; the machine was not recorded).
+
+What the hosted run will test: shape failures should be gone on both, since both enforce the
+schema. The bank account in `vat_number` and the capitalised vendor names are expected to be
+small-model effects; the rule that a valid record still needs a check against the source holds
+on any model, and the hosted run will show whether that check finds anything there.
+
 ## Try this
 
 1. Remove the `description` from `total_kbd` and rerun. What type and format come back?
@@ -135,6 +165,36 @@ Nine model calls: one unconstrained, eight constrained. About one to two minutes
 3. Move `category` to be the first field in `Invoice`. Do the categories get worse?
 4. Change the `vat_number` description to "Only the value printed after 'VAT registration:'.
    null if that line is absent." Does the source check still find problems?
+
+## Master it
+
+After this chapter you can constrain a model's output with a schema, validate every record and
+retry with the error under a cap, check valid records against the source, and keep the
+reasoning in code.
+
+**Predict, then see.** `make lesson N=08` stops four times to ask whether the unconstrained
+reply validates, how many calls eight invoices take, how many fields the source check flags,
+and how many Northwind invoices fall inside Malhotra's trips. Each answer is checked against
+your own run. Add `ARGS=--no-predict` to watch without stopping.
+
+**Build it.** Write `extract()` in [`practice/exercise.py`](practice/exercise.py): the
+schema-constrained call, Pydantic validation, and a retry that shows the model its validation
+error, with an attempt cap. The eval suite in chapter 18 makes the same constrained call.
+
+```bash
+make exercise N=08             # 7 offline tests, scripted model, no Ollama needed
+make hint N=08                 # one hint at a time
+make solution N=08             # the reference, once you have tried
+make lesson N=08 ARGS=--mine   # all eight invoices through your extract()
+```
+
+**Check yourself.** `make quiz N=08`: seven questions, each with the reason behind the answer.
+
+**Break it.** `make challenge N=08` checks your latest run against three targets: your
+extract() giving eight valid rows; a validator the grammar cannot enforce, so the retry has to
+run; and field descriptions that leave the source check with nothing to flag.
+
+`make progress` shows every chapter.
 
 ## What the evidence now shows
 

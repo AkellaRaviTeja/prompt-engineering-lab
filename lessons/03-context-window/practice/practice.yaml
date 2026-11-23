@@ -1,0 +1,149 @@
+# Chapter 03 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=03).
+chapter: "03"
+title: Forty pages
+
+objectives:
+  - Tell the trained context length from the window a server actually allocates, and say what each costs.
+  - Spot a silent overflow from the prompt token count, and say which end Ollama drops.
+  - Explain why a prompt that fits can still be misread, and why cutting the middle out is the wrong fix.
+  - Read a long document in overlapping chunks with one question per chunk, and check each hit's quote.
+
+quiz:
+  - q: The notes and question are about 6,400 tokens. With num_ctx = 2048, what does Ollama do?
+    options:
+      - Keeps the most recent tokens, drops the rest from the front, and answers without a warning.
+      - Returns an error saying the prompt is too long.
+      - Keeps the first 2,048 tokens and drops the question.
+      - Splits the prompt into chunks automatically.
+    answer: a
+    why: >
+      Overflow is silent. Ollama keeps the end, because in a chat the latest turns usually matter
+      most, so the question survives and the evidence does not. The only trace is the prompt
+      token count in the reply. Always compare it with what you sent.
+
+  - q: The model's trained context length is 40,960 tokens. Why does this lab send num_ctx = 8,192?
+    options:
+      - The model is more accurate with a smaller window.
+      - The memory for the window grows with num_ctx on every request, and the laptop has 16 GB.
+      - Ollama cannot allocate more than 8,192.
+      - Longer prompts are not allowed in a police lab.
+    answer: b
+    why: >
+      The trained length is the most the model can handle. The window actually allocated is a
+      server setting, and its memory (the KV cache) grows with it. Servers keep it smaller than
+      the model could take.
+
+  - q: At num_ctx = 8,192 every token of the notes fitted, and the model still answered NOT FOUND. Why?
+    options:
+      - The window was still too small.
+      - The model cannot read Markdown headings.
+      - A line in the middle of a long prompt gets the least attention; fitting is not reading.
+      - Temperature 0 makes the model skip content.
+    answer: c
+    why: >
+      Models attend most reliably to the start and the end of a long context: "lost in the
+      middle". Small models suffer from it badly, and the result changes with the wording of the
+      question. That variability is the problem.
+
+  - q: An application keeps the first and last quarter of a long document to make it fit. When is that the wrong cut?
+    options:
+      - Never; the start and end hold the important parts.
+      - When the evidence is in the middle, and you cannot know in advance where the evidence is.
+      - Only for documents in other languages.
+      - Only when the window is smaller than 4,096.
+    answer: b
+    why: >
+      Head and tail is a shortcut that assumes where the answer is. Reyes's line sits halfway
+      through. Chunking reads everything; retrieval (a later case file) picks what to read.
+
+  - q: Why do the chunks in the exercise overlap by an entry?
+    options:
+      - So the model sees the question twice.
+      - To make the chunks the same size.
+      - Overlap makes each call faster.
+      - So a passage that runs across a chunk boundary is still whole in at least one chunk.
+    answer: d
+    why: >
+      Any cut can split the one passage that matters. Repeating the edge of the last chunk costs
+      a few tokens per call and keeps a passage that spans a boundary whole somewhere. Here the
+      cuts fall between dated entries, so an entry is never split; overlap protects the facts
+      that run from one entry into the next.
+
+  - q: One chunk replies with a quote, but the quote is not in that chunk. What should the reduce step do?
+    options:
+      - Keep it; the model found something.
+      - "Drop it as a false alarm: a hit counts only if its quote is in the chunk it came from."
+      - Ask the same chunk again until the quote matches.
+      - Merge it with the other chunks' answers.
+    answer: b
+    why: >
+      Chunking turns one hard question into several easy ones, and several chances to invent. A
+      quote check in code is cheap, exact, and catches the invention.
+
+  - q: A prompt of 8,000 tokens goes into an 8,192 token window with max_tokens 800. What room does the answer have?
+    options:
+      - About 192 tokens, because the window holds the prompt and the answer together.
+      - 800 tokens, because max_tokens is reserved separately.
+      - None; Ollama refuses the request.
+      - 8,192 tokens, because the answer gets a window of its own.
+    answer: a
+    why: >
+      num_ctx covers input and output together. Budget for the reply as well as the prompt, and
+      remember that thinking tokens (chapter 10) come out of the same window.
+
+exercise:
+  title: Read the notes in pieces
+  kind: component
+  task: |
+    Open `lessons/03-context-window/practice/exercise.py` and write the strategy that makes
+    Reyes's notes fit: `split_entries` cuts the notes on their dated entries, `chunk_entries`
+    makes overlapping windows of entries, `quotes_in` keeps only the quotes that are really in a
+    chunk, and `read_notes` asks the question of every chunk (the map step) and collects the
+    verified hits. The tests hand `read_notes` a scripted model. They check that:
+
+    - the notes split into a header and 37 entries that join back exactly,
+    - chunks without overlap cover every entry once; with overlap, each chunk starts with the
+      edge of the one before; impossible sizes raise ValueError,
+    - there is one call per chunk, the chunk in `<notes>` tags and the question last,
+    - the line in the middle comes back as a hit from the right chunk, and an invented quote
+      does not.
+  hints:
+    - |
+      `parts = notes.split("\n## ")`, then `[parts[0]] + ["## " + p for p in parts[1:]]`.
+      Joining that with "\n" gives the notes back.
+    - |
+      In `chunk_entries`, start at 0 and append `"\n".join(entries[start:start + size])`. Stop
+      once `start + size >= len(entries)`; otherwise move `start` on by `size - overlap`.
+    - |
+      `re.findall(r'["“]([^"”]+)["”]', reply)` finds the quoted passages. Keep a
+      passage of three words or more if `" ".join(q.split())` is in `" ".join(chunk.split())`.
+  after: >
+    Now let it read the real notes: `make lesson N=03 ARGS=--mine` runs step 5 on your
+    `read_notes`, with chunks of the same size and an overlap of one entry.
+
+challenges:
+  - id: your-reader
+    title: Your reader, on the real notes
+    goal: Run the live lesson on your chunked reader, and get Reyes's line back with a quote that checks.
+    change: "Pass the exercise first, then run `make lesson N=03 ARGS=--mine`."
+    target: "mine == true and chunk_found == true and chunk_quote_verbatim == true"
+
+  - id: one-big-chunk
+    title: "Break it: one chunk is no chunk"
+    goal: >
+      Make step 5 read the notes as a single piece, and watch it miss the line the way step 3
+      did.
+    change: In lessons/03-context-window/run.py, set CHUNKS = 1. Change nothing else.
+    target: "chunks == 1 and chunk_found == false"
+    reset: git checkout lessons/03-context-window/run.py
+
+  - id: keep-the-middle
+    title: A cut that keeps the evidence
+    goal: >
+      Replace the head-and-tail cut in step 4 with one that still sends under half the notes,
+      but keeps the entry that matters, and get the line back.
+    change: >
+      Edit how `head_tail` is built in lessons/03-context-window/run.py (for example: keep the
+      entries that mention the question's subject). Do not change QUESTION.
+    target: "headtail_found == true and headtail_prompt_tokens <= 3300"
+    reset: git checkout lessons/03-context-window/run.py

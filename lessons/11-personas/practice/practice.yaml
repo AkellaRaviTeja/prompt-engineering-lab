@@ -1,0 +1,136 @@
+# Chapter 11 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=11).
+chapter: "11"
+title: Rehearsal
+
+objectives:
+  - Explain what a persona changes in a reply and what it cannot change.
+  - Tell a real gain from a persona apart from a change of length or format.
+  - Place a persona under standing orders, so no role can remove the limits.
+  - Check a persona's reply against the evidence with code, and say what that check cannot see.
+
+quiz:
+  - q: Hale and the forensic accountant got the same facts and gave very different answers. What did the persona change?
+    options:
+      - What the model knows about the case.
+      - Which parts of the same evidence the model looked at, and how it weighed and phrased them.
+      - The model's arithmetic.
+      - Nothing; the difference was random.
+    answer: b
+    why: >
+      A persona pulls the reply toward the vocabulary and priorities of writing in that role.
+      Neither persona knew anything the other did not. They looked at different parts of the same
+      evidence.
+
+  - q: At 40 tokens the expert persona scored 3 of 4 and the plain prompt 0 of 4. At 400 tokens both scored 4 of 4. What happened?
+    options:
+      - The expert persona made the model smarter, but only on short answers.
+      - The plain prompt showed its working first and ran out of budget; the expert answered first. The persona changed length and order, not knowledge.
+      - The plain prompt was unlucky with its seeds.
+      - 400 tokens is enough for any model to be right.
+    answer: b
+    why: >
+      Always check whether a persona "improvement" is a format change. Here a one-line instruction,
+      "answer first, then explain", would do what the expert persona did.
+
+  - q: Where should a standing role go, and why?
+    options:
+      - In the system prompt, under the standing orders, where it persists across turns and later user messages are less likely to override it.
+      - In the user message, so the model reads it last.
+      - In a separate API call before the question.
+      - Anywhere; placement makes no difference.
+    answer: a
+    why: >
+      Both work on one turn. The system prompt carries more weight and persists. Persona text in
+      the user turn competes with the task in the same turn, and in our runs it drifted.
+
+  - q: Why do the standing orders go above the persona, with a line saying they win any conflict?
+    options:
+      - Models read only the first paragraph of a system prompt.
+      - A role such as "defence counsel, attack everything" can pull against "never state a figure that is not in evidence"; the order and the precedence line say which wins.
+      - It makes the prompt shorter.
+      - It is required by the Ollama API.
+    answer: b
+    why: >
+      The role sets the voice; the orders set the limits. Putting the limits first, and saying
+      they win, is the prompt's half. Checking the reply is the other half.
+
+  - q: The figure check found no invented times, amounts or references in a Voss role-play reply. Is the reply safe to put in the file?
+    options:
+      - Yes; the check passed.
+      - No. The check cannot see an invented motive, conversation or date written in words, and a role-play is rehearsal, never evidence, whatever it says.
+      - Yes, if the persona said "Never invent facts".
+      - Only if Voss approves it.
+    answer: b
+    why: >
+      A code check finds what it was written to find. Invented motives and conversations pass a
+      figure check. And a role-play of a real person is fiction by design: nothing from it is
+      quoted, summarised or filed as if she said it.
+
+  - q: Which persona prompt is likely to work best?
+    options:
+      - A long biography with thirty years of experience and a PhD.
+      - "\"You are the world's greatest expert.\""
+      - The role, the goal, the priorities and the limits, plainly stated.
+      - No persona at all, ever.
+    answer: c
+    why: >
+      Biographies add tokens and little else. Say who the model should be, what it is for, what it
+      looks for, and what it must not do.
+
+exercise:
+  kind: function
+  title: Standing orders above the persona
+  task: |
+    Open `lessons/11-personas/practice/exercise.py` and write three functions. Step 4 of the
+    chapter does the same thing live.
+
+    - `persona_system(orders, persona)`: one system prompt with the standing orders first, the
+      persona under them, and a last line saying the orders win any conflict.
+    - `figures(text)`: the references (NW-0419, OVR-AUD-02), times and large or decimal numbers
+      in a text, in order.
+    - `broken_orders(reply, evidence)`: the figures in a persona's reply that the evidence does
+      not contain, each once.
+
+    No model is needed. The tests check that:
+
+    - the orders come first, the persona after them, the precedence rule last,
+    - empty orders are refused,
+    - list numbers are not figures, and a figure copied from the case (even reformatted) is fine,
+    - an invented time, amount or invoice is reported once each, in the reply's order.
+  hints:
+    - |
+      `persona_system` is one f-string:
+      `f"{orders.strip()}\n\nRole for this request:\n{persona.strip()}\n\n{PRECEDENCE}"`, after
+      a check that raises ValueError when `orders.strip()` is empty.
+    - |
+      In `figures`, loop over `FIGURE.finditer(text)`, take `m.group().rstrip(",")`, and skip it
+      when `NUMBER.fullmatch(f)` and there is no "." and its value (commas removed) is below 100.
+    - |
+      In `broken_orders`, compare numbers by value: build `{float(k.replace(",", ""))}` from the
+      evidence's numbers. A reply time is fine if the evidence has it exactly or with seconds:
+      `k == f or k.startswith(f + ":")`. Keep a list, and skip a figure already in it.
+  after: >
+    Run the lesson and read step 4's table: which reply broke the orders, and would your
+    precedence line have stopped it? Then try the challenges.
+
+challenges:
+  - id: answer-first
+    title: No persona needed
+    goal: >
+      Get the plain prompt, with no persona at all, to 4 of 4 at the 40 token budget.
+    change: >
+      Edit `fact_q` in lessons/11-personas/run.py. Keep `system=None` for the "no persona" row.
+    target: "plain_40_hits == 4"
+    reset: git checkout lessons/11-personas/run.py
+
+  - id: invented-memory
+    title: "Break it: the role-play remembers"
+    goal: >
+      Make the Voss role-play state at least one time, amount or reference that is not in her
+      statement, so the figure check catches it.
+    change: >
+      In the Voss persona in PERSONAS, remove "Stay strictly within what her signed statement
+      says", the "would need to check" line and "Never invent facts", and ask in QUESTIONS when
+      and how much she approved.
+    target: "voss_invented >= 1"
+    reset: git checkout lessons/11-personas/run.py

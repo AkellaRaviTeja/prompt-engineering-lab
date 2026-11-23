@@ -134,6 +134,35 @@ Three model calls plus some Python. About one to two minutes on a CPU.
 4. Ask the direct question with `think=True` (see chapter 10) and compare the token cost with free
    CoT.
 
+## Master it
+
+After this chapter you can explain chain of thought in terms of tokens, choose between a direct
+answer, free reasoning and set steps, spot a right verdict resting on a wrong step, and write the
+code half of a "model reads, program reasons" check.
+
+**Predict, then see.** `make lesson N=09` stops four times to ask what will happen: what the
+direct prompt says about Malhotra, how many tokens "think step by step" spends, whether your set
+steps reach the right verdict, and how many minutes Python finds unaccounted for. Each answer is
+checked against your own run, not a fixed key. Add `ARGS=--no-predict` to watch without stopping.
+
+**Build it.** Write the alibi check in [`practice/exercise.py`](practice/exercise.py): badge
+swipes against a camera log and a walking time, returning the gap and whether the alibi holds.
+
+```bash
+make exercise N=09          # 7 offline tests on the real case files, no model needed
+make hint N=09              # one hint at a time
+make solution N=09          # the reference, once you have tried
+```
+
+**Check yourself.** `make quiz N=09`: six questions, each with the reason behind the answer.
+
+**Break it.** `make challenge N=09` checks your latest run against three targets: a direct answer
+that notices the gap in 150 tokens or fewer; set steps in 120 tokens with the verdict and both
+times still right; and a model that misreads a time, so Python does perfect arithmetic on the
+wrong numbers.
+
+`make progress` shows every chapter.
+
 ## What the evidence now shows
 
 Malhotra badged out of the administration building at 23:31 and out of Gate 2 at 23:47. Sixteen

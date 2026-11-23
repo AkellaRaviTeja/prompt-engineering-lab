@@ -1,0 +1,143 @@
+# Chapter 06 practice. Read by scripts/learn.py (make quiz / exercise / hint / challenge N=06).
+chapter: "06"
+title: The letter
+
+objectives:
+  - Explain why temperature 0 can still give different answers, from floating point up.
+  - Tell reproducible apart from correct, and say why a finding needs both.
+  - Write a check that runs a prompt N times under fixed settings and reports whether it reproduces.
+  - Say what a finding record must hold for someone else to replay it.
+
+quiz:
+  - q: Five runs at temperature 0 gave five identical totals. What has that shown?
+    options:
+      - The total is correct.
+      - The system gave a stable answer on this server at this moment; it says nothing about whether the total is right.
+      - The model will give this total on any server.
+      - The seed was set correctly.
+    answer: b
+    why: >
+      Repeating an answer is a property of the system, not of the truth. A model can be reliably
+      wrong. Correctness needs a check against the source, and sums belong in code.
+
+  - q: Four identical requests gave the top token two different probabilities. What changed between them?
+    options:
+      - The prompt, because Ollama adds a timestamp.
+      - The temperature, because Ollama raises it on repeats.
+      - "The arithmetic path: a prompt computed fresh after a reload, and one read from the cache, round differently."
+      - Nothing; the table is wrong.
+    answer: c
+    why: >
+      The tokens in are the same. The server computes them in a different shape when it reuses a
+      cached prefix, and floating point addition gives a slightly different result for a
+      different order.
+
+  - q: Why does a change in the last digit of a score sometimes change the whole answer at temperature 0?
+    options:
+      - Greedy decoding adds random noise.
+      - When two tokens are nearly tied, a rounding difference flips which one is the maximum, and every later token follows the new path.
+      - The model reads the last digit as a token.
+      - It never does; only temperature above 0 changes answers.
+    answer: b
+    why: >
+      Greedy decoding takes the maximum. A near tie is decided by rounding, and the first
+      different token changes the context for everything after it.
+
+  - q: What does a seed fix, and what does it not fix?
+    options:
+      - It fixes the random draws; it does not fix the probabilities they are drawn from.
+      - It fixes the probabilities; it does not fix the draws.
+      - It fixes both, so a seeded run is always identical.
+      - It fixes neither on Ollama.
+    answer: a
+    why: >
+      The same seed gives the same sequence of random numbers. If the distribution underneath
+      moves (caching, batching, a different server), the same random number can land on a
+      different token.
+
+  - q: A hosted model takes no seed and no temperature. What is the honest way to report its reproducibility?
+    options:
+      - Assume it is deterministic because the provider is large.
+      - Run the same request several times and report the number of distinct answers and their counts, with the dated model name.
+      - Set temperature 0 in the request and report that it is deterministic.
+      - It cannot be measured at all.
+    answer: b
+    why: >
+      You cannot fix what the provider does not let you set, but you can measure it. Repeat,
+      count distinct answers, and record exactly which model and when.
+
+  - q: Which of these belongs in a finding record so that someone else can replay it?
+    options:
+      - The output only.
+      - The model name only.
+      - The exact model digest, server version, every setting, a hash of the prompt and the output.
+      - A screenshot of the terminal.
+    answer: c
+    why: >
+      Each item pins one thing that can change the output. Without the digest a model name can
+      point at new weights; without the prompt hash nobody can tell whether the question changed.
+
+  - q: Hale will put two different LANTERN answers in front of a jury. Which practice removes his argument best?
+    options:
+      - Run everything at temperature 0 and say so.
+      - Use LANTERN only for short, checkable readings, keep arithmetic in code, record and replay each finding, and have a person check it against the source.
+      - Use a larger model.
+      - Average several runs.
+    answer: b
+    why: >
+      No setting makes a language model perfectly deterministic everywhere. A process does: small
+      readings a person can check, logic in code, and a record that replays.
+
+exercise:
+  title: Write the reproducibility check
+  kind: function
+  task: |
+    Open `lessons/06-temperature-zero-and-nondeterminism/practice/exercise.py` and write
+    `check_reproducible`: run one prompt N times with fixed settings, count the distinct answers,
+    and say whether the finding reproduces. The tests hand it a scripted model, so no Ollama is
+    needed. They check that:
+
+    - every run sends the identical prompt with the identical settings,
+    - identical answers are reproducible, and one different answer in five is not,
+    - whitespace around an answer does not make it a different answer,
+    - the counts, the most common answer and the agreement share are right,
+    - one run is refused with a ValueError, before the model is called,
+    - the result records the settings and the prompt's SHA-256.
+  hints:
+    - |
+      Check `runs < 2` first and raise. Then
+      `answers = [chat(prompt, **settings).text.strip() for _ in range(runs)]`, with
+      `settings = dict(settings or {})` so a missing dict works.
+    - |
+      `counts = Counter(answers)`; `most_common, n = counts.most_common(1)[0]`; agreement is
+      `n / runs`; reproducible is `len(counts) == 1`.
+    - |
+      The hash: `hashlib.sha256(prompt.encode()).hexdigest()`. Return `dict(counts)` rather than
+      the Counter itself.
+  after: >
+    Step 7 of the lesson is this check done by hand: one record, three replays. Try your function
+    on the step 1 question with `chat=lantern.chat` and `settings={"temperature": 0.9}`, then
+    with a fixed seed.
+
+challenges:
+  - id: hales-two-answers
+    title: "Break it: give Hale his two answers"
+    goal: >
+      Keep the question exactly as it is and make step 1's five runs give at least three
+      different answers. Then say which setting you had to change, and why the seed alone did not
+      stop it.
+    change: >
+      Change the settings in the step 1 chat() call in
+      lessons/06-temperature-zero-and-nondeterminism/run.py. Leave QUESTION alone.
+    target: "step1_distinct >= 3"
+    reset: git checkout lessons/06-temperature-zero-and-nondeterminism/run.py
+
+  - id: right-every-time
+    title: Reproducible and right
+    goal: >
+      Make step 1 give the correct total, 227,700.00, in all five runs, with one distinct answer.
+    change: >
+      Change how step 1 asks in lessons/06-temperature-zero-and-nondeterminism/run.py: the
+      question's wording, thinking, or the model. Keep the three invoice amounts.
+    target: "step1_distinct == 1 and step1_correct == 5"
+    reset: git checkout lessons/06-temperature-zero-and-nondeterminism/run.py

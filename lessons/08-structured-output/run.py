@@ -7,7 +7,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError
 
-from lantern import case, chat
+from lantern import case, chat, learn
 from lantern.ui import (
     Table,
     chapter,
@@ -46,6 +46,11 @@ invoices = case.files("invoices")
 sample = case.read("invoices/NW-0419.txt")
 evidence("invoices/NW-0419.txt", sample)
 
+# With --mine, extraction is yours: practice/exercise.py extract(), with its own retry and cap.
+MINE = learn.mine()
+
+p_nice = learn.predict("Asked nicely for JSON, with no schema: will the reply pass validation?",
+                       ["yes", "no"])
 step("1. Asking nicely: 'Return JSON'")
 ask = f"""Extract the invoice fields as JSON with keys invoice_id, vendor, invoice_date,
 category, service, total_kbd, vat_number, remit_to.
@@ -56,10 +61,15 @@ reply("LANTERN, no schema", "```text\n" + r.text + "\n```",
       meta=f"{r.output_tokens} tokens")
 try:
     Invoice.model_validate_json(r.text)
+    no_schema_valid = True
     note("It parsed and validated this time. Asking nicely sometimes works.")
 except ValidationError as e:
+    no_schema_valid = False
     note(f"Failed validation with {e.error_count()} error(s). First: {e.errors()[0]['msg']}")
     note("Typical causes: a ```json fence, '94,000.00' as a string, a made-up category.")
+learn.reveal(p_nice, answer=0 if no_schema_valid else 1,
+             why="Without a schema the model writes what JSON usually looks like in its training "
+                 "data: a friendly sentence, a fence, numbers with commas. Nothing stops it.")
 
 step("2. Constrained decoding: pass the schema as `format`")
 schema = Invoice.model_json_schema()
@@ -82,6 +92,15 @@ def extract(text: str, retries: int = 2) -> tuple[Invoice | None, int]:
     return None, retries + 1
 
 
+p_calls = learn.predict(f"With the schema and up to two retries each, how many model calls for "
+                        f"{len(invoices)} invoices?",
+                        [f"{len(invoices)}: every one valid first time",
+                         f"{len(invoices) + 1} to {len(invoices) + 4}",
+                         f"more than {len(invoices) + 4}"])
+if MINE:
+    def extract(text: str) -> tuple[Invoice | None, int]:  # noqa: F811  (yours, with --mine)
+        return MINE.extract(text, chat=chat, model_cls=Invoice, max_attempts=3)
+
 rows: list[Invoice] = []
 start = time.perf_counter()
 attempts_used = 0
@@ -102,7 +121,14 @@ for inv in rows:
     t.add_row(inv.invoice_id, inv.vendor, str(inv.invoice_date), inv.category,
               f"{inv.total_kbd:,.2f}", inv.vat_number or "[red]none[/red]")
 console.print(t)
+learn.reveal(p_calls, answer=learn.bucket(attempts_used, [len(invoices), len(invoices) + 4]),
+             why=f"{attempts_used} calls. The schema becomes a grammar (or the provider's native "
+                 "structured output), so a token that would break it cannot be chosen: shape "
+                 "failures mostly disappear, and the retry is left for rules a grammar cannot "
+                 "express.")
 
+p_source = learn.predict("Every row passed validation. How many fields will the check against "
+                         "the printed invoices flag?", ["none", "1 to 3", "4 or more"])
 step("3. Check the machine against the paper")
 problems = 0
 for inv in rows:
@@ -119,6 +145,12 @@ for inv in rows:
 note(f"{problems} field(s) contradicted the source documents out of {len(rows)} invoices checked.")
 note("Valid JSON is not the same as correct JSON. The schema guarantees shape, not truth.")
 note("Categories need a human eye too: is a network switch 'it' or 'equipment hire'?")
+learn.reveal(p_source, answer=learn.bucket(problems, [0, 3]),
+             why="A schema guarantees the shape and the types. It cannot know that a bank "
+                 "account is not a VAT number; only a check against the source can.")
+
+p_trips = learn.predict("How many of the Northwind invoices fall inside one of Malhotra's trips?",
+                        ["none", "some", "all of them"])
 
 step("4. Cross the Northwind rows with Malhotra's travel")
 trips = case.rows("malhotra-travel.csv")
@@ -126,14 +158,32 @@ nw = [inv for inv in rows if "northwind" in inv.vendor.lower()]
 x = Table(title="Northwind invoices against R. Malhotra's approved travel")
 for col in ("invoice", "date", "amount", "Malhotra was in", "trip"):
     x.add_column(col)
+in_trips = 0
 for inv in nw:
     trip = next((tr for tr in trips if date.fromisoformat(tr["depart"]) <= inv.invoice_date
                  <= date.fromisoformat(tr["return"])), None)
+    in_trips += trip is not None
     x.add_row(inv.invoice_id, str(inv.invoice_date), f"{inv.total_kbd:,.2f}",
               trip["destination"] if trip else "Kestrel Bay",
               f"{trip['depart']} to {trip['return']}" if trip else "")
 console.print(x)
 note("The join is ordinary Python. The model only had to produce rows a program can trust.")
+learn.reveal(p_trips, answer=0 if in_trips == 0 else (2 if in_trips == len(nw) else 1),
+             why=f"{in_trips} of {len(nw)}. The model extracted; a date comparison in code made "
+                 "the link, exactly and the same way every time.")
+
+learn.record(
+    no_schema_valid=no_schema_valid,
+    invoices=len(invoices),
+    valid_rows=len(rows),
+    flagged=len(invoices) - len(rows),
+    calls_total=attempts_used,
+    retries_used=attempts_used - len(invoices),
+    source_problems=problems,
+    northwind_rows=len(nw),
+    northwind_in_trips=in_trips,
+    mine=bool(MINE),
+)
 
 your_turn(
     "08",
