@@ -119,14 +119,11 @@ make eval-view   # the same results in the browser
 
 ![Chapter 19 terminal output](../../docs/screenshots/19-reading-eval-results.png)
 
-These numbers come from the previous version of chapter 18's suite (fence-stripping transform,
-no-speculation graded by a model under test). The current suite has not been run yet; see
-chapter 18.
-
-What the script found in the run captured here (34 of 70 cells passed):
+What the script found in the run captured here: chapter 18's current suite, local tier, Apple M1
+Pro 16 GB, 33 of 70 cells passed.
 
 **By metric.** `valid_json` 16/16, `invoice_id` 16/16, `total_matches_ledger` 14/16, `grounded`
-2/2, `refuses` 4/4, `no_speculation` 2/2, `label_correct` 14/48. Extraction and the standing
+1/2, `refuses` 4/4, `no_speculation` 2/2, `label_correct` 14/48. Extraction and the standing
 orders are solid. Classification is where the work is.
 
 **By prompt.** classify-v1 scored 0/12 on both models, and classify-v2 scored 8/12 (1.7B) and 6/12
@@ -136,7 +133,7 @@ orders are solid. Classification is where the work is.
 
 | Pattern | Tests | Diagnosis |
 |---|---|---|
-| Some cells | 8 classification tests | Prompt (v1 fails, v2 passes) or model (1.7B passes, 0.6B fails) |
+| Some cells | 8 classification tests and the 23:52 question | Prompt (v1 fails, v2 passes) or model (1.7B passes, 0.6B fails or over-refuses) |
 | Every cell, different answers | M36, M38, M45, M47: the quiet threats | Hard task, and a gold label a person might dispute. "Stairwell C. 23:30." is only a threat if you know what happened there at 23:30. |
 | Every cell, **same answer** | extract NW-0419: `total=94000` on both models | Suspect the expected value |
 
@@ -144,12 +141,12 @@ orders are solid. Classification is where the work is.
 94,000.00. The test expects the ledger, and the ledger says 9,400.00. The models are right. The
 reference is wrong.
 
-**LANTERN gets it wrong too.** Asked to summarise the evidence-store audit log, the 1.7B model
-named the right account, row and field, but gave the time as 10:20:55. That is the time of a
-different line (your own read of the ledger), not 02:47:36, when the row was modified. The script
-checks LANTERN's answer against the log and flags it. It also writes "Detective Sergeant D'Souza
-changed the ledger", when the log only shows that his login was used. A fluent summary, two
-errors, both caught only by checking against the source.
+**LANTERN gets part of it wrong too.** Asked to summarise the evidence-store audit log, the 1.7B
+model named the right account, row, field and time, 02:47:36, the only `modify` line. (In an
+earlier run it quoted 10:20:55, the time of a different line; the script checks the time against
+the log on every run for that reason.) It also writes "Detective Sergeant P. K. D'Souza changed the
+ledger", when the log shows only that the pk.dsouza login was used. A fluent summary with one
+claim the evidence does not support, caught only by checking against the source.
 
 ## On a hosted model
 
@@ -163,15 +160,17 @@ plain chat on the hosted model. Claude takes no `temperature` (the lesson asks f
 reported as not applied, not sent. The triage reads `evals/output/results.json`, the local run,
 since no hosted eval has been recorded.
 
-| Measure | Local: qwen3:1.7b (CPU, previous suite) | Hosted: claude-haiku-5-5 |
+| Measure | Local: qwen3:1.7b and 0.6b, Ollama, Apple M1 Pro 16 GB | Hosted: claude-haiku-5-5 |
 |---|---|---|
-| cells passed | 34/70 | not run |
+| cells passed | 33/70 | not run |
 | reference-data suspects | 1 (extract NW-0419, total=94000 on both models) | not run |
 | quiet threats failing every cell | 4 | not run |
-| audit-log summary quotes the modify time (02:47:36) | no (gave 10:20:55) | not run |
+| audit-log summary quotes the modify time (02:47:36) | yes | not run |
+| audit-log summary says the person, not the login, changed the row | yes | not run |
 
-What the hosted run will test: whether quoting a timestamp from the wrong line is a small-model
-effect, and whether a larger model still writes "D'Souza changed the ledger" when the log shows
+Live hosted numbers are not run: this lab has no hosted key, and no number here is estimated.
+
+What the hosted run will test: whether a larger model still writes "D'Souza changed the ledger" when the log shows
 only his login. The NW-0419 finding should hold on any model, because it is in the data, not the
 model.
 
