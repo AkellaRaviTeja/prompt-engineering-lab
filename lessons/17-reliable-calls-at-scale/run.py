@@ -360,8 +360,8 @@ attempts made to fail on purpose, {main['failed']} messages were lost, and the b
 to {attempts} attempts. Every call is in the log with its prompt version, model, tokens and latency.
 
 The answers are another matter: {main['correct']:,} of {len(batch):,} agree with the labels.
-Varma reads the log, not the summary. "Every call, with its version and its time," she says. "Good. Hale will
-ask for exactly that. And he will ask why we ran a model that is {verdict}. Before anything goes
-to court, we prove the pipeline is right, not just that it runs."
+Varma reads the log, not the summary. "Every call, with its version and its time," she says.
+"Good. Hale will ask for exactly that. And he will ask why we ran a model that is {verdict}.
+Before anything goes to court, we prove the pipeline is right, not just that it runs."
 """)
 save_shot("17-reliable-calls-at-scale")
