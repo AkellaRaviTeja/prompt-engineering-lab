@@ -273,6 +273,9 @@ learn.reveal(p_budget, answer=learn.bucket(attempts, [110, 180, 320]),
              f"same outage could make up to {100 * (RETRIES + 1)}: every retry is more load on a "
              "service that is already failing. The budget turns an outage into a short list of "
              "messages to run again later, instead of a retry storm.")
+note(f"70% of attempts failing, 100 messages, retry budget 20: {attempts} attempts in all, "
+     f"{storm['failed']} messages failed and are listed to run again. Without the budget the same "
+     f"outage could have made up to {100 * (RETRIES + 1)} attempts on a service already failing.")
 
 step("5. What the log says")
 logged = main["log"] + [r for res in sweep.values() for r in res["log"]] + storm["log"]
@@ -346,14 +349,19 @@ your_turn(
     ],
 )
 
+right_share = main["correct"] / len(batch)
+verdict = ("wrong most of the time" if right_share < 0.5 else
+           "wrong more often than a court would accept" if right_share < 0.9 else
+           "right nine times in ten or better")
 finding(f"""
-On this machine LANTERN sorts about {main['per_min']:,.0f} messages a minute on {MODEL}, so a
-month of forty thousand is about {month_minutes / 60:.1f} hours of work. Four calls at once gave
-{gain:.2f} times the throughput of one. Of {len(batch):,} messages, {injected} attempts were made to
-fail on purpose; retries recovered all but {main['failed']}, and the budget kept an outage to
-{attempts} attempts.
+On this machine LANTERN sorts about {main['per_min']:,.0f} messages a minute on {MODEL}, with
+faults, so a month of forty thousand is about {month_minutes / 60:.1f} hours of work. Of {injected}
+attempts made to fail on purpose, {main['failed']} messages were lost, and the budget held an outage
+to {attempts} attempts. Every call is in the log with its prompt version, model, tokens and latency.
 
-Varma reads the log, not the summary. "Every call, with its version and its time," she says.
-"Good. Hale will ask for exactly that."
+The answers are another matter: {main['correct']:,} of {len(batch):,} agree with the labels.
+Varma reads the log, not the summary. "Every call, with its version and its time," she says. "Good. Hale will
+ask for exactly that. And he will ask why we ran a model that is {verdict}. Before anything goes
+to court, we prove the pipeline is right, not just that it runs."
 """)
 save_shot("17-reliable-calls-at-scale")

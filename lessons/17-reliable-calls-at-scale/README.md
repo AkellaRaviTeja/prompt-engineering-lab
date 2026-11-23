@@ -73,27 +73,48 @@ results = run_batch(batch, chat=faulty, prompt=prompt, concurrency=2, timeout=3.
 
 ## The nuances
 
-**1. Concurrency helps only up to the server's parallelism.** NUANCE1
+**1. Concurrency helps only up to the server's parallelism.** One call at a time sorted 1,431
+messages a minute; two at a time 1,761; four at a time 1,772. Past two, the extra workers only
+waited: Ollama runs a fixed number of requests at once and queues the rest, so the median call got
+slower (0.040 s, then 0.066 s, then 0.135 s) while throughput stayed flat. Measure where the curve
+bends before you size a worker pool.
 
-**2. Report the tail.** NUANCE2
+**2. Report the tail.** In the faulted batch the median message took 0.050 s, almost the same as
+with no faults. The 95th percentile took 0.157 s: that is where the backoff waits and the cut-off
+stuck calls went. A dashboard that shows only the median shows a healthy service during an
+incident.
 
 **3. Retry only what can succeed next time.** A 429, a 5xx, a timeout or a dropped connection may
 succeed a moment later. A 400 (a schema the provider rejects, a prompt too long) fails the same
 way every time; retrying it burns quota. `lantern.retry.Transient` marks the first kind, and the
 runner fails the second at once.
 
-**4. Jitter is what makes backoff work.** NUANCE4
+**4. Jitter is what makes backoff work.** Plain exponential backoff sends every client that failed
+together back together: 1 s, 2 s, 4 s, in step, and the second wave fails like the first. Full
+jitter waits a random time between zero and the exponential cap, which spreads the retries out.
+A provider's `retry-after` is a floor on that wait, never ignored.
 
-**5. A budget turns an outage into a list.** NUANCE5
+**5. A budget turns an outage into a list.** With 70% of attempts failing and a budget of 20
+retries for 100 messages, the batch made 120 attempts and listed 60 messages to run again. Without
+the budget the same outage could have made up to 400 attempts against a service that was already
+failing. Retries are load; a budget caps it.
 
-**6. Set the timeout from the measured tail.** NUANCE6
+**6. Set the timeout from the measured tail.** Warm, qwen3:0.6b answered in 0.04 s at the median
+and at most; its first call took 1.76 s because it loaded the model. The batch uses 3 s per
+attempt: well above any healthy call, so none is cut off, and short enough that a stuck one frees
+its worker in seconds. `config.yaml`'s 300 s is for a cold 4B model on a CPU, not a warm batch.
 
 **7. Only successful calls reach the call log.** A failed attempt never produces a reply, so the
 call log counts the work done and the runner's own events count the failures. Read both. Every
 logged call carries its prompt version, so a change of prompt shows up as a new version in the
 log, not as a mystery in the numbers.
 
-**8. Extrapolate with care.** NUANCE8
+**8. Fast is not the same as right.** At this scale the plumbing held: 98 injected faults, 0
+messages lost. The classifier did not: qwen3:0.6b agreed with the gold labels on 351 of 1,200
+messages (29%), no better than guessing among three labels, because it calls most messages a
+threat. A throughput number is only worth having for a model whose answers you have already
+measured (chapter 12). And extrapolate with care: 1,177 a minute makes forty thousand messages
+about 0.6 hours, if nothing else on the machine changes.
 
 ## Run it
 
@@ -104,13 +125,38 @@ make lesson N=17 ARGS="--concurrency 4"   # the main batch at another concurrenc
 make lesson N=17 ARGS=--mine              # on the runner you wrote
 ```
 
-RUNTIME
+About 2,100 model calls on `qwen3:0.6b`. About eight minutes on an Apple M1 Pro with 16 GB.
 
 ## What you should see
 
 ![Chapter 17 terminal output](../../docs/screenshots/17-reliable-calls-at-scale.png)
 
-SEE
+A real run on `qwen3:0.6b`, local tier, Apple M1 Pro 16 GB, 1,200 synthetic messages, seed 1717:
+
+| concurrency (300 messages, no faults) | messages per minute | call p50 s | call p95 s |
+|---|---|---|---|
+| 1 | 1,431 | 0.040 | 0.049 |
+| 2 | 1,761 | 0.066 | 0.081 |
+| 4 | 1,772 | 0.135 | 0.157 |
+
+| the whole batch: 1,200 messages, concurrency 2, faults injected | |
+|---|---|
+| faults injected (429 / 503 / stuck) | 98 (46 / 37 / 15) |
+| messages that needed a retry | 94 |
+| retries spent | 98 of a budget of 240 |
+| messages that failed in the end | 0 |
+| messages per minute | 1,177 |
+| whole message p50 / p95 s | 0.050 / 0.157 |
+| agreement with the gold labels | 351 of 1,200 |
+
+- **Step 4**: an outage with 70% of attempts failing; the budget stops it at 120 attempts, and 60
+  messages are listed to run again.
+- **Step 5** reads the numbers back from `.progress/calls.jsonl` (2,140 calls under prompt version
+  `classify-message@v1`, 229,408 input and 4,476 output tokens) and `.progress/traces.jsonl`
+  (1,200 chat spans under the batch's trace). Its hosted line is labelled an estimate, not a
+  measurement.
+- **The agreement row** is the warning: the batch ran cleanly on a model that is wrong most of the
+  time.
 
 ## On a hosted model
 
@@ -127,7 +173,21 @@ to the runner as the floor on its wait. The Anthropic SDK's own retries are turn
 (`max_retries=0`) so that every attempt is counted here. Claude does not take `temperature` or
 `seed`; they are not sent and are reported once on the console.
 
-HOSTED
+| Measure | Local: qwen3:0.6b, Ollama, Apple M1 Pro 16 GB | Hosted: claude-haiku-5-5 |
+|---|---|---|
+| messages per minute, concurrency 1 | 1,431 | not run |
+| messages per minute, concurrency 4 | 1,772 | not run |
+| whole message p95 s, faulted batch | 0.157 | not run |
+| agreement with the gold labels | 351 of 1,200 | not run |
+| cost logged, USD | 0.0000 | not run |
+
+Live hosted numbers are not run: this lab has no hosted key, and no number here is estimated.
+
+What the hosted run will test: whether throughput keeps rising with concurrency on a server that
+runs many requests at once (the flat curve past two is likely an Ollama effect), what real 429s
+and `retry-after` waits look like at the account's rate limit, and whether a larger model's
+agreement with the labels makes the throughput worth having. That retries recover transient
+faults, that a budget caps an outage and that the tail carries the faults should hold on both.
 
 ## Try this
 
@@ -171,6 +231,14 @@ retry storm in the outage, three times the attempts the budget allowed.
 
 ## What the evidence now shows
 
-EVIDENCE
+On this machine LANTERN sorts about 1,177 messages a minute on qwen3:0.6b, with faults, so a month
+of forty thousand is about 0.6 hours of work. Of 98 attempts made to fail on purpose, every one was
+retried and recovered, and the budget held an outage to 120 attempts. Every call is in the log
+with its prompt version, model, tokens and latency, and in the trace under its batch.
+
+The answers are another matter: 351 of 1,200 agree with the labels. Varma reads the log, not the
+summary. "Every call, with its version and its time," she says. "Good. Hale will ask for exactly
+that. And he will ask why we ran forty thousand messages through a model that is wrong two times
+in three. Before anything goes to court, we prove the pipeline is right, not just that it runs."
 
 **Next:** [Chapter 18: Proven, not demonstrated](../18-evals-with-promptfoo/README.md)
