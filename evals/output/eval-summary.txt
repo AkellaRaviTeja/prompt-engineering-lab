@@ -1,19 +1,16 @@
-promptfoo eval (exit code 100, 4.1 min)
+promptfoo eval (exit code 100, 0.9 min)
+Cache is disabled.
+Starting evaluation eval-wlM-2026-11-23T06:52:55
 Running 70 test cases (up to 1 at a time)...
-Grouping model-graded assertions by provider to minimize local-model reload overhead.
-✓ Eval complete (ID: eval-uLX-2026-11-09T07:35:44)
+✓ Eval complete (ID: eval-wlM-2026-11-23T06:52:55)
 » View results: promptfoo view
 » Share with your team: https://promptfoo.app
 » Feedback: https://promptfoo.dev/feedback
-Total Tokens: 17,858
-  Provider: 17,384 (13,454 prompt, 3,930 completion)
-  Grading: 474 (414 prompt, 60 completion)
-Providers:
-  ollama:chat:qwen3:1.7b: 9,469 (35 requests; 6,727 prompt, 2,742 completion)
-  ollama:chat:qwen3:0.6b: 7,915 (35 requests; 6,727 prompt, 1,188 completion)
+Total Tokens: 17,212
+  Provider: 17,212 (13,454 prompt, 3,758 completion)
 Results:
-  ✓ 34 passed (48.57%)
-  ✗ 36 failed (51.43%)
+  ✓ 33 passed (47.14%)
+  ✗ 37 failed (52.86%)
   0 errors (0%)
-Duration: 4m 1s (concurrency: 1)
+Duration: 54s (concurrency: 1)
 Writing output to output/results.json

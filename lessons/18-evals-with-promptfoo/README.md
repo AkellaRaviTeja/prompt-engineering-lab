@@ -192,7 +192,11 @@ kappa: agreement beyond chance. A judge that passes everything agrees on half a 
 has a kappa of 0. The assertion fails closed: no `calibration.json`, a calibration made for
 another model, or a kappa under 0.6, and every `no_speculation` cell fails with the reason. It
 also refuses to grade a provider whose model is the judge's own. The calibration numbers for
-this suite: not run yet (see "What you should see").
+this suite, from `evals/judge/calibration.json` (23 November 2026, local tier): 24 of 24 labels
+agreed, kappa 1.00. A perfect score on 24 answers a person wrote is a warning as much as a pass:
+it says the labels may be too easy to tell a good judge from a lucky one. Add harder ones (an
+answer that blames a role without a name, a hedge buried in a long reply) before you trust it on
+more than one rubric.
 
 ## Run it
 
@@ -217,28 +221,25 @@ it.
 
 ![Chapter 18 terminal output](../../docs/screenshots/18-evals-with-promptfoo.png)
 
-**These numbers are from the previous version of the suite** (regex fence-stripping transform,
-no-speculation graded by qwen3:1.7b), not from the suite described above. The current suite has
-not been run yet: its judge calibration did not exist when this chapter was updated, and an
-uncalibrated judge fails closed. Rerun with `make judge-calibrate` then `make lesson N=18`.
-
-In the run captured here (CPU only, 4 minutes 1 second, eval `eval-uLX-2026-11-09T07:35:44`):
+A real run of the current suite: local tier, Apple M1 Pro 16 GB, 54 seconds of promptfoo, eval
+`eval-wlM-2026-11-23T06:52:55`, every prompt through `lantern.chat`, the judge calibrated:
 
 | Prompt | qwen3-1.7b | qwen3-0.6b |
 |---|---|---|
 | extract-invoice | 7/8 | 7/8 |
 | classify-v1 | 0/12 | 0/12 |
 | classify-v2 | 8/12 | 6/12 |
-| evidence-rules | 3/3 | 3/3 |
+| evidence-rules | 3/3 | 2/3 |
 
-**34 of 70 cells passed (49%).** That is not a failing grade for LANTERN. It is a map of where the
+**33 of 70 cells passed (47%).** That is not a failing grade for LANTERN. It is a map of where the
 prompts work and where they do not:
 
-- **The standing orders hold.** Both models answered "23:52" from the statement, refused the
-  registration question with "Not in evidence.", and named nobody when asked who pushed Reyes. The
-  grader then was qwen3:1.7b, a model under test, which is why nuance 11 replaced it.
-- **Extraction is nearly perfect.** Every invoice id, every JSON object, and seven of eight totals
-  are right on both models. The eighth is NW-0419, on both models. Chapter 19 is about that one.
+- **The standing orders mostly hold.** Both models refused the registration question with "Not
+  in evidence." and named nobody when asked who pushed Reyes; the calibrated judge graded both of
+  those answers and passed them. qwen3:1.7b answered "23:52" from the statement. qwen3:0.6b said
+  "Not in evidence." to a question the statement answers: over-refusal is a failure too.
+- **Extraction is nearly perfect.** Every reply is valid JSON by construction (the schema path),
+  every invoice id is right, and seven of eight totals match the ledger on both models. The eighth is NW-0419, on both models. Chapter 19 is about that one.
 - **The terse classifier (v1) fails every test.** It asks a question, and the models answer it
   in a paragraph ("The message is **not a threat**, **not logistics**..."). The assertion wants
   one word. That failure is the prompt's fault, which is the point of having v2 beside it.
@@ -272,19 +273,20 @@ hosted model is never graded by an uncalibrated judge. Hosted results go to
 `evals/output/results.hosted.json` and never overwrite the local ones. With `--reuse` and no
 recorded hosted run, the lesson says so and shows the local run.
 
-| Measure | Local: qwen3-1.7b / qwen3-0.6b (CPU, previous suite) | Hosted: claude-haiku-5-5 |
+| Measure | Local: qwen3-1.7b / qwen3-0.6b, Ollama, Apple M1 Pro 16 GB | Hosted: claude-haiku-5-5 |
 |---|---|---|
 | extract-invoice passed | 7/8 / 7/8 | not run |
 | classify-v1 passed | 0/12 / 0/12 | not run |
 | classify-v2 passed | 8/12 / 6/12 | not run |
-| evidence-rules passed | 3/3 / 3/3 | not run |
-| current suite, every cell | not run | not run |
+| evidence-rules passed | 3/3 / 2/3 | not run |
+| cells passed, whole suite | 33 of 70 | not run |
 
-The local column is the previous version of the suite (see "What you should see"). What the
-hosted run will test: whether classify-v1's paragraph answers are a small-model effect (a larger
-model may follow "which label" more literally, or explain itself just the same), and whether
-NW-0419 fails on Claude exactly as it did on both local models. It should: the invoice says
-94,000.00 and the ledger 9,400.00, whatever reads it.
+Live hosted numbers are not run: this lab has no hosted key, and no number here is estimated.
+
+What the hosted run will test: whether classify-v1's paragraph answers are a small-model effect (a
+larger model may follow "which label" more literally, or explain itself just the same), and
+whether NW-0419 fails on Claude exactly as it did on both local models. It should: the invoice
+says 94,000.00 and the ledger 9,400.00, whatever reads it.
 
 ## Try this
 
