@@ -145,5 +145,5 @@ challenges:
       word, and the gap is still found.
     change: >
       Edit the rules or the format in the `precise` prompt in lessons/01-prompt-engineering/run.py.
-    target: "timeline_lines >= 5 and quotes_verbatim == timeline_lines and precise_found_gap == true"
+    target: "timeline_lines >= 5 and quotes_verbatim >= 5 and precise_found_gap == true"
     reset: git checkout lessons/01-prompt-engineering/run.py

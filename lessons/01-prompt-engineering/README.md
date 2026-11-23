@@ -105,16 +105,18 @@ prompt at temperature 0. Both replies show the token counts underneath.
 
 - The vague reply is a fluent paragraph that misses the timing problem entirely. In our run it
   even invented a time ("approximately 22:52") that appears nowhere in the statement.
-- The precise reply is a list of timestamped events with quotes, and a gap analysis that finds
-  the 12 minutes between the bang (23:40) and the body (23:52). It is longer and slower, and you
-  can check every line of it against the statement.
+- The precise reply is a list of timestamped events with quotes, and a section headed "Gaps in the
+  timeline". It turns "twenty to twelve" into 23:40, though only in a note, not in the timeline.
+  It does not do the arithmetic: nowhere does it say that 23:40 to 23:52 is 12 minutes for a
+  two-minute walk. What it does is lay the times out so that you can, and the closing panel does
+  that sum in code. A precise prompt makes the gap checkable; it does not make the model see it.
 - The rule "twenty to twelve means 23:40" matters. Without it, both the 1.7B and the 4B model
   turned the phrase into 22:52, 23:30 or 11:20. A model cannot know the shift pattern unless you
   tell it.
-- Look closely at the precise reply. In our run the event text says "no loading after 23:00"
-  while the quote beside it correctly says 21:00. The model paraphrased and changed a fact in the
-  same line. That is your first lesson in not trusting LANTERN, and the reason the rule asks for
-  quotes.
+- Look closely at the precise reply. Its timeline has 23:30 ("Everything was normal") and 23:52,
+  and leaves out the bang at 23:40, the one event the case turns on. A tidy format can still drop
+  the line that matters. That is your first lesson in not trusting LANTERN, and the reason the rule
+  asks for quotes you can check against the statement.
 
 ## On a hosted model
 
@@ -129,15 +131,18 @@ plain user turns: this chapter uses no system prompt, no schema and no thinking,
 `temperature`, `top_k`, `top_p` or `seed`, so the precise prompt's `temperature=0` is left out and
 reported on the console (see `src/lantern/cloud.py`). No step is skipped on this tier.
 
-| Measure | Local: qwen3:1.7b, Ollama | Hosted: claude-haiku-5-5 |
+| Measure | Local: qwen3:1.7b, Ollama, Apple M1 Pro 16 GB | Hosted: claude-haiku-5-5 |
 |---|---|---|
 | Time the vague reply invented | "approximately 22:52" | not run |
-| Gap the precise reply found | 12 minutes, 23:40 to 23:52 | not run |
+| Precise reply states the 23:40 to 23:52 gap | no: it lists the times, the sum is in code | not run |
 | "Twenty to twelve" read as, with the rule | 23:40 | not run |
-| Paraphrase that changed a fact | "no loading after 23:00" (quote says 21:00) | not run |
+| Precise timeline includes the bang at 23:40 | no | not run |
 
-What the hosted run will test: whether the invented time and the paraphrase that changed 21:00
-are small-model effects that a larger model avoids. That the vague prompt gives an answer you
+Local numbers: qwen3:1.7b, Ollama, Apple M1 Pro 16 GB, run of 23 November 2026. Live hosted
+numbers are not run: this lab has no hosted key.
+
+What the hosted run will test: whether the invented time and the dropped 23:40 are small-model
+effects, and whether a larger model does the 12-minute sum itself. That the vague prompt gives an answer you
 cannot check, and that the shift rule is needed for "twenty to twelve", should hold on both.
 
 ## Try this
