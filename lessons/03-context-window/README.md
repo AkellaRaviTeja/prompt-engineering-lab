@@ -100,9 +100,9 @@ read properly, and the answers are combined afterwards (this is map-reduce). The
 and a fact that spans two chunks can be missed. Retrieval, which picks only the relevant chunks,
 is the next step and gets its own case file.
 
-**7. More window costs more.** Prompt processing time grows with the number of tokens. On this
-laptop's CPU the full 6,370 token prompt took close to a minute; each chunk took a few seconds.
-Hosted APIs charge per input token, so a bigger window is also a bigger bill.
+**7. More window costs more.** Prompt processing time grows with the number of tokens. In this
+run, on an Apple M1 Pro, the full 6,370 token prompt took 8.2 seconds, and all four chunks
+together took 7.8. Hosted APIs charge per input token, so a bigger window is also a bigger bill.
 
 **8. Tokens are not words.** 4,942 words became about 6,300 tokens here (roughly 1.3 tokens per
 word for this English text). Numbers, code and other languages tokenise differently. Measure; do
@@ -129,9 +129,11 @@ make lesson N=03 ARGS=--no-predict  # no stops for predictions
 - `num_ctx = 2048`: "NOT FOUND", with **1,026** prompt tokens. The model never saw the entry.
 - `num_ctx = 8192`: "NOT FOUND" again, with **6,370** prompt tokens. This time it did see it.
 - Head and tail: "NOT FOUND", 3,202 tokens. The middle was removed on purpose.
-- Four chunks: three NOT FOUND, and chunk 2 quoting Reyes word for word. In our run it then
-  said the entry was dated Tuesday 03 February. The notes date it Friday 06 February. The quote
-  was right and the date beside it was not, so check both.
+- Four chunks: three NOT FOUND, and chunk 2 quoting Reyes word for word, three sentences from
+  "Northwind is not a vendor" to "No VAT number on a single invoice." In this run it added no
+  date or other fact beside the quote, only "This quote is directly taken from the notes." An
+  earlier run put a wrong date beside a correct quote, so check the quote and anything next to
+  it.
 
 ## On a hosted model
 
@@ -154,8 +156,8 @@ reproduced. The head-and-tail and chunking steps still run. Claude does not take
 | Prompt tokens seen, `num_ctx = 8192` | 6,370 | not run |
 | Prompt tokens, head and tail | 3,202 | not run |
 
-What the hosted run will test: whether "NOT FOUND" with the whole file in view, and the wrong date
-beside a correct quote in chunk 2, are small-model effects of reading a long prompt. That cutting
+What the hosted run will test: whether "NOT FOUND" with the whole file in view is a small-model
+effect of reading a long prompt. That cutting
 the middle out removes the answer, and that a quote and the facts beside it must both be checked,
 should hold on both.
 

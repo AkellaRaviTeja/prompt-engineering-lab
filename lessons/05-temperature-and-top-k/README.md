@@ -57,8 +57,9 @@ Temperature is plain arithmetic. With log-probabilities `lp`, the new probabilit
 | ` fictional` | 0.000 | 0.029 | 0.052 | 0.068 |
 
 Your run asks the same question again, so its numbers will be close to these but not equal. The
-terminal screenshot below came from a later run and shows " company" at about 0.34 raw, against
-0.40 here. The shape is the same every time. Chapter 06 explains why the raw numbers move at all.
+terminal screenshot below came from a later run, where " **" came first at 0.310 raw and
+" company" second at 0.266, against 0.404 for " company" here. The leading pair can swap places;
+the shape, a few strong candidates and a long tail, is the same every time. Chapter 06 explains why the raw numbers move at all.
 
 Top-k and top-p cut the list before the draw. On this distribution, `top_k = 3` keeps three
 tokens; `top_p = 0.9` keeps seven, because no single token is dominant:
@@ -87,8 +88,9 @@ case: one token at 100%, where no setting changes anything.
 ## The nuances
 
 **1. Ollama's logprobs are the raw distribution.** The script asks for the same distribution at
-T = 1.0 and T = 0.2. If temperature were applied to the reported numbers, " company" would jump
-from about 0.34 to about 0.71. It does not. The sampler applies temperature after the model has
+T = 1.0 and T = 0.2. In the captured run the favourite, " **", was 0.310 at T = 1.0; if
+temperature were applied to the reported numbers it would jump to 0.667 at T = 0.2. Ollama
+reported 0.309. The sampler applies temperature after the model has
 reported its scores. (You may still see the raw numbers move a little between calls. That is
 server state, not temperature; chapter 06 explains it.)
 
@@ -97,9 +99,10 @@ answer and the model knows it: the next token is near 100% at every temperature.
 LANTERN read KB 714 FLR at T = 0 and at T = 1.8. Temperature does not make a model creative about
 things it is certain of. It makes it random about things it is unsure of.
 
-**3. High temperature unlocks junk.** At T = 1.5 the eight runs produced four different first
-words, including a run of underscores. Formatting tokens, stray markup
-and half-words live in the tail. Turning the temperature up gives them a chance.
+**3. High temperature unlocks junk.** At T = 1.5 the eight runs produced eight different first
+words, among them "UK", "computer" and bold markup glued to "Phishing" and "phishing". Formatting
+tokens, stray markup and half-words live in the tail. Turning the temperature up gives them a
+chance.
 
 **4. Top-k is fixed; top-p adapts.** `top_k = 3` keeps three tokens whether the model is certain or
 confused. `top_p = 0.9` keeps one token when the model is certain and many when it is not. That is
@@ -112,8 +115,9 @@ three numbers can therefore behave differently on different servers.
 **6. Temperature 0 is a special case.** T = 0 cannot be divided by. It means greedy decoding: take
 the single most likely token every time. No random number is drawn, so the seed has no effect.
 
-**7. Brainstorming wants variety, not nonsense.** At T = 0.2 the two lists of Northwind leads were
-almost the same list. At T = 1.3 they differed, but most of the extra variety was rephrasing.
+**7. Brainstorming wants variety, not nonsense.** At T = 0.2 the two lists of Northwind leads
+opened with the same lead word for word and stayed on the same themes. At T = 1.3 they differed,
+but most of the extra variety was rephrasing of fraud.
 Variety of ideas comes more reliably from asking for many distinct ideas in one prompt, or from
 different prompts, than from heat alone.
 
@@ -139,14 +143,15 @@ make charts
 
 ![Chapter 05 terminal output](../../docs/screenshots/05-temperature-and-top-k.png)
 
-- The raw distribution table with bars: " company" about 0.34, " **" about 0.29.
-- The temperature table: the favourite rises to about 0.71 at T = 0.2 and falls to about a
-  quarter at T = 1.5.
-- The kept sets for top_k = 3 and top_p = 0.9.
-- Distinct first words: 2 at T = 0.2, 3 to 6 at T = 1.0, 4 to 8 at T = 1.5 (exact counts vary run
-  to run).
-- The plate: KB 714 FLR, R. Malhotra, at T = 0 and at T = 1.8.
-- Four lists of leads. The two at T = 0.2 nearly match; the two at T = 1.3 differ.
+- The raw distribution table with bars: " **" 0.310, " company" 0.266.
+- The temperature table: the favourite rises to 0.667 at T = 0.2 and falls to 0.234 at T = 1.5.
+- The kept sets: top_k = 3 keeps three tokens, top_p = 0.9 keeps six. 1,000 seeded draws give 6
+  distinct tokens, " **" 36.5% of the time.
+- Distinct first words: 4 at T = 0.2, 7 at T = 1.0, 8 at T = 1.5 (exact counts vary run to run).
+- The plate: KB 714 FLR, R. Malhotra, at T = 0 and at both T = 1.8 seeds. The T = 0 reply ends on
+  a stray fragment, "The other vehicle".
+- Four lists of leads. The two at T = 0.2 share their first lead word for word; the two at T = 1.3
+  share none.
 
 ## On a hosted model
 
@@ -169,13 +174,13 @@ No native feature replaces them. What the hosted run does:
 
 | Measure | Local: qwen3:1.7b | Hosted: claude-haiku-5-5 |
 |---|---|---|
-| Raw probability of " company" | 0.404 captured; about 0.34 in a later run | not run (no logprobs) |
-| Favourite at T = 0.2 | 0.876 captured; about 0.71 in a later run | not run (no temperature) |
-| Tokens kept by top_p = 0.9 | 7 | not run |
-| Distinct first words, 8 seeds, T = 0.2 / 1.0 / 1.5 | 2 / 3 to 6 / 4 to 8 (varies run to run) | not run |
+| Raw probability of the favourite | " company" 0.404 captured; " **" 0.310 in this run | not run (no logprobs) |
+| Favourite at T = 0.2 | 0.876 captured; 0.667 in this run | not run (no temperature) |
+| Tokens kept by top_p = 0.9 | 7 captured; 6 in this run | not run |
+| Distinct first words, 8 seeds, T = 0.2 / 1.0 / 1.5 | 4 / 7 / 8 in this run (varies run to run) | not run |
 | Plate read as KB 714 FLR at T = 0 / T = 1.8 (of 2) | yes / 2 | not run |
 
-Local numbers are the ones this README already gives (qwen3:1.7b, local tier, temperature as shown; the machine was not recorded).
+Local numbers: "captured" is the distribution stored by `make charts` in `docs/explorer/data.js`; "this run" is the screenshot's run (qwen3:1.7b, local tier, Apple M1 Pro 16 GB, 23 November 2026).
 
 What the hosted run will test: whether the plate reading holds on a much larger model with no
 temperature to set (it should: the answer is in the context), and how many distinct first words

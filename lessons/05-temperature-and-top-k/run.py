@@ -193,7 +193,7 @@ leads_q = ("Northwind Freight Ltd: paid 62,500 then 71,200 then 94,000 by Halcyo
 for T, seed in ((0.2, 1), (0.2, 2), (1.3, 1), (1.3, 2)):
     out = chat(leads_q, temperature=T, seed=seed, max_tokens=160)
     reply(f"T={T}, seed {seed}", out.text, style="green" if T < 1 else "yellow")
-note("At T=0.2 the two seeds give near identical lists. At T=1.3 they diverge: "
+note("At T=0.2 the two seeds give similar lists. At T=1.3 they diverge: "
      "different leads, and more nonsense to filter.")
 
 learn.record(

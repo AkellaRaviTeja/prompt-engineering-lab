@@ -69,12 +69,12 @@ flowchart TB
 ## The nuances
 
 **1. Measure, do not assume.** Few-shot is often described as "better". On this phone, with this
-model, the clear-example few-shot prompt scored 86% against zero-shot's 83%. Three points better,
-at three times the tokens per message. The only way to know whether examples help is to score both on held-out data.
+model, in the captured run, the clear-example few-shot prompt scored 83%, exactly what zero-shot
+scored, at three times the tokens per message. (An earlier run had it three points ahead.) The only way to know whether examples help is to score both on held-out data.
 
 **2. The framing is an example too.** The "primed" prompt differs from the plain zero-shot prompt by
 one word: "a *murdered* company executive's work phone". That word took the model from 4 threat
-labels to 21, and accuracy from 83% to 61%. Everything in the prompt is evidence about what answer
+labels to 26, and accuracy from 83% to 50%. Everything in the prompt is evidence about what answer
 is expected. Keep task descriptions neutral.
 
 **3. Label balance leaks.** If four of your six examples are threats, the model learns that threats
@@ -95,7 +95,7 @@ question counted as logistics). A large model can learn the rule from those. The
 then the edges.
 
 **7. One example can be worse than none.** One-shot with a single threat example (Malhotra's "Can we
-talk before you take anything to Elena?") scored 75%, below zero-shot. A single example is a strong
+talk before you take anything to Elena?") scored 78%, below zero-shot. A single example is a strong
 signal about one corner of the space and nothing about the rest.
 
 **8. Gold labels are opinions.** Okafor marked M47, Clarke's "Are you still at the office?", as a
@@ -122,23 +122,24 @@ CPU.
 
 ![Chapter 07 terminal output](../../docs/screenshots/07-zero-one-few-shot.png)
 
-On our run (qwen3:1.7b, CPU, temperature 0):
+On our run (qwen3:1.7b, local tier, Apple M1 Pro 16 GB, temperature 0):
 
 | Prompt | Examples | Accuracy | Threat labels (gold: 8) | Tokens per message |
 |---|---|---|---|---|
-| zero-shot, primed | 0 | 61% | 21 | 106 |
+| zero-shot, primed | 0 | 50% | 26 | 106 |
 | zero-shot | 0 | 83% | 4 | 105 |
-| one-shot | 1 | 75% | 3 | 138 |
-| few-shot, clear examples | 6 | 86% | 7 | 319 |
+| one-shot | 1 | 78% | 4 | 138 |
+| few-shot, clear examples | 6 | 83% | 7 | 319 |
 | few-shot, boundary only | 6 | 64% | 0 | 320 |
 
-The confusion table is for the best prompt, few-shot with clear examples. It still missed two of
-the eight threats. Malhotra's "I can explain the Sabran trips. Don't put it in writing." went to
-logistics, and Clarke's M47 went to personal. It also filed Ana's "Leo got a B in his maths test!!
-Call him." as a threat, and his brother's plan for Saturday's match and a doctor's message about
-blood pressure results as logistics. The plain zero-shot prompt labelled only 4 messages as
-threats, against Okafor's 8. A model that sorts 86% correctly can still miss the messages that
-matter most, which is why the confusion table matters more than the headline number.
+One-shot also gave one invalid answer. Zero-shot and few-shot with clear examples tied at 83%;
+the script reports the first of them, zero-shot, as the best prompt and shows its confusion table.
+Every one of its 4 threat labels was right, and it missed the other four threats, all sent to
+logistics: three from +88 301, including "The March invoice will be paid on time. Make sure of
+it.", "Accidents happen on piers. Especially at night." and "Stairwell C. 23:30.", and Clarke's
+M47. It also filed Leo's "can we get pizza friday" and a doctor's message about blood pressure
+results as logistics. A model that sorts 83% correctly can still miss the messages that matter
+most, which is why the confusion table matters more than the headline number.
 
 ## On a hosted model
 
@@ -156,15 +157,15 @@ not sent (see `src/lantern/cloud.py`), so the hosted scores are at the provider'
 
 | Measure | Local: qwen3:1.7b | Hosted: claude-haiku-5-5 |
 |---|---|---|
-| Accuracy: zero-shot, primed | 61% | not run |
+| Accuracy: zero-shot, primed | 50% | not run |
 | Accuracy: zero-shot | 83% | not run |
-| Accuracy: one-shot | 75% | not run |
-| Accuracy: few-shot, clear examples | 86% | not run |
+| Accuracy: one-shot | 78% | not run |
+| Accuracy: few-shot, clear examples | 83% | not run |
 | Accuracy: few-shot, boundary only | 64% | not run |
-| Threat labels, primed (gold: 8) | 21 | not run |
+| Threat labels, primed (gold: 8) | 26 | not run |
 | Prompt tokens per message, zero-shot / six examples | 105 / 319 | not run |
 
-Local numbers are from the run in "What you should see" (qwen3:1.7b, local tier, CPU, temperature 0).
+Local numbers are from the run in "What you should see" (qwen3:1.7b, local tier, Apple M1 Pro 16 GB, temperature 0).
 
 What the hosted run will test: the collapse of "boundary only" to almost all logistics is
 expected to be a small-model effect, since a larger model can infer the rule from edge cases;

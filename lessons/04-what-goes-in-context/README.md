@@ -93,8 +93,10 @@ summarise old turns.
 sends all of it again each time. If it is not in the context, the model does not know it.
 
 **5. Prefer computed facts to model arithmetic.** In this run the same 1,177 tokens at temperature
-0 came back as 227,700 through one endpoint and 255,700 through the other. Small models are poor at
-adding six digit numbers, and (chapter 06) not even consistently poor. Code adds up money exactly,
+0 came back as 227,700 through both endpoints, which is right. The trimmed briefing in step 6, with
+the same three invoices in it, came back as $257,700. An earlier run of the same 1,177 tokens gave
+two different totals through the two endpoints. Small models are poor at adding six digit numbers,
+and (chapter 06) not even consistently poor. Code adds up money exactly,
 every time. Put the result in the context and let the model explain it.
 
 **6. Hidden tokens count.** Role markers, `/no_think` and the empty think block are tokens you did
@@ -126,11 +128,17 @@ order, trimmed to a token budget when they do not fit. Step 6 shows the trim at 
 - The template lines that produce `<|im_start|>system`, `user` and `assistant`.
 - The token budget table, about 1,177 tokens used of 8,192.
 - The full rendered briefing, ending in `<|im_start|>assistant` and an empty think block.
-- Two answers from identical input. In the captured run the chat endpoint said 227,700 and the raw
-  text said 255,700. Both listed the three invoices correctly.
+- Two answers from identical input, 1,177 prompt tokens each. In the captured run both said
+  227,700, and both listed the three invoices correctly. The two replies were word for word the
+  same; an earlier run gave two different totals here, so read both.
 - Both answers also claim that Reyes wrote "Not a vendor" in the margin of an invoice. The case
   summary says the margin note was on a photocopied ledger page. The model blended two documents.
-- With the `<computed>` block in the context, the total comes back as 227,700.00.
+- With the `<computed>` block in the context, the total comes back as 227,700.00. The margin note
+  is still placed on "the invoices".
+- At a budget of 850, `assemble()` drops the old conversation and then Reyes's entry, leaving
+  1,020 prompt tokens. The trimmed answer lists the three invoices correctly but gives the total as
+  $257,700, and still says Reyes wrote "Not a vendor" in the margin of the invoice, now with no
+  file it could cite for it.
 
 ## On a hosted model
 
@@ -151,8 +159,9 @@ the chat endpoint's answer alone. Claude does not take `temperature`, `top_k`, `
 |---|---|---|
 | Tokens used of 8,192 | about 1,177 | not run |
 | Total, chat endpoint | 227,700 | not run |
-| Total, raw rendered text | 255,700 | not run |
+| Total, raw rendered text | 227,700 | not run |
 | Total, with the `<computed>` block | 227,700.00 | not run |
+| Total, trimmed briefing (budget 850) | $257,700 | not run |
 
 What the hosted run will test: whether the blended margin note, which the model placed on an
 invoice instead of the ledger page, is a small-model effect. That a total computed in code and put
@@ -202,9 +211,9 @@ That is 227,700.00 Kestrel Bay dollars in ten weeks to a company Reyes described
 None of the invoices carries a VAT number. All three are payable to the same account at Sabran
 Mercantile Bank.
 
-LANTERN listed the invoices correctly. The total did not hold: the same tokens at temperature 0
-produced one figure through the chat endpoint and another through the raw text, and only the
-computed total is reliable. It also wrote that Reyes put "Not a vendor" in the margin of an
+LANTERN listed the invoices correctly. The total did not hold: through the chat endpoint and the
+raw text it came back as 227,700, but from the trimmed briefing the same invoices added up to
+$257,700, and only the computed total is reliable. It also wrote that Reyes put "Not a vendor" in the margin of an
 invoice; the briefing says the margin note was on a ledger page. Varma looks at the token table longer than at the answer. "So this is
 everything it knew. Good. Then everything it said can be checked."
 

@@ -46,15 +46,15 @@ The script runs seven steps:
    matter.
 2. **The server state experiment.** The same one-token request is sent four times: after a forced
    model reload (by changing `num_ctx`), after a second reload, then twice more with the prompt
-   already cached. The reported probability of " company" moves with the server's state, not with
-   the request:
+   already cached. The reported probability of the top token, " **" in the captured run, moves
+   with the server's state, not with the request:
 
-   | Server state | P(" company") |
+   | Server state | P(" **") |
    |---|---|
-   | model just reloaded (num_ctx 4096) | 0.3015 |
-   | model just reloaded (num_ctx 8192) | 0.3015 |
-   | same request again, prompt cached | 0.3755 |
-   | and again | 0.3755 |
+   | model just reloaded (num_ctx 4096) | 0.3104 |
+   | model just reloaded (num_ctx 8192) | 0.3104 |
+   | same request again, prompt cached | 0.3090 |
+   | and again | 0.3090 |
 
 3. **Floating point is not associative**, in plain Python: `(0.1 + 0.2) + 0.3` and
    `0.1 + (0.2 + 0.3)` are different numbers, `(1e16 + 1.0) - 1e16` is 0.0 while
@@ -81,7 +81,9 @@ using the service at that moment. This is the main reason hosted models vary at 
 
 **3. Caching.** Servers reuse the computed state of a prompt prefix they have seen before. Computing
 a prefix fresh and computing it from cache take different arithmetic paths. You saw the effect
-directly in step 2, and chapter 04 showed the consequence: identical tokens, two different totals.
+directly in step 2. An earlier run of chapter 04 showed the consequence: identical tokens, two
+different totals. (In chapter 04's captured run both totals agreed, which is the point: you
+cannot tell in advance which run you will get.)
 
 **4. Floating point order.** `a + b + c` in floating point depends on the order of the additions.
 GPUs add in parallel, and some reductions do not fix the order. The difference is in the last bits,
@@ -123,9 +125,10 @@ The model reloads a few times in step 2, so expect a couple of minutes.
 
 ![Chapter 06 terminal output](../../docs/screenshots/06-temperature-zero-and-nondeterminism.png)
 
-- Step 1: five identical answers at T = 0. Check them against the correct total, 227,700.00.
-- Step 2: P(" company") of about 0.30 after a reload and about 0.38 from cache, for an identical
-  request.
+- Step 1: five identical answers at T = 0. In the captured run all five were the correct total,
+  227,700.00; check yours against it.
+- Step 2: P(" **") of 0.3104 after a reload and 0.3090 from cache, for an identical request. The
+  gap is small in this run; any gap at all means the same input did not give the same numbers.
 - Step 3: `0.6000000000000001` against `0.6`, 0.0 against 1.0, and five totals of the same
   10,000 numbers that differ from the thirteenth significant digit.
 - Step 4: a difference of one millionth flipping the greedy choice.
@@ -155,12 +158,12 @@ at all:
 | Measure | Local: qwen3:1.7b | Hosted: claude-haiku-5-5 |
 |---|---|---|
 | Distinct answers, 5 runs of step 1 | 1 | not run |
-| Step 1 answers equal to 227,700.00 (of 5) | not recorded | not run |
-| Distinct probabilities, 4 identical requests (step 2) | 2 (about 0.30 after a reload, about 0.38 from cache) | not run (no logprobs) |
+| Step 1 answers equal to 227,700.00 (of 5) | 5 | not run |
+| Distinct probabilities, 4 identical requests (step 2) | 2 (0.3104 after a reload, 0.3090 from cache) | not run (no logprobs) |
 | Distinct texts, seed 7 three times at T = 0.9 | 1 | not run (no seed) |
 | Step 7 record replays exactly (3 replays) | yes | not run |
 
-Local numbers are the ones this README already gives (qwen3:1.7b, local tier; the machine was not recorded).
+Local numbers are from the screenshot's run (qwen3:1.7b, local tier, Apple M1 Pro 16 GB, 23 November 2026).
 
 What the hosted run will test: whether a batched, shared service gives more distinct answers to
 step 1 than one local model on an idle machine (nuance 2 expects it can), and whether the short

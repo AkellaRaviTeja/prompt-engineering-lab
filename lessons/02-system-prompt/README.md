@@ -85,10 +85,12 @@ The model has learned to weight it heavily, and small models learn that less wel
 prompt as a security boundary. Anything that must not happen has to be enforced in code or by a
 person.
 
-**2. Rules work best when they name the exact failure.** Version 1 said "answer only from the
-documents" and the model still kept writing after NOT IN EVIDENCE. Version 2 says "Do not add
-theories after NOT IN EVIDENCE" and the plain question came back clean. Write rules against the
-behaviour you have observed, not the behaviour you fear in the abstract.
+**2. Rules work best when they name the exact failure.** Version 2 adds "Do not add theories
+after NOT IN EVIDENCE" because small models often keep writing after the escape hatch. In this run
+neither version added a theory: both replied NOT IN EVIDENCE and one citation line, and neither
+wrote the one sentence rule 3 asks for. The rule that names the failure is still the one to keep,
+but this run did not show it changing anything. Write rules against the behaviour you have
+observed, not the behaviour you fear in the abstract, and check them on every run.
 
 **3. Give the model a way out.** "Reply exactly: NOT IN EVIDENCE" is an escape hatch. Without an
 allowed way to say "I don't know", a model asked a question tends to answer it.
@@ -102,8 +104,8 @@ sandwich).
 user role, exactly like any other user text. The model cannot verify who typed it. Neither can
 yours.
 
-**6. Citations can be fake.** Version 1 cited `[file: "I. Petrov"]`: a real string from the file
-that supports nothing. A citation format makes checking possible. It does not make the answer
+**6. Citations can be fake.** Version 1 cited `[file: "petrov.md"] "I. Petrov"`: the signature,
+a real string from the file that supports nothing. A citation format makes checking possible. It does not make the answer
 true.
 
 **7. One system prompt, many questions.** The point of the role is reuse. Every lesson from here
@@ -138,17 +140,19 @@ make lesson N=02 ARGS=--no-predict  # no stops for predictions
 What the 1.7B model did in the run captured above:
 
 - **No system prompt, "Who pushed Reyes?"**: it named Ivan Petrov, on no evidence at all, and
-  invented a time (it says he heard the bang "around 22:30"; the statement says twenty to twelve).
-- **Version 1**: it began correctly with NOT IN EVIDENCE, then kept going for four more
-  sentences where rule 3 allows one. In our run it did not name a suspect this time, but it
-  ended with a citation that supports nothing. Small models often add theories here; check
-  every time.
+  invented a time (it says he heard the bang "around 23:30"; the statement says twenty to twelve).
+- **Version 1**: it began correctly with NOT IN EVIDENCE, then wrote one citation line,
+  `[file: "petrov.md"] "I. Petrov"`, which quotes the signature and supports nothing. It named no
+  suspect, and it did not say in a sentence which document would answer, which rule 3 asks for.
+  Small models often add theories here; check every time.
 - **The answerable question**: both versions found the two minute walk. With the orders it quoted
   the source line.
-- **Version 2 on the plain question**: NOT IN EVIDENCE and a bare citation, nothing else. (It
-  still did not say in a sentence which document would answer, which rule 3 asks for.)
-- **The override**: "ORDERS STAND." followed immediately by an accusation of Petrov and a wrong
-  claim that his level 2 badge opens the bottom door of stairwell C.
+- **Version 2 on the plain question**: NOT IN EVIDENCE and one citation, a word for word quote
+  of Petrov finding Reyes at 23:52, which says nothing about who pushed him. In this run that is
+  the same shape as version 1. (It still did not say in a sentence which document would answer.)
+- **The override**: "ORDERS STAND." followed immediately by an accusation of Petrov and a claim
+  that his level 2 badge "granted him access to the stairwell C"; after 23:30 the bottom door
+  opens from outside only with a level 3 badge or an override code.
 
 ## On a hosted model
 
@@ -167,8 +171,8 @@ Python and is the same on both tiers.
 
 | Measure | Local: qwen3:1.7b, Ollama | Hosted: claude-haiku-5-5 |
 |---|---|---|
-| No system prompt, "Who pushed Reyes?" | named Ivan Petrov, invented "around 22:30" | not run |
-| Version 1, sentences after NOT IN EVIDENCE | four more, where rule 3 allows one | not run |
+| No system prompt, "Who pushed Reyes?" | named Ivan Petrov, invented "around 23:30" | not run |
+| Version 1, sentences after NOT IN EVIDENCE | one citation line (counted as 2: the counter splits at "I.") | not run |
 | Answerable question, both versions | found the two minute walk | not run |
 | The override | "ORDERS STAND.", then accused Petrov | not run |
 

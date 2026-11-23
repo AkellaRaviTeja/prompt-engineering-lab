@@ -297,17 +297,27 @@ your_turn(
     ],
 )
 
-finding("""
+if not raw_total:
+    totals_line = ("LANTERN listed the invoices. Its total is checked against the computed one "
+                   "above; only the computed total is reliable.")
+elif chat_total == raw_total:
+    totals_line = (f"LANTERN listed the invoices, and the chat endpoint and the raw text gave the "
+                   f"same total, {chat_total:,.2f}, from the same tokens. Agreement is not proof: "
+                   "only the computed total is reliable.")
+else:
+    totals_line = (f"LANTERN listed the invoices. The total did not hold: the same tokens gave "
+                   f"{chat_total:,.2f} through the chat endpoint and {raw_total:,.2f} through the "
+                   "raw text. Only the computed total is reliable.")
+finding(f"""
 Three Northwind invoices: NW-0388 for 62,500.00, NW-0402 for 71,200.00 and NW-0419 for
 94,000.00. That is 227,700.00 Kestrel Bay dollars in ten weeks to a company Reyes described as
 "not a vendor". None of the invoices carries a VAT number. All three are payable to the same
 account at Sabran Mercantile Bank.
 
-LANTERN listed the invoices correctly. The total did not hold: the same tokens at temperature 0
-produced one figure through the chat endpoint and another through the raw text, and only the
-computed total is reliable. It also wrote that Reyes put "Not a vendor" in the margin of an
-invoice; the briefing says the margin note was on a ledger page. Varma looks at the token table
-longer than at the answer. "So this is everything it knew.
+{totals_line} It also wrote that Reyes put "Not a vendor" in the margin of an invoice; the
+briefing says the margin note was on a ledger page.
+
+Varma looks at the token table longer than at the answer. "So this is everything it knew.
 Good. Then everything it said can be checked."
 """)
 save_shot("04-what-goes-in-context")
