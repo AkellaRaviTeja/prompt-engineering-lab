@@ -30,3 +30,13 @@ def test_structure_gate_counts_lessons():
     r = run("check_lessons.py")
     assert r.returncode == 0, r.stdout
     assert "checked 0 lessons" not in r.stdout
+
+
+def test_structure_gate_catches_placeholders():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("cl", ROOT / "scripts" / "check_lessons.py")
+    cl = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cl)
+    text = "Intro.\n\nSEE\n\n| a | b |\n@@T11@@\nNot run yet. LANTERN said NO.\n"
+    assert [p.strip() for p in cl.PLACEHOLDER.findall(text)] == ["SEE", "@@T11@@"]

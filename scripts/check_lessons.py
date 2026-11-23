@@ -44,6 +44,9 @@ DRAFT_EXCUSED = {"## Master it", "## On a hosted model"}
 PRACTICE = ("practice.yaml", "exercise.py", "solution.py", "test_exercise.py")
 SCENE_LIMIT = 200
 COMPONENT_SHARE = 1 / 3
+# A line that is only a capitalised token (SEE, HOSTED) or an @@T11@@ marker: a section left
+# for numbers from a run that has not been done.
+PLACEHOLDER = re.compile(r"(?m)^(?:@@\w+@@|[A-Z][A-Z_]{2,})\s*$")
 
 
 def scene_words(text: str) -> int:
@@ -89,6 +92,10 @@ def check_capstone(problems: list[str]) -> None:
         problems.append("capstone: missing README.md (the brief)")
     if not list((cap / "tests").glob("test_*.py")):
         problems.append("capstone: no tests in capstone/tests/")
+    readme = cap / "README.md"
+    if readme.exists():
+        for ph in PLACEHOLDER.findall(readme.read_text(encoding="utf-8")):
+            problems.append(f"capstone: placeholder {ph.strip()!r} still in the README")
     if not list((cap / "solution").glob("*.py")):
         problems.append("capstone: no solution in capstone/solution/")
 
@@ -132,6 +139,8 @@ def main() -> int:
             words = scene_words(text)
             if words > SCENE_LIMIT:
                 problems.append(f"{lesson.name}: scene is {words} words (limit {SCENE_LIMIT})")
+        for ph in PLACEHOLDER.findall(text):
+            problems.append(f"{lesson.name}: placeholder {ph.strip()!r} still in the README")
         has_diagram = "```mermaid" in text or re.search(r"!\[[^\]]*\]\([^)]*diagrams/", text)
         if not is_draft and not has_diagram:
             problems.append(f"{lesson.name}: no diagram (mermaid block or docs/diagrams image)")
