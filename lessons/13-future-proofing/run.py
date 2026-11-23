@@ -241,7 +241,8 @@ for who, name in (("today", today), ("tomorrow", tomorrow)):
     if not m["contract"]:
         v2_lines.append(f"On {name} the contract-style prompt broke the contract{others}.")
     elif m["extra"]:
-        v2_lines.append(f"On {name} it met the contract in shape but{others}: wrong in substance.")
+        v2_lines.append(f"On {name} it met the contract in shape but listed {m['extra']} "
+                        "supplier(s) that are not Northwind: wrong in substance.")
     else:
         v2_lines.append(f"On {name} it met the contract and listed only Northwind.")
 v1_note = ("The hurried version produced prose its own parser could not read, even on the model "
