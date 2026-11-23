@@ -236,12 +236,12 @@ learn.record(
 v2_lines = []
 for who, name in (("today", today), ("tomorrow", tomorrow)):
     m = measured["v2", who]
-    if not m["contract"] and not m["extra"]:
-        v2_lines.append(f"On {name} the contract-style prompt broke the contract itself.")
+    others = (f" and listed {m['extra']} supplier(s) that are not Northwind"
+              if m["extra"] else "")
+    if not m["contract"]:
+        v2_lines.append(f"On {name} the contract-style prompt broke the contract{others}.")
     elif m["extra"]:
-        v2_lines.append(f"On {name} it found {m['exact']} of the three but also listed "
-                        f"{m['extra']} supplier(s) that are not Northwind: right in shape, "
-                        "wrong in substance.")
+        v2_lines.append(f"On {name} it met the contract in shape but{others}: wrong in substance.")
     else:
         v2_lines.append(f"On {name} it met the contract and listed only Northwind.")
 v1_note = ("The hurried version produced prose its own parser could not read, even on the model "

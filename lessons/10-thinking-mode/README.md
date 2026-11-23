@@ -71,8 +71,8 @@ sequenceDiagram
 Q1 when the budget ran out, mid-sentence: 963 characters of thinking and an empty answer. With thinking on,
 always raise `max_tokens`, and treat an empty `reply.text` as "budget exhausted", not "no answer".
 
-**2. Thinking is slow on a laptop.** Thinking off: 700 tokens in 8 seconds. Thinking on: 2,184
-tokens in 26 seconds. The seconds are wall clock per call (model load, prompt processing and
+**2. Thinking is slow on a laptop.** Thinking off: 700 tokens in 9 seconds. Thinking on: 2,184
+tokens in 25 seconds. The seconds are wall clock per call (model load, prompt processing and
 generation) on an Apple M1 Pro 16 GB. Most of the thinking run's output is reasoning nobody reads.
 On a laptop, thinking mode is a choice you make per task, not a default.
 
@@ -122,7 +122,7 @@ make lesson N=10
 make lesson N=10 ARGS=--large    # step 3 on qwen3:4b; several minutes on a CPU
 ```
 
-The default run makes three calls and took 38 seconds of wall clock (8, 4 and 26 seconds) on an
+The default run makes three calls and took 37 seconds of wall clock (9, 3 and 25 seconds) on an
 Apple M1 Pro 16 GB, most of it in step 3.
 With `--large`, expect ten minutes or more.
 
@@ -132,9 +132,9 @@ With `--large`, expect ten minutes or more.
 
 | Run | Thinking chars | Answer chars | Tokens out | Seconds | Result |
 |---|---|---|---|---|---|
-| 1.7B, think off, 700 | 0 | 2,260 | 700 | 8 | Q1 right (OVR-AUD-02), but gives it the lift contractor's 08:00 to 18:00 hours. Q2: a) to d) all COULD, invents that Malhotra and Voss were inside the stairwell. Cut off in d), before e), f) and Q3. |
-| 1.7B, think on, 300 | 963 | 0 | 300 | 4 | Empty answer. |
-| 1.7B, think on, 4000 | 6,308 | 1,534 | 2,184 | 26 | Q1 right. Q2: Brightwater COULD, everyone else COULD NOT, Malhotra included. Interview Brightwater first. Five of six by reading; see below. |
+| 1.7B, think off, 700 | 0 | 2,260 | 700 | 9 | Q1 right (OVR-AUD-02), but gives it the lift contractor's 08:00 to 18:00 hours. Q2: a) to d) all COULD, invents that Malhotra and Voss were inside the stairwell. Cut off in d), before e), f) and Q3. |
+| 1.7B, think on, 300 | 963 | 0 | 300 | 3 | Empty answer. |
+| 1.7B, think on, 4000 | 6,308 | 1,534 | 2,184 | 25 | Q1 right. Q2: Brightwater COULD, everyone else COULD NOT, Malhotra included. Interview Brightwater first. Five of six by reading; see below. |
 | 4B (`--large`), think on, 4000 | 13,532 | 0 | 4,000 | 432 | Earlier run, not repeated. Empty. Still thinking when the 4,000 token budget ran out. |
 
 The 1.7B rows are from the screenshot's run (local tier, Apple M1 Pro 16 GB, 23 November 2026);
@@ -142,10 +142,10 @@ their seconds are wall clock per call, model load and prompt processing included
 from an earlier run on a 28-core CPU, timed as generation only. The seed is fixed, yet token counts
 changed from earlier runs on other hardware, so do not expect yours to match.
 
-Step 5's table scores the 4,000-token answer 4 of 6, not 5. The answer wrote "f) Brightwater & Co
-→ COULD", but its summary line "Q2: All candidates COULD NOT except f) Brightwater & Co." falls
-inside the same f) section, and `verdicts()` reads the COULD NOT first. Read the answer, not only
-the score.
+Step 5's table scores the 4,000-token answer 5 of 6. It ends with a summary line, "Q2: All
+candidates COULD NOT except f) Brightwater & Co.", which lands inside the f) section. An earlier
+version of `verdicts()` read that COULD NOT first and scored the answer 4 of 6; the first verdict
+word in each section now decides. A grader is code, and it needs reading as much as the answer.
 
 The correct reading: the door was opened with OVR-AUD-02. Reyes was already inside the stairwell,
 Voss was at a dinner, Petrov was on the hut camera, and the lift contractor's code stopped at
@@ -173,7 +173,7 @@ skipped.
 | Think off, 700: answer chars, tokens out | 2,260, 700 | not run |
 | Think on, 300: thinking chars, answer chars | 963, 0 | not run |
 | Think on, 4000: thinking chars, tokens out | 6,308, 2,184 | not run |
-| Think on, 4000: answer chars, wall-clock seconds | 1,534, 26 | not run |
+| Think on, 4000: answer chars, wall-clock seconds | 1,534, 25 | not run |
 
 What the hosted run will test: whether thinking at length and still ruling out Malhotra, whom the
 records cannot rule out, is a small-model effect. That thinking tokens are spent from the same budget
