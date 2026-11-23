@@ -184,11 +184,11 @@ def verdicts(text: str) -> dict[str, str]:
     parts = re.split(r"(?im)^[\W_]*([a-f])\)", text)
     out = {}
     for letter, body in zip(parts[1::2], parts[2::2], strict=False):
-        up = body.upper()
-        if "COULD NOT" in up or "COULDN'T" in up or "CANNOT" in up:
-            out[letter.lower()] = "COULD NOT"
-        elif "COULD" in up:
-            out[letter.lower()] = "COULD"
+        # The first verdict word decides: a closing summary ("All candidates COULD NOT except
+        # f)") lands in the last candidate's body and must not overrule its own verdict.
+        m = re.search(r"COULD\s+NOT|COULDN'T|CANNOT|COULD", body.upper())
+        if m:
+            out[letter.lower()] = "COULD" if m.group(0) == "COULD" else "COULD NOT"
     return out
 
 

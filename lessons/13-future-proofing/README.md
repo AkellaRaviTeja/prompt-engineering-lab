@@ -77,9 +77,11 @@ still pays.
 nested Markdown bullets on one model and a near copy of the invoices on the other. Neither matched
 the parser. It "worked once" only in the sense that a person could read it.
 
-**4. A contract makes failure visible, not impossible.** v2 parsed on both models. On the small
-model it also returned rows for Gulf Tug Services and Harbour Cleaning Services, which are not
-Northwind. The shape was right and the content was wrong. Structured output guarantees shape.
+**4. A contract makes failure visible, not impossible.** v2 parsed on both models, and both padded
+it. On qwen3:1.7b it added GTS-1182, a Gulf Tug Services invoice, and still met the contract: the
+shape was right and the content was wrong. On qwen3:0.6b it added rows for Gulf Tug Services and
+Harbour Cleaning Services with the vendor's name in `invoice_id`, and the contract check caught
+that: "'GULF TUG SERVICES' does not match ^[A-Z]{2,4}-\d{4}$". Structured output guarantees shape.
 Only a test checks substance.
 
 **5. Keep examples separate from instructions.** If you add few-shot examples (chapter 07), keep
@@ -112,18 +114,20 @@ should not be there.
 
 ![Chapter 13 terminal output](../../docs/screenshots/13-future-proofing.png)
 
-In the run captured above:
+In the run captured above (local tier, Apple M1 Pro 16 GB, 23 November 2026):
 
 | Model | Prompt | Parsed by code | Exact Northwind totals | Rows that should not be there |
 |---|---|---|---|---|
 | qwen3:1.7b | v1 | no | 0/3 | none |
-| qwen3:1.7b | v2 | yes | 3/3 | none |
+| qwen3:1.7b | v2 | yes | 3/3 | GTS-1182 |
 | qwen3:0.6b | v1 | no | 0/3 | none |
-| qwen3:0.6b | v2 | yes | 3/3 | Gulf Tug Services, Harbour Cleaning Services |
+| qwen3:0.6b | v2 | yes | 3/3 | GULF TUG SERVICES, HARBOUR CLEANING SERVICES |
 
 v1 failed on both models, including the one it was written for. A person could read the 1.7B
-answer, but the code could not. v2 parsed everywhere. It was perfect on 1.7B and padded with two
-wrong vendors on 0.6B. Your exact output may differ. The pattern is the point.
+answer, but the code could not. v2 parsed everywhere and got all three Northwind totals on both
+models, but it added one Gulf Tug Services invoice on 1.7B and two wrong vendors on 0.6B. Step 4's
+contract check passed one reply of four, v2 on 1.7B: the GTS-1182 row has a valid invoice id, so
+only a check of the vendor would catch it. Your exact output may differ. The pattern is the point.
 
 ## On a hosted model
 
@@ -141,7 +145,10 @@ run is a swap to a different family, not between two hosted models.
 
 | Measure | Local: qwen3:1.7b today, qwen3:0.6b tomorrow, Ollama, Apple M1 Pro 16 GB | Hosted: claude-haiku-5-5 |
 |---|---|---|
-@@T13@@
+| v1 read by its own parser, today / tomorrow | no / no | not run |
+| v2 exact Northwind totals, today / tomorrow | 3/3 / 3/3 | not run |
+| v2 rows that should not be there, today / tomorrow | 1 / 2 | not run |
+| Replies that meet the contract, of 4 | 1 (v2 on qwen3:1.7b) | not run |
 
 What the hosted run will test: whether v1's prose happens to fit its parser on a model it was
 never tuned for (if it does, that is luck, not a contract), and whether the extra non-Northwind
@@ -193,8 +200,10 @@ and v2 without structured output, failing the contract.
 
 The three Northwind invoices total 227,700.00 KBD, and each is dated inside one of Malhotra's trips
 to Port Sabran. The contract prompt reports all three on both models, in a form code can check.
-The hurried version produced prose that its own parser could not read. On the smaller model the
-contract was met in shape but broken in substance. Only a test would have caught that.
+The hurried version produced prose that its own parser could not read, even on the model it was
+written for. On that model the contract was met in shape but broken in substance: it listed a Gulf
+Tug Services invoice as Northwind's. On the smaller model the contract failed outright. Only a test
+would have caught either.
 
 Varma initials the changelog. "Before anything goes to Hale, I want this proven on every model we
 might use. Not demonstrated. Proven."

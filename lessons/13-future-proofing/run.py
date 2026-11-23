@@ -233,12 +233,23 @@ learn.record(
     contract_passes=passes,
 )
 
-finding("""
+v2_lines = []
+for who, name in (("today", today), ("tomorrow", tomorrow)):
+    m = measured["v2", who]
+    if not m["contract"] and not m["extra"]:
+        v2_lines.append(f"On {name} the contract-style prompt broke the contract itself.")
+    elif m["extra"]:
+        v2_lines.append(f"On {name} it found {m['exact']} of the three but also listed "
+                        f"{m['extra']} supplier(s) that are not Northwind: right in shape, "
+                        "wrong in substance.")
+    else:
+        v2_lines.append(f"On {name} it met the contract and listed only Northwind.")
+v1_note = ("The hurried version produced prose its own parser could not read, even on the model "
+           "it was written for." if not measured["v1", "today"]["parsed"] else
+           "The hurried version happened to parse today; nothing in it promises it will tomorrow.")
+finding(f"""
 The three Northwind invoices total 227,700.00 KBD, each dated inside one of Malhotra's trips to
-Port Sabran. The contract-style prompt reports all three on both models in a form code can check.
-The hurried version produced prose that its own parser could not read, even on the model it was
-written for. And on the smaller model the contract was met in shape but broken in substance: it
-listed suppliers that are not Northwind. Only a test would have caught that.
+Port Sabran. {v1_note} {" ".join(v2_lines)} Only a test would have caught that.
 
 Varma initials the changelog. "Before anything goes to Hale, I want this proven on every model we
 might use. Not demonstrated. Proven."

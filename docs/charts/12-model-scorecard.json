@@ -1,29 +1,35 @@
 [
   {
     "model": "qwen3:0.6b",
-    "accuracy": 0.375,
+    "accuracy": 0.6875,
     "extraction_ok": false,
-    "latency_s": 0.0,
-    "tokens_per_s": 24048.049971052533,
-    "memory_gb": 0.0,
-    "cold_start_s": 0.013477374915964901
+    "p50_s": 0.10347512504085898,
+    "p95_s": 0.13255729200318456,
+    "cost_per_correct": 0.0,
+    "tokens_per_s": 184.1289416439717,
+    "memory_gb": 1.316780768,
+    "cold_start_s": 1.7065796250244603
   },
   {
     "model": "qwen3:1.7b",
-    "accuracy": 0.375,
-    "extraction_ok": false,
-    "latency_s": 0.0,
-    "tokens_per_s": 7178.750229404184,
-    "memory_gb": 0.0,
-    "cold_start_s": 0.0003406659234315157
+    "accuracy": 0.6875,
+    "extraction_ok": true,
+    "p50_s": 0.1380004589445889,
+    "p95_s": 0.2157027079956606,
+    "cost_per_correct": 0.0,
+    "tokens_per_s": 94.75449280119662,
+    "memory_gb": 1.936185097,
+    "cold_start_s": 0.22859508404508233
   },
   {
     "model": "qwen3:4b",
-    "accuracy": 0.375,
-    "extraction_ok": false,
-    "latency_s": 0.0,
-    "tokens_per_s": 33510.03120864854,
-    "memory_gb": 0.0,
-    "cold_start_s": 0.00023137498646974564
+    "accuracy": 0.8125,
+    "extraction_ok": true,
+    "p50_s": 0.3458082909928635,
+    "p95_s": 0.5496002080617473,
+    "cost_per_correct": 0.0,
+    "tokens_per_s": 42.108942149682555,
+    "memory_gb": 3.806582538,
+    "cold_start_s": 3.688177749980241
   }
 ]

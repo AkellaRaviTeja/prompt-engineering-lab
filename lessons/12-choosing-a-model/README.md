@@ -46,7 +46,7 @@ The script runs the same work on each model in turn:
 |---|---|---|
 | Accuracy | 16 labelled messages (6 threat, 5 logistics, 5 personal), classified with a JSON enum schema | The task you actually care about |
 | Extraction | Invoice NW-0402 to JSON, checked against 71,200.00 | A second, different skill |
-| Latency per message | Ollama's own timing per classification, excluding model load | What the user waits for, once the model is loaded |
+| Latency per message | Wall clock per classification (p50 and p95): prompt processing, generation and any model load | What the user waits for |
 | Tokens per second | One 80-word generation | Throughput for long answers |
 | Memory | Size of the loaded model from Ollama's `/api/ps` | Whether it fits beside everything else |
 | Cold start | Time for the first answer, including loading the model | What the first user of the morning pays |
@@ -61,8 +61,8 @@ The raw numbers go to `docs/charts/12-model-scorecard.json` and the chart below 
 for most models. Reasoning across a timeline (chapter 09) or a locked-door puzzle (chapter 10) is
 not. Use the smallest model that clears the bar on each task, not one model for everything.
 
-**2. Latency is a budget, not a preference.** On this CPU-only laptop the 4B model generates about
-half as fast as the 1.7B. For a nightly batch of thousands of messages, that is hours. For one
+**2. Latency is a budget, not a preference.** On this laptop (Apple M1 Pro 16 GB) the 4B model
+generates 42.1 tokens a second against the 1.7B's 94.8, less than half as fast. For a nightly batch of thousands of messages, that is hours. For one
 key finding, it is nothing. Choose per task.
 
 **3. Cost has more than one form.** Cloud models charge per token. Local models charge in hardware,
@@ -116,13 +116,14 @@ redraws the chart.
 
 ![Chapter 12 terminal output](../../docs/screenshots/12-choosing-a-model.png)
 
-In the run captured here (a laptop CPU, no GPU, nothing else using Ollama):
+In the run captured here (local tier, Apple M1 Pro 16 GB, 23 November 2026; latency is wall clock
+per message):
 
-| Model | Classify (16) | Extract NW-0402 | Latency per message | Tokens/s | Memory | Cold start |
-|---|---|---|---|---|---|---|
-| qwen3:0.6b | 69% | no | 0.19 s | 84.7 | 1.5 GB | 1.8 s |
-| qwen3:1.7b | 69% | yes | 0.34 s | 33.1 | 2.4 GB | 2.5 s |
-| qwen3:4b | 81% | yes | 0.96 s | 14.8 | 3.9 GB | 4.4 s |
+| Model | Classify (16) | Extract NW-0402 | p50 per message | p95 per message | Tokens/s | Memory | Cold start |
+|---|---|---|---|---|---|---|---|
+| qwen3:0.6b | 69% | no | 0.10 s | 0.13 s | 184.1 | 1.3 GB | 1.7 s |
+| qwen3:1.7b | 69% | yes | 0.14 s | 0.22 s | 94.8 | 1.9 GB | 0.2 s |
+| qwen3:4b | 81% | yes | 0.35 s | 0.55 s | 42.1 | 3.8 GB | 3.7 s |
 
 What to read from it:
 
@@ -133,12 +134,16 @@ What to read from it:
 - **Two of the three miss quiet threats.** 0.6B and 4B both missed M07 and M12. 1.7B caught every
   threat but marked three harmless messages as threats. No model here should sort threats without
   a person checking.
-- **Speed falls fast with size.** 4B generates about half as fast as 1.7B and a sixth as fast as
-  0.6B, and needs 3.9 GB of memory once loaded. The file is 2.5 GB, and the context window and
+- **Speed falls fast with size.** 4B generates less than half as fast as 1.7B (42.1 against 94.8
+  tokens a second) and under a quarter as fast as 0.6B (184.1), and needs 3.8 GB of memory once
+  loaded. The file is 2.5 GB, and the context window and
   runtime take the rest.
-- **Latency is Ollama's own timing** (`total_duration` minus `load_duration`). The first version of
-  this lesson used wall-clock time while other jobs were swapping models in and out, and reported
-  31 seconds per message for the smallest model. Measure the thing, not the queue.
+- **Latency is wall clock per message**: prompt processing, generation and any model load, as the
+  script's closing note says. The cold start is timed on a separate first call, so p50 and p95 are
+  the loaded model's times. A 0.2 s cold start for 1.7B means it was already in memory when its
+  test began. An earlier version of this lesson was timed while other jobs were swapping models in
+  and out, and reported 31 seconds per message for the smallest model. Wall clock counts the queue
+  too, so measure with nothing else using Ollama.
 
 ## On a hosted model
 
@@ -156,17 +161,17 @@ and there is no model to load, so those columns read n/a, and the scorecard adds
 answer. Claude does not take `temperature`, `top_k`, `top_p` or `seed`; `cloud.py` leaves out
 `temperature=0` and reports it.
 
-| Measure | Local: qwen3:1.7b, Ollama, CPU-only laptop | Hosted: claude-haiku-5-5 |
+| Measure | Local: qwen3:1.7b, Ollama, Apple M1 Pro 16 GB | Hosted: claude-haiku-5-5 |
 |---|---|---|
 | Classify (16) | 69% | not run |
 | Extract NW-0402 | yes | not run |
-| Latency per message | 0.34 s | not run |
-| Tokens/s | 33.1 | not run |
+| p50 per message, wall clock | 0.14 s | not run |
+| Tokens/s | 94.8 | not run |
 
 What the hosted run will test: whether the missed quiet threats (M07 and M12) and the false
 alarms are small-model effects. That one task is not enough to rank models, and that a person
-should check threat sorting, should hold on both. Hosted latency includes the network, so it
-measures something different from Ollama's own timing.
+should check threat sorting, should hold on both. Hosted latency is wall clock too, but it also
+includes the network and the provider's queue, so compare the two with care.
 
 ## Try this
 
@@ -209,13 +214,14 @@ so the large model's accuracy falls to half or less.
 
 ## What the evidence now shows
 
-On these sixteen messages the small and medium models both score 69% and the large one 81%. The
-small model cannot reliably copy an invoice number into the right field. The most accurate costs
-about 2.8 times the medium model's time per message and 3.9 GB of memory, on a machine that runs
-everything else in the building. None of them sorts threats well enough to go unsupervised.
+On these sixteen messages the small model scores 69%, the medium 69% and the large 81%. The small
+model cannot reliably copy an invoice number into the right field. The most accurate, qwen3:4b,
+costs 2.5 times the medium model's median time per message and 3.8 GB of memory, on a machine that
+runs everything else in the building. None of them sorts threats well enough to go unsupervised.
 
 You write the policy down for Hale: the medium model for bulk triage, the large one for findings
-that go to court, and a person reads every message marked as a threat. Varma signs it. "Now make
+that go to court, and a person reads every message marked as a threat. Model, version, settings,
+test and score are in the file. Varma signs it. "Now make
 sure it still holds when they change the models."
 
 **Next:** [Chapter 13: The swap](../13-future-proofing/README.md)

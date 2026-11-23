@@ -61,36 +61,42 @@ sequenceDiagram
     Ollama-->>You: thinking: "Okay, let's tackle these questions step by step..." (300 tokens)
     Ollama-->>You: text: "" (budget gone)
     You->>Ollama: chat(puzzle, think=True, max_tokens=4000)
-    Ollama-->>You: thinking: about 10,500 characters
+    Ollama-->>You: thinking: about 6,300 characters
     Ollama-->>You: text: the answer
 ```
 
 ## The nuances
 
 **1. Thinking spends your output budget first.** At 300 tokens the model had only just worked out
-Q1 when the budget ran out, mid-word: 992 characters of thinking and an empty answer. With thinking on,
+Q1 when the budget ran out, mid-sentence: 963 characters of thinking and an empty answer. With thinking on,
 always raise `max_tokens`, and treat an empty `reply.text` as "budget exhausted", not "no answer".
 
-**2. Thinking is slow on a laptop.** Thinking off: 700 tokens in 24 seconds. Thinking on: 3,725
-tokens in 164 seconds. Most of that is reasoning nobody reads. On a CPU, thinking mode is a choice
-you make per task, not a default.
+**2. Thinking is slow on a laptop.** Thinking off: 700 tokens in 8 seconds. Thinking on: 2,184
+tokens in 26 seconds. The seconds are wall clock per call (model load, prompt processing and
+generation) on an Apple M1 Pro 16 GB. Most of the thinking run's output is reasoning nobody reads.
+On a laptop, thinking mode is a choice you make per task, not a default.
 
-**3. Thinking does not fix a model that is too small for the task.** With 4,000 tokens to think,
-the 1.7B model reasoned at length and still decided that OVR-AUD-02 was "valid from 10 February to
-18:00"
-(it is never revoked; that limit belongs to the lift contractor's code) and so that *nobody*
-could have opened the door. It then named Petrov, who is on the hut camera, as the first person to
-interview. Longer reasoning by a weak reasoner gives you a longer wrong answer.
+**3. Thinking helps, and still does not make the answer right.** With 4,000 tokens to think, the
+1.7B model sorted the two override codes correctly, named Brightwater & Co as the holder of
+OVR-AUD-02, ruled out the other four people and the lift contractor, and said Brightwater must be
+interviewed first. Thinking off, it had written COULD for a) to d) and invented that Malhotra and
+Voss were inside the stairwell. But the thinking answer ruled out Malhotra with "No override code
+held by R. Malhotra", and the records cannot rule him out: nothing places him elsewhere, and he
+could have had the code. An earlier run with the same budget did worse, deciding that OVR-AUD-02
+was "valid from 10 February to 18:00" and that nobody could have opened the door. Thinking changes
+the odds; a check in code is still what tells you which run you got.
 
 **4. A bigger model thinks longer, and the length is not predictable.** On `qwen3:4b`
-(`make lesson N=10 ARGS=--large`) the final version of this puzzle used the whole 4,000 token
-budget on thinking and returned nothing, after 432 seconds. On an earlier run with almost the same
+(`make lesson N=10 ARGS=--large`, not repeated in the current run; an earlier run on a 28-core CPU,
+timed as generation only) the final version of this puzzle used the whole 4,000 token budget on
+thinking and returned nothing, after 432 seconds. On an earlier run with almost the same
 wording, the same model finished in 3,905 tokens (405 seconds) and got the credential and four of
 the six candidates right, then still named Petrov for interview. Thinking length varies run to run
 and prompt to prompt. Budget for the long tail, not the average.
 
 **5. Read the thinking, but do not cite it.** `reply.thinking` is useful for debugging: you can see
-exactly where the 1.7B model swapped the two override codes. It is not evidence and not always a
+exactly where the 1.7B model worked out that OVR-MNT-01 had expired at 18:00 and OVR-AUD-02 was
+never revoked. It is not evidence and not always a
 faithful account of how the answer was produced. Hale will ask about the answer, not the musings.
 
 **6. Ambiguous questions defeat thinking too.** The first version of this puzzle asked who "CAN"
@@ -116,8 +122,8 @@ make lesson N=10
 make lesson N=10 ARGS=--large    # step 3 on qwen3:4b; several minutes on a CPU
 ```
 
-The default run makes three calls and took a little over three minutes on our CPU, most of it
-in step 3.
+The default run makes three calls and took 38 seconds of wall clock (8, 4 and 26 seconds) on an
+Apple M1 Pro 16 GB, most of it in step 3.
 With `--large`, expect ten minutes or more.
 
 ## What you should see
@@ -126,13 +132,20 @@ With `--large`, expect ten minutes or more.
 
 | Run | Thinking chars | Answer chars | Tokens out | Seconds | Result |
 |---|---|---|---|---|---|
-| 1.7B, think off, 700 | 0 | 2,180 | 700 | 24 | Q1 right (OVR-AUD-02). Q2: a) to d) all COULD, invents that Petrov holds the code. Cut off in d), before e), f) and Q3. |
-| 1.7B, think on, 300 | 992 | 0 | 300 | 10 | Empty answer. |
-| 1.7B, think on, 4000 | 10,500 | 1,618 | 3,725 | 164 | Q1 right, then "the code is invalid after 18:00", everyone COULD NOT, interview Petrov. Wrong. |
-| 4B (`--large`), think on, 4000 | 13,532 | 0 | 4,000 | 432 | Empty. Still thinking when the 4,000 token budget ran out. |
+| 1.7B, think off, 700 | 0 | 2,260 | 700 | 8 | Q1 right (OVR-AUD-02), but gives it the lift contractor's 08:00 to 18:00 hours. Q2: a) to d) all COULD, invents that Malhotra and Voss were inside the stairwell. Cut off in d), before e), f) and Q3. |
+| 1.7B, think on, 300 | 963 | 0 | 300 | 4 | Empty answer. |
+| 1.7B, think on, 4000 | 6,308 | 1,534 | 2,184 | 26 | Q1 right. Q2: Brightwater COULD, everyone else COULD NOT, Malhotra included. Interview Brightwater first. Five of six by reading; see below. |
+| 4B (`--large`), think on, 4000 | 13,532 | 0 | 4,000 | 432 | Earlier run, not repeated. Empty. Still thinking when the 4,000 token budget ran out. |
 
-Seconds are from a 28-core CPU with nothing else running and vary from run to run; token counts
-repeat exactly because the seed is fixed.
+The 1.7B rows are from the screenshot's run (local tier, Apple M1 Pro 16 GB, 23 November 2026);
+their seconds are wall clock per call, model load and prompt processing included. The 4B row is
+from an earlier run on a 28-core CPU, timed as generation only. The seed is fixed, yet token counts
+changed from earlier runs on other hardware, so do not expect yours to match.
+
+Step 5's table scores the 4,000-token answer 4 of 6, not 5. The answer wrote "f) Brightwater & Co
+→ COULD", but its summary line "Q2: All candidates COULD NOT except f) Brightwater & Co." falls
+inside the same f) section, and `verdicts()` reads the COULD NOT first. Read the answer, not only
+the score.
 
 The correct reading: the door was opened with OVR-AUD-02. Reyes was already inside the stairwell,
 Voss was at a dinner, Petrov was on the hut camera, and the lift contractor's code stopped at
@@ -155,15 +168,15 @@ does not take `temperature`, `top_k`, `top_p` or `seed`: the 0.6 and 0 in `run()
 reported by `cloud.py`, so token counts will not repeat run to run as they do locally. No step is
 skipped.
 
-| Measure | Local: qwen3:1.7b, Ollama, 28-core CPU | Hosted: claude-haiku-5-5 |
+| Measure | Local: qwen3:1.7b, Ollama, Apple M1 Pro 16 GB | Hosted: claude-haiku-5-5 |
 |---|---|---|
-| Think off, 700: answer chars, tokens out | 2,180, 700 | not run |
-| Think on, 300: thinking chars, answer chars | 992, 0 | not run |
-| Think on, 4000: thinking chars, tokens out | 10,500, 3,725 | not run |
-| Think on, 4000: answer chars, seconds | 1,618, 164 | not run |
+| Think off, 700: answer chars, tokens out | 2,260, 700 | not run |
+| Think on, 300: thinking chars, answer chars | 963, 0 | not run |
+| Think on, 4000: thinking chars, tokens out | 6,308, 2,184 | not run |
+| Think on, 4000: answer chars, wall-clock seconds | 1,534, 26 | not run |
 
-What the hosted run will test: whether thinking at length and still reaching the wrong reading
-(everyone COULD NOT) is a small-model effect. That thinking tokens are spent from the same budget
+What the hosted run will test: whether thinking at length and still ruling out Malhotra, whom the
+records cannot rule out, is a small-model effect. That thinking tokens are spent from the same budget
 as the answer, so a small budget can return an empty answer, should hold on both.
 
 ## Try this

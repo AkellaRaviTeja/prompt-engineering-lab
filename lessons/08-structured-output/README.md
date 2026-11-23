@@ -125,9 +125,10 @@ Nine model calls: one unconstrained, eight constrained. About one to two minutes
 - The unconstrained reply fails validation on its first character.
 - The constrained run: 8 of 8 invoices valid in 8 calls, with no retries.
 - The source check flags the three Northwind `vat_number` values and corrects them to null.
-- Look at the table yourself: vendor names stay in capitals despite the description asking for
-  normal capitalisation, and Bayline IT is filed under `equipment hire`. Neither breaks the
-  schema, and neither is quite right.
+- Look at the table yourself: seven of the eight vendor names stay in capitals despite the
+  description asking for normal capitalisation (only Harbour Cleaning Services came back in normal
+  case), and Bayline IT is filed under `equipment hire`. Neither breaks the schema, and neither is
+  quite right.
 - The final table puts each Northwind invoice inside one of Malhotra's Port Sabran trips.
 
 ## On a hosted model
@@ -151,7 +152,7 @@ locally. Claude takes no `temperature`, so the lesson's `temperature=0` is repor
 | Fields contradicted by the source check | 3 (vat_number) | not run |
 | Northwind invoices inside Malhotra's trips | 3 of 3 | not run |
 
-Local numbers are the ones this README already gives (qwen3:1.7b, local tier, temperature 0; the machine was not recorded).
+Local numbers are from the screenshot's run (qwen3:1.7b, local tier, Apple M1 Pro 16 GB, 23 November 2026, temperature 0).
 
 What the hosted run will test: shape failures should be gone on both, since both enforce the
 schema. The bank account in `vat_number` and the capitalised vendor names are expected to be

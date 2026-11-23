@@ -68,13 +68,14 @@ sequenceDiagram
 ## The nuances
 
 **1. Direct answers hide the error.** On our run the direct prompt said "yes": the records support
-Malhotra. It even quoted 23:31 and 23:47 correctly, then said the 5 minute walk "matches" his
-claim, without noticing the 16 minutes between those times. There is nothing to audit in a one-word verdict.
+Malhotra. It even quoted 23:31 and 23:47 correctly, then said the timing "aligns with his claim",
+without noticing the 16 minutes between those times. There is nothing to audit in a one-word verdict.
 
-**2. Free CoT can reach the right verdict by the wrong road.** "Think step by step" produced 918
-tokens. It found the 16 minutes, then wandered: it invented a "12-minute walk back" and measured to
-the wrong row (23:58). Its verdict, "not supported", was right. Its reasons would not survive Marcus
-Hale.
+**2. Free CoT is not a fix on its own.** "Think step by step" produced 890 tokens. It copied all
+three badge rows correctly, then wrote "From 23:31:02 to 23:47:09 is 6 minutes", called that
+consistent with the walk to Gate 2, and concluded "Yes, the records support Malhotra's claim". More
+steps gave it more room to slip, and nothing in the prompt told it which step mattered. (An earlier
+run reached "not supported" by a different wrong road.) Its reasons would not survive Marcus Hale.
 
 **3. Set steps make every slip visible.** The eight-step prompt got steps 1 to 3 exactly right
 (23:31:02, 23:47:09, 16 minutes), then wrote "16 minutes" for the walking time in step 4, where the
@@ -87,9 +88,10 @@ and unreliable at arithmetic and comparison. Step 4 keeps the reading and gives 
 This is the strongest pattern for small models: the model extracts, code computes. It is also the
 version you can defend in court.
 
-**5. CoT costs tokens and time.** Direct: 71 output tokens, about 2 seconds. Free CoT: 918 tokens,
-31 seconds. Set steps: 215 tokens, 7 seconds. Set steps are cheaper than free CoT because you
-decided what to write.
+**5. CoT costs tokens and time.** Direct: 67 output tokens, 2 seconds. Free CoT: 890 tokens,
+10 seconds. Set steps: 215 tokens, 3 seconds. The seconds are wall clock per call, as the cost
+table prints them: model load, prompt processing and generation. Set steps are cheaper than free
+CoT because you decided what to write.
 
 **6. CoT can hurt simple tasks.** For a lookup ("what time did he badge out?") reasoning adds
 tokens and chances to drift. Use it when the answer depends on combining several facts.
@@ -117,11 +119,13 @@ Three model calls plus some Python. About one to two minutes on a CPU.
 ![Chapter 09 terminal output](../../docs/screenshots/09-chain-of-thought.png)
 
 - **direct**: "yes", with the wrong reasoning above.
-- **step by step**: a long analysis that reaches "not supported" through some invented minutes.
+- **step by step**: a long analysis that copies the rows, miscounts 23:31:02 to 23:47:09 as 6
+  minutes, and answers "Yes, the records support Malhotra's claim".
 - **set steps**: steps 1 to 3 correct, step 4 wrong (16 instead of 5), the verdict right anyway.
 - **model reads, program reasons**: 16.1 minutes elapsed, 11.1 unaccounted, the stairwell route
   fits.
-- The cost table: free CoT used about 13 times the tokens of the direct answer.
+- The cost table: free CoT used about 13 times the tokens of the direct answer (890 against 67),
+  and 10 seconds of wall clock against 2.
 
 ## On a hosted model
 
@@ -138,14 +142,17 @@ timestamps runs the same on both tiers, and no step is skipped.
 
 | Measure | Local: qwen3:1.7b, Ollama | Hosted: claude-haiku-5-5 |
 |---|---|---|
-| Direct: verdict, output tokens | "yes", 71 | not run |
-| Free CoT: verdict, output tokens | "not supported", 918 | not run |
+| Direct: verdict, output tokens | "yes", 67 | not run |
+| Free CoT: verdict, output tokens | "yes", 890 (counted 16 minutes as 6) | not run |
 | Set steps: verdict, output tokens | "not supported", 215 (step 4 wrote 16 instead of 5) | not run |
 | Model reads, program reasons | 16.1 minutes elapsed, 11.1 unaccounted | not run |
 | Free CoT tokens against direct | about 13 times | not run |
 
-What the hosted run will test: whether the wrong direct "yes" and the slip in step 4 are
-small-model effects. That free CoT costs many times the tokens of a direct answer, and that
+Local numbers are from the screenshot's run (qwen3:1.7b, local tier, Apple M1 Pro 16 GB,
+23 November 2026).
+
+What the hosted run will test: whether the wrong direct "yes", the miscounted minutes in free CoT
+and the slip in step 4 are small-model effects. That free CoT costs many times the tokens of a direct answer, and that
 letting code do the arithmetic gives the answer you can defend, should hold on both.
 
 ## Try this
