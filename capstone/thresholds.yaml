@@ -2,5 +2,12 @@
 tasks:
   extract-invoice: v1
   classify-message: v2
-local: null
+# Recorded from a live run of capstone/solution/ on 23 November 2026: local tier, qwen3:1.7b,
+# Ollama, Apple M1 Pro 16 GB. Measured: extract-invoice@v1 0.875 (7/8, invalid 0),
+# classify-message@v2 0.792 (38/48, invalid 0). Thresholds are set a little below what the
+# solution measured, so run-to-run variation does not fail a correct pipeline.
+local:
+  extract-invoice: {min_score: 0.75, max_invalid: 1}
+  classify-message: {min_score: 0.70, max_invalid: 2}
+# Hosted thresholds: not run. This lab has no hosted key; record them from a live hosted run.
 hosted: null

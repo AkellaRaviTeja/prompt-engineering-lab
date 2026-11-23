@@ -149,7 +149,17 @@ The live check runs each task at the version listed in `thresholds.yaml`, saves 
 under `.progress/capstone/`, and fails when the score is below the recorded minimum or there are
 more invalid replies than the recorded maximum.
 
-LIVE_RESULTS
+The reference solution, live, on 23 November 2026 (local tier, `qwen3:1.7b`, Ollama, Apple M1 Pro
+16 GB):
+
+| task | version | score | invalid | calls | thresholds recorded |
+|---|---|---|---|---|---|
+| extract-invoice | v1 | 0.875 (7 of 8; HCS-0554's vendor wrong) | 0 | 8 | score at least 0.75, invalid at most 1 |
+| classify-message | v2 | 0.792 (38 of 48) | 0 | 48 | score at least 0.70, invalid at most 2 |
+
+The thresholds sit a little below what the solution measured, so ordinary run-to-run variation
+does not fail a correct pipeline and a real regression does. Hosted thresholds are not run: this
+lab has no hosted key.
 
 ## Where to start
 
