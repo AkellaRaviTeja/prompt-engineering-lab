@@ -101,6 +101,8 @@ def _chapter_progress(data: dict[str, Any], chapter: str) -> dict[str, Any]:
 def changed_since_head(chapter: str) -> bool | None:
     """True if the lesson (outside practice/), case/, src/, config.yaml or evals/ differs.
 
+    evals/output/ is left out: chapter 18 writes its own results there before it records.
+
     A challenge that asks for a change only counts on a run made with one. None when git cannot
     tell (no git, not a checkout), and then challenges are not held back.
     """
@@ -118,6 +120,7 @@ def changed_since_head(chapter: str) -> bool | None:
         "evals",
         f":(exclude){name}/practice",
         f":(exclude){name}/lesson.ipynb",
+        ":(exclude)evals/output",
     ]
     try:
         r = subprocess.run(
