@@ -209,12 +209,12 @@ else:
     )
     via_raw = generate_raw(rendered, temperature=0, num_predict=300)
     console.print(f"chat endpoint: {via_chat.prompt_tokens:,} prompt tokens | our rendered text "
-                  f"sent raw: {via_raw['prompt_eval_count']:,} prompt tokens")
+                  f"sent raw: {via_raw.prompt_tokens:,} prompt tokens")
     reply("answer via the chat endpoint", via_chat.text)
-    reply("answer via the raw rendered text", via_raw["response"].strip())
+    reply("answer via the raw rendered text", via_raw.text)
     note("Same tokens in. Read the two totals. If they differ, the input was identical and the "
          "model still answered differently at temperature 0. Chapter 06 is about exactly that.")
-    raw_tokens, raw_total = via_raw["prompt_eval_count"], stated_total(via_raw["response"])
+    raw_tokens, raw_total = via_raw.prompt_tokens, stated_total(via_raw.text)
     chat_total = stated_total(via_chat.text)
     learn.reveal(
         p_same,

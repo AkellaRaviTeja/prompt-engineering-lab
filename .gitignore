@@ -8,3 +8,4 @@ evals/output/*.html
 node_modules/
 .promptfoo/
 .progress/
+.bearing/

@@ -64,6 +64,7 @@ def record(r: Reply) -> dict[str, Any]:
         "lantern.cost_usd": r.cost_usd,
         "lantern.latency_s": round(r.seconds, 3),
         "lantern.eval_s": round(r.eval_seconds, 3),
+        "lantern.wait_s": round(r.wait_seconds, 3),
         "lantern.attempts": r.attempts,
         "lantern.unsupported": r.unsupported,
     }

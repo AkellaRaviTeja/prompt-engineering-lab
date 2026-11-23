@@ -9,7 +9,7 @@ import json
 import httpx
 import pytest
 
-from lantern import calllog, chat, retry, trace
+from lantern import calllog, chat, llm, retry, trace
 
 
 class Resp:
@@ -145,3 +145,50 @@ def test_a_looping_generation_is_an_empty_answer_not_a_retry(monkeypatch, log):
     assert len(calls) == 1, "a deterministic loop must not be retried"
     assert r.text == "" and r.stop_reason.startswith("aborted")
     assert calllog.read(log)[0]["gen_ai.response.finish_reasons"] == [r.stop_reason]
+
+
+def test_backoff_waits_are_kept_out_of_the_latency(monkeypatch, log):
+    """Regression (review of 23 Nov 2026): `seconds` included the backoff sleeps."""
+    answers = [Resp({}, 503), Resp({}, 503), Resp(OK)]
+    monkeypatch.setattr(httpx, "post", lambda url, json, timeout: answers.pop(0))
+    clock = [0.0]
+    monkeypatch.setattr(retry.time, "sleep", lambda s: clock.__setitem__(0, clock[0] + s))
+    monkeypatch.setattr(retry, "backoff", lambda attempt, base, cap, rng=None: 4.0)
+    r = chat("x")
+    assert r.attempts == 3, "two server errors then a success is three attempts"
+    assert r.wait_seconds == pytest.approx(8.0), "both 4 s waits are counted as waiting"
+    assert r.seconds < 1, "the model time of fake calls must not include the 8 s of waiting"
+    assert calllog.read(log)[0]["lantern.wait_s"] == 8.0, "the call log keeps the wait apart"
+
+
+GEN = {"response": " 227,700.00 ", "prompt_eval_count": 812, "eval_count": 9,
+       "done_reason": "stop", "eval_duration": 1_000_000_000}
+
+
+def test_generate_raw_is_retried_logged_and_returns_a_reply(monkeypatch, log):
+    """Regression (review of 23 Nov 2026): chapter 04 called /api/generate with no retry or log."""
+    seen = []
+
+    def post(url, json, timeout):
+        seen.append((url, json, timeout))
+        return Resp({}, 503) if len(seen) == 1 else Resp(GEN)
+
+    monkeypatch.setattr(httpx, "post", post)
+    monkeypatch.setattr(retry.time, "sleep", lambda s: None)
+    r = llm.generate_raw("<|im_start|>user\nhi<|im_end|>\n", temperature=0, num_predict=300)
+    assert seen[0][0].endswith("/api/generate"), "the raw text goes to /api/generate"
+    body = seen[0][1]
+    assert body["raw"] is True and body["options"]["num_predict"] == 300, "options are passed"
+    assert seen[0][2] == 300, "the configured timeout is used, not a fixed 600 s"
+    assert r.attempts == 2 and r.text == "227,700.00", "a 503 is retried and the text stripped"
+    assert r.prompt_tokens == 812, "prompt tokens come from prompt_eval_count"
+    assert calllog.read(log)[0]["gen_ai.usage.input_tokens"] == 812, "the call is logged"
+
+
+def test_generate_raw_refuses_the_hosted_tier(monkeypatch):
+    """A hosted API takes messages only, so there is nothing raw to send."""
+    from lantern import config
+
+    monkeypatch.setitem(config.load_config(), "tier", "hosted")
+    with pytest.raises(SystemExit, match="only Ollama"):
+        llm.generate_raw("x")

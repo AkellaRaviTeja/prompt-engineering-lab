@@ -7,10 +7,8 @@ with the normal chat endpoint.
 
 from __future__ import annotations
 
-import httpx
-
-from lantern import load_config
-from lantern.config import model_name
+from lantern import llm
+from lantern.llm import Reply
 
 
 def render_chatml(messages: list[dict[str, str]], think: bool = False) -> str:
@@ -27,15 +25,10 @@ def render_chatml(messages: list[dict[str, str]], think: bool = False) -> str:
     return "".join(out)
 
 
-def generate_raw(prompt: str, **options) -> dict:
-    """Ollama's /api/generate with raw=true: no template, the text goes in exactly as given."""
-    cfg = load_config()
-    gen = cfg["generation"]
-    opts = {"temperature": gen["temperature"], "top_k": gen["top_k"], "top_p": gen["top_p"],
-            "seed": gen["seed"], "num_ctx": gen["num_ctx"], "num_predict": gen["max_tokens"]}
-    opts.update(options)
-    r = httpx.post(f"{cfg['ollama']['host']}/api/generate", timeout=600, json={
-        "model": model_name(None), "prompt": prompt, "raw": True, "stream": False,
-        "options": opts})
-    r.raise_for_status()
-    return r.json()
+def generate_raw(prompt: str, **options) -> Reply:
+    """Ollama's /api/generate with raw=true: no template, the text goes in exactly as given.
+
+    It goes through `lantern.llm.generate_raw`, so it has the shared timeout, retries, call log
+    and trace span that every `chat` call has.
+    """
+    return llm.generate_raw(prompt, **options)

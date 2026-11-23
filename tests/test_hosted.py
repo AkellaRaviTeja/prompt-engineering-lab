@@ -9,9 +9,10 @@ with the same attribute names). They are fixtures, not recordings of a live call
 
 from types import SimpleNamespace as NS
 
+import httpx
 import pytest
 
-from lantern import cloud, llm
+from lantern import cloud, llm, retry
 from lantern.config import load_config
 
 SCHEMA = {
@@ -220,3 +221,38 @@ def test_hosted_tier_resolves_local_names_to_hosted_models(monkeypatch):
     monkeypatch.setitem(cfg, "tier", "cloudy")
     with pytest.raises(SystemExit):
         config.provider_of()
+
+
+@pytest.mark.parametrize("error", [
+    httpx.ReadTimeout("slow"), httpx.ConnectError("refused"), httpx.RemoteProtocolError("drop"),
+])
+def test_gemini_timeouts_and_dropped_connections_are_retried(monkeypatch, error):
+    """Regression (review of 23 Nov 2026): Gemini failed at once on a timeout or a dropped link."""
+    from google import genai
+
+    calls = []
+
+    class Models:
+        def generate_content(self, **kw):
+            calls.append(kw)
+            raise error
+
+    class Client:
+        def __init__(self, **kw):
+            self.models = Models()
+
+    monkeypatch.setattr(genai, "Client", Client)
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    with pytest.raises(retry.Transient, match="Gemini"):
+        cloud._gemini(MSGS, "gemini-2.5-flash", settings(), None, None, timeout=5)
+    assert len(calls) == 1, "one attempt per call; lantern.retry decides whether to send again"
+    attempts_seen = []
+
+    def flaky():
+        attempts_seen.append(1)
+        if len(attempts_seen) < 3:
+            return cloud._gemini(MSGS, "gemini-2.5-flash", settings(), None, None, timeout=5)
+        return "answered"
+
+    out, attempts = retry.call(flaky, retries=3, sleep=lambda s: None)
+    assert (out, attempts) == ("answered", 3), "the shared retry loop sends it again"

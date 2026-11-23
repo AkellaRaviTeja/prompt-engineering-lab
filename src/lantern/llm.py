@@ -8,7 +8,8 @@ Every call:
 - has a timeout, and retries with exponential backoff and full jitter on rate limits, server
   errors, timeouts and dropped connections (`lantern.retry`);
 - measures latency on the wall clock, so `seconds` includes model load and prompt processing,
-  with Ollama's own breakdown in `load_seconds`, `prompt_seconds` and `eval_seconds`;
+  with Ollama's own breakdown in `load_seconds`, `prompt_seconds` and `eval_seconds`; time spent
+  waiting between retries is kept apart in `wait_seconds`, not added to `seconds`;
 - is logged with its prompt version, model, tokens, cost and latency (`lantern.calllog`), and
   traced as an OpenTelemetry span with GenAI attributes (`lantern.trace`).
 
@@ -48,6 +49,7 @@ class Reply:
     cached_tokens: int = 0  # input tokens read from a prompt cache
     cache_write_tokens: int = 0  # input tokens written to a prompt cache
     seconds: float = 0.0  # wall clock for the whole call: load, prompt processing, generation
+    wait_seconds: float = 0.0  # backoff sleeps between retries, not counted in `seconds`
     load_seconds: float = 0.0
     prompt_seconds: float = 0.0
     eval_seconds: float = 0.0  # generation only
@@ -150,13 +152,67 @@ def chat(
 
         return cloud.chat(provider, messages, name, settings, format, tools, timeout)
 
+    return _run(once, provider, name, settings, version, rcfg, retries)
+
+
+def generate_raw(
+    prompt: str,
+    *,
+    model: str | None = None,
+    timeout: float | None = None,
+    retries: int | None = None,
+    prompt_version: str | None = None,
+    **options: Any,
+) -> Reply:
+    """Ollama's /api/generate with raw=true: no chat template, the text goes in exactly as given.
+
+    Local tier only. It gets the same timeout, retries, call log and span as `chat`. `options`
+    override Ollama's generation options (temperature, num_predict, ...) from config.yaml.
+    """
+    cfg = load_config()
+    if provider_of(cfg) != "ollama":
+        raise SystemExit("generate_raw() sends text past the chat template; only Ollama has that.")
+    gen = cfg["generation"]
+    opts = {"temperature": gen["temperature"], "top_k": gen["top_k"], "top_p": gen["top_p"],
+            "seed": gen["seed"], "num_ctx": gen["num_ctx"], "num_predict": gen["max_tokens"]}
+    opts.update(options)
+    rcfg = cfg.get("reliability", {})
+    timeout = rcfg.get("timeout_s", 300) if timeout is None else timeout
+    retries = rcfg.get("retries", 3) if retries is None else retries
+    name = model_name(model)
+    settings = {"temperature": opts["temperature"], "top_k": opts["top_k"], "top_p": opts["top_p"],
+                "seed": opts["seed"], "max_tokens": opts["num_predict"], "think": False,
+                "logprobs": 0, "explicit": set(), "cache": False}
+    body = {"model": name, "prompt": prompt, "raw": True, "stream": False, "options": opts}
+    version = prompt_version or calllog.prompt_hash([{"role": "system", "content": prompt}],
+                                                    None, None)
+
+    def once() -> Reply:
+        data = _ollama_post("/api/generate", body, timeout, name)
+        if isinstance(data, Reply):
+            return data
+        return _ollama_reply(data, data.get("response", ""), "", name, [])
+
+    return _run(once, "ollama", name, settings, version, rcfg, retries)
+
+
+def _run(once, provider: str, name: str, settings: dict[str, Any], version: str,
+         rcfg: dict[str, Any], retries: int) -> Reply:
+    """One call with retries, a span and a log line; model time and backoff waits kept apart."""
+    slept = [0.0]
+
+    def sleep(t: float) -> None:
+        slept[0] += t
+        retry.time.sleep(t)
+
     with trace.span(f"chat {name}", **trace.request_attrs(provider, name, settings)) as sp:
         start = time.perf_counter()
         reply, attempts = retry.call(
             once, retries=retries, base=rcfg.get("backoff_base_s", 1.0),
-            cap=rcfg.get("backoff_cap_s", 30.0),
+            cap=rcfg.get("backoff_cap_s", 30.0), sleep=sleep,
         )
-        reply.seconds = time.perf_counter() - start
+        reply.wait_seconds = slept[0]
+        reply.seconds = max(time.perf_counter() - start - slept[0], 0.0)
         reply.attempts = attempts
         reply.provider = provider
         reply.prompt_version = version
@@ -214,9 +270,29 @@ def _ollama(
         body["top_logprobs"] = s["logprobs"]
     if tools:
         body["tools"] = [{"type": "function", "function": t} for t in tools]
+    data = _ollama_post("/api/chat", body, timeout, model)
+    if isinstance(data, Reply):
+        return data
+    msg = data["message"]
+    calls = []
+    for c in msg.get("tool_calls") or []:
+        fn = c.get("function", {})
+        args = fn.get("arguments") or {}
+        if isinstance(args, str):
+            try:
+                args = json.loads(args)
+            except ValueError:
+                args = {"_unparsed": args}
+        calls.append(ToolCall(fn.get("name", ""), args, c.get("id", "")))
+    return _ollama_reply(data, msg.get("content", ""), msg.get("thinking", "") or "", model, calls)
+
+
+def _ollama_post(path: str, body: dict[str, Any], timeout: float, model: str) -> dict | Reply:
+    """POST to Ollama, mapping failures: Transient to retry, SystemExit to stop, or an aborted
+    Reply when the model looped (a failed answer, not a failed server)."""
     host = load_config()["ollama"]["host"]
     try:
-        r = httpx.post(f"{host}/api/chat", json=body, timeout=timeout)
+        r = httpx.post(f"{host}{path}", json=body, timeout=timeout)
     except httpx.ConnectError as e:
         raise retry.Transient(
             f"Cannot reach Ollama at {host}. Start it with `make up` (Docker) or `ollama serve`."
@@ -235,21 +311,14 @@ def _ollama(
         raise retry.Transient(f"Ollama returned HTTP {r.status_code}" + (f": {detail}" if detail
                                                                           else ""))
     r.raise_for_status()
-    data = r.json()
-    msg = data["message"]
-    calls = []
-    for c in msg.get("tool_calls") or []:
-        fn = c.get("function", {})
-        args = fn.get("arguments") or {}
-        if isinstance(args, str):
-            try:
-                args = json.loads(args)
-            except ValueError:
-                args = {"_unparsed": args}
-        calls.append(ToolCall(fn.get("name", ""), args, c.get("id", "")))
+    return r.json()
+
+
+def _ollama_reply(data: dict[str, Any], text: str, thinking: str, model: str,
+                  calls: list[ToolCall]) -> Reply:
     return Reply(
-        text=msg.get("content", "").strip(),
-        thinking=msg.get("thinking", "") or "",
+        text=text.strip(),
+        thinking=thinking,
         model=model,
         prompt_tokens=data.get("prompt_eval_count", 0),
         output_tokens=data.get("eval_count", 0),

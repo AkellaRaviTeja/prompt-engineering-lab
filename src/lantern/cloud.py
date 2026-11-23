@@ -23,6 +23,8 @@ import os
 import sys
 from typing import Any
 
+import httpx
+
 from lantern import retry
 from lantern.config import load_config
 from lantern.llm import Message, Reply, ToolCall
@@ -452,6 +454,9 @@ def _gemini(messages, model, s, format, tools, timeout) -> Reply:
         r = client.models.generate_content(**kw)
     except errors.ServerError as e:
         raise retry.Transient(str(e)) from e
+    except httpx.TransportError as e:
+        # The SDK sends with httpx and lets its timeouts and dropped connections through.
+        raise retry.Transient(f"Gemini: {type(e).__name__}: {e}") from e
     except errors.ClientError as e:
         if getattr(e, "code", 0) == 429:
             raise retry.Transient(str(e)) from e
