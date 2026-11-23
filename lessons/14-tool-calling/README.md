@@ -94,7 +94,43 @@ tools, with the hand-built protocol, and with native tool calling.
 
 ## The nuances
 
-NUANCES
+**1. A tool does not make the model use it.** In this run native tool calling answered three of
+six questions, and on four of them it made no call at all. Question 1 came back as "cannot be
+determined without additional information", with the tool that holds the answer one field away.
+A small model decides whether to call a tool the same way it decides anything else: by what looks
+likely. Count the calls, not only the answers.
+
+**2. Native is not automatically better than hand-built.** The hand-built protocol answered four
+of six here, against native's three, because its system prompt says "reply with a request or an
+answer" and the model mostly obeyed. It paid for it: 12 requests, 4 replies that were not JSON at
+all, and 18 model calls against native's 8. Native calls are structured by the API, so none failed
+to parse; that guarantee is about shape, not about judgement. Measure both on your own questions
+before you pick.
+
+**3. Recall is worse than either, and sounds just as sure.** From memory LANTERN got none of six
+right, with amounts in rupees, pounds and dollars for a ledger kept in KBD, and a
+"debit of 1,200" against NW-0500, which does not exist. Every one was in the right shape. That is
+the reason for tools: the answer comes from a row you can show in court.
+
+**4. Validate arguments before the tool runs.** The schema is a contract, and the model breaks it:
+"nw 388" in lower case, `ref` for `reference`, the number 388 for a string. Step 6 rejects each
+one before it touches the ledger and sends the reason back. A tool that runs on bad arguments
+either crashes or, worse, answers a question nobody asked.
+
+**5. Errors are results.** NW-0500 is not in the ledger. The tool raises, the loop turns that into
+`{"error": ...}` and sends it back as the tool's result, and the model says the record is not
+available. A tool that returns an empty answer instead invites the model to fill the gap: try it
+(Try this 2).
+
+**6. Cap the steps.** A loop that asks the model "anything else?" until it stops can run forever on
+a model that keeps asking for the same row. The cap here is five calls per question; this run hit
+it zero times, which is what a cap is for: it is not supposed to fire, and you want to know when
+it does.
+
+**7. Parallel calls are a capability, not a promise.** Question 5 needs two rows. The API lets one
+reply carry several calls, and a larger model often uses that; qwen3:1.7b made none in this run,
+by hand or native. Code the loop for several calls per reply anyway, and return every result before
+the next model turn.
 
 ## Run it
 
@@ -103,13 +139,35 @@ make lesson N=14
 make lesson N=14 ARGS=--mine     # the native step on your own run_tools (see Master it)
 ```
 
-RUNTIME
+About 32 model calls on `qwen3:1.7b` (6 from memory, 18 by hand, 8 native). Under a minute on
+an Apple M1 Pro with 16 GB when the model is already loaded.
 
 ## What you should see
 
 ![Chapter 14 terminal output](../../docs/screenshots/14-tool-calling.png)
 
-SEE
+A real run on `qwen3:1.7b`, local tier, Apple M1 Pro 16 GB, temperature 0:
+
+| measure | recall | by hand | native |
+|---|---|---|---|
+| answers right (of 6) | 0 | 4 | 3 |
+| tool requests | 0 | 12 | 2 |
+| requests usable (parsed and valid) | | 8 | 2 |
+| replies that were not a request or an answer | | 4 | 0 |
+| model calls (turns) | 6 | 18 | 8 |
+| questions cut off at the step cap | | 0 | 0 |
+
+- **Recall** invents every answer, in the right shape: amounts in three currencies and a debit
+  against NW-0500, a reference that is not in the ledger.
+- **By hand** gets four right and costs the most: a third of its replies were prose, not the JSON
+  request the prompt asked for, and each one cost a turn to correct.
+- **Native** never fails to parse, but calls a tool on only two of six questions; on the other four
+  it answers without looking, and two of those answers are wrong.
+- **Step 6** shows three bad argument sets rejected before they ran, and NW-0500's "not found"
+  going back to the model as a result.
+
+Your numbers will differ in detail. The pattern to look for is the gap between "can call a tool"
+and "does call it".
 
 ## On a hosted model
 
@@ -125,7 +183,21 @@ The hand-built step sends the same prompt protocol as text. Claude does not take
 (current models reject sampling settings) or `seed`, so the run's `temperature=0` is not sent and
 is reported once on the console; repeated hosted runs may differ.
 
-HOSTED
+| Measure | Local: qwen3:1.7b, Ollama, Apple M1 Pro 16 GB | Hosted: claude-haiku-5-5 |
+|---|---|---|
+| answers right from memory (of 6) | 0 | not run |
+| answers right, by hand (of 6) | 4 | not run |
+| answers right, native (of 6) | 3 | not run |
+| native tool calls made | 2 | not run |
+| model calls, native | 8 | not run |
+
+Live hosted numbers are not run: this lab has no hosted key, and no number here is estimated.
+
+What the hosted run will test: whether native calling overtakes the hand-built protocol once the
+model reliably decides to call a tool (the four questions native answered without looking are the
+likeliest small-model effect), and whether a larger model issues both lookups for question 5 in
+one reply. That recall invents ledger rows and that validation and error results are needed
+should hold on both.
 
 ## Try this
 
@@ -168,6 +240,13 @@ NW-0500; and a hand-built protocol with parallel requests that needs no more tur
 
 ## What the evidence now shows
 
-EVIDENCE
+LANTERN no longer recalls the ledger; it asks for the row, and every request is on the record.
+From memory it got none of the six questions right. With native tool calling it answered three
+from the case files, and the hand-built protocol four, at more than twice the model calls.
+Northwind's two earlier payments read back exactly as seized: NW-0388 at 62,500.00 and NW-0402 at
+71,200.00, each in the ledger under the same payee.
+
+Varma reads the request log, not the answers. "Good. Now I can see what it looked at. Next I want
+to know what it read that it should not have believed."
 
 **Next:** [Chapter 15: The note in the margin](../15-prompt-injection/README.md)
