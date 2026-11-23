@@ -155,13 +155,16 @@ Ollama's `/api/generate` with `raw=true` and a hosted API takes messages only. S
 the chat endpoint's answer alone. Claude does not take `temperature`, `top_k`, `top_p` or `seed`;
 `cloud.py` leaves out `temperature=0` and reports it.
 
-| Measure | Local: qwen3:1.7b, Ollama | Hosted: claude-haiku-5-5 |
+| Measure | Local: qwen3:1.7b, Ollama, Apple M1 Pro 16 GB | Hosted: claude-haiku-5-5 |
 |---|---|---|
 | Tokens used of 8,192 | about 1,177 | not run |
 | Total, chat endpoint | 227,700 | not run |
 | Total, raw rendered text | 227,700 | not run |
 | Total, with the `<computed>` block | 227,700.00 | not run |
 | Total, trimmed briefing (budget 850) | $257,700 | not run |
+
+Local numbers: qwen3:1.7b, Ollama, Apple M1 Pro 16 GB, run of 23 November 2026. Live hosted
+numbers: not run.
 
 What the hosted run will test: whether the blended margin note, which the model placed on an
 invoice instead of the ledger page, is a small-model effect. That a total computed in code and put

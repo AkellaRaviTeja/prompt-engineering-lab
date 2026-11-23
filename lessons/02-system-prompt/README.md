@@ -169,12 +169,15 @@ step that prints how the orders become text shows only Qwen3's template, with a 
 does not publish the text it renders from the `system` field. Version 3's `enforce()` runs in
 Python and is the same on both tiers.
 
-| Measure | Local: qwen3:1.7b, Ollama | Hosted: claude-haiku-5-5 |
+| Measure | Local: qwen3:1.7b, Ollama, Apple M1 Pro 16 GB | Hosted: claude-haiku-5-5 |
 |---|---|---|
 | No system prompt, "Who pushed Reyes?" | named Ivan Petrov, invented "around 23:30" | not run |
 | Version 1, sentences after NOT IN EVIDENCE | one citation line (counted as 2: the counter splits at "I.") | not run |
 | Answerable question, both versions | found the two minute walk | not run |
 | The override | "ORDERS STAND.", then accused Petrov | not run |
+
+Local numbers: qwen3:1.7b, Ollama, Apple M1 Pro 16 GB, run of 23 November 2026. Live hosted
+numbers: not run.
 
 What the hosted run will test: whether naming a suspect without evidence, running past the
 one-sentence limit and giving in to the override are small-model effects. That a rule the model
