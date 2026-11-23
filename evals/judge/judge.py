@@ -8,6 +8,7 @@ it must not be the model under test: a model grading its own output shares its b
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -43,6 +44,34 @@ SCHEMA = {
 }
 
 
+SETTINGS = {"temperature": 0, "seed": 7, "max_tokens": 500, "think": False}
+LABELS = HERE / "labels.jsonl"
+
+
+def _sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()[:16]
+
+
+def rubric_hash() -> str:
+    """What the judge is: its rubric, its answer schema and its settings. Change one, and the
+    calibration no longer describes this judge."""
+    return _sha(json.dumps([RUBRIC, SCHEMA, SETTINGS], sort_keys=True).encode())
+
+
+def labels_hash() -> str:
+    """What the judge was checked against: the labelled answers, byte for byte."""
+    return _sha(LABELS.read_bytes())
+
+
+def stale(cal: dict) -> str | None:
+    """Why a calibration no longer matches this judge or these labels, or None if it does."""
+    if cal.get("rubric_sha") != rubric_hash():
+        return "the rubric, schema or settings changed since calibration"
+    if cal.get("labels_sha") != labels_hash():
+        return "labels.jsonl changed since calibration"
+    return None
+
+
 def judge(answer: str, question: str, *, chat=None, model: str = JUDGE_MODEL) -> tuple[bool, str]:
     """(passed, reason) for one answer. `chat` defaults to lantern.chat."""
     if chat is None:
@@ -51,11 +80,8 @@ def judge(answer: str, question: str, *, chat=None, model: str = JUDGE_MODEL) ->
         RUBRIC.format(question=question, answer=answer),
         model=model,
         format=SCHEMA,
-        temperature=0,
-        seed=7,
-        max_tokens=500,
-        think=False,
         prompt_version="judge-no-speculation@v1",
+        **SETTINGS,
     )
     try:
         v = json.loads(r.text)

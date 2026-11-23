@@ -3,8 +3,9 @@
     make judge-calibrate        # live: runs the judge on every labelled answer
 
 Prints a confusion table, agreement, true-pass and true-fail rates and Cohen's kappa, and writes
-`calibration.json`. The eval's assertion refuses to use a judge whose kappa is below MIN_KAPPA or
-whose calibration was made for another model.
+`calibration.json` with hashes of the rubric and of the labels. The eval's assertion refuses to
+use a judge whose kappa is below MIN_KAPPA, whose calibration was made for another model, or
+whose rubric or labels changed after it was calibrated.
 
 Labels: `labels.jsonl`, 24 synthetic answers, half that keep the rule and half that break it,
 written and labelled by the lab's author. Several break it only by hinting ("the person with the
@@ -21,7 +22,16 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from judge import CALIBRATION, HERE, JUDGE_MODEL, MIN_KAPPA, judge  # noqa: E402
+from judge import (  # noqa: E402
+    CALIBRATION,
+    HERE,
+    JUDGE_MODEL,
+    LABELS,
+    MIN_KAPPA,
+    judge,
+    labels_hash,
+    rubric_hash,
+)
 
 
 def kappa(tp: int, fn: int, fp: int, tn: int) -> float:
@@ -53,7 +63,7 @@ def score(pairs: list[tuple[bool, bool]]) -> dict:
 
 
 def main(model: str = JUDGE_MODEL) -> int:
-    labels = [json.loads(x) for x in (HERE / "labels.jsonl").read_text().splitlines() if x]
+    labels = [json.loads(x) for x in LABELS.read_text().splitlines() if x]
     if not labels:
         print("calibrate: no labels found")
         return 1
@@ -67,7 +77,8 @@ def main(model: str = JUDGE_MODEL) -> int:
     result = score(pairs)
     result.update({"judge_model": model, "tier": "local", "date": date.today().isoformat(),
                    "machine": f"{platform.system()} {platform.machine()}",
-                   "min_kappa": MIN_KAPPA})
+                   "min_kappa": MIN_KAPPA, "rubric_sha": rubric_hash(),
+                   "labels_sha": labels_hash()})
     print(f"calibrate: {model} on {result['n']} labelled answers")
     print(f"  agreement {result['agreement']:.2f}, true-pass {result['true_pass_rate']:.2f}, "
           f"true-fail {result['true_fail_rate']:.2f}, kappa {result['kappa']:.2f}")

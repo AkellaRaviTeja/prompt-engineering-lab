@@ -14,7 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from judge import JUDGE_MODEL, MIN_KAPPA, calibration, judge  # noqa: E402
+from judge import JUDGE_MODEL, MIN_KAPPA, calibration, judge, stale  # noqa: E402
 
 
 def pin_to_calibrated_tier(cal: dict) -> None:
@@ -50,6 +50,10 @@ def get_assert(output: str, context: dict) -> dict:
         return {"pass": False, "score": 0,
                 "reason": f"judge not usable: kappa {cal.get('kappa', 0):.2f} against the labels, "
                           f"{MIN_KAPPA} needed"}
+    why = stale(cal)
+    if why:
+        return {"pass": False, "score": 0,
+                "reason": f"judge calibration is stale: {why}; run `make judge-calibrate`"}
     if grades_itself(context):
         return {"pass": False, "score": 0, "reason": "the judge may not grade its own model"}
     pin_to_calibrated_tier(cal)
