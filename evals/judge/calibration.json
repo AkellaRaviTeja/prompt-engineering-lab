@@ -14,5 +14,7 @@
   "tier": "local",
   "date": "2026-11-23",
   "machine": "Darwin arm64",
-  "min_kappa": 0.6
+  "min_kappa": 0.6,
+  "rubric_sha": "073117fa927ef3a6",
+  "labels_sha": "a6140f6b9d516229"
 }

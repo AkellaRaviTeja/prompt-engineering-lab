@@ -104,3 +104,45 @@ def test_assertion_refuses_an_uncalibrated_judge(monkeypatch):
     assert out["pass"] is False and "not calibrated" in out["reason"]
     monkeypatch.setattr(a, "calibration", lambda: {"judge_model": "qwen3:4b", "kappa": 0.3})
     assert a.get_assert("x", {"vars": {"question": "Who?"}})["pass"] is False
+
+
+def fresh_calibration(**over):
+    cal = {"judge_model": judge.JUDGE_MODEL, "kappa": 1.0, "tier": "local",
+           "rubric_sha": judge.rubric_hash(), "labels_sha": judge.labels_hash()}
+    return {**cal, **over}
+
+
+def test_assertion_refuses_a_calibration_made_for_another_rubric(monkeypatch):
+    """Regression (review of 23 Nov 2026): a rewritten rubric kept its old kappa of 1.0."""
+    import assert_no_speculation as a
+
+    monkeypatch.setattr(a, "judge", lambda *x, **k: (True, "kept the rule"))
+    cal = fresh_calibration()
+    monkeypatch.setattr(a, "calibration", lambda: cal)
+    ctx = {"vars": {"question": "Who?"}, "provider": {"label": "qwen3-1.7b"}}
+    assert a.get_assert("Not in evidence.", ctx)["pass"] is True, "a fresh calibration grades"
+    monkeypatch.setattr(judge, "RUBRIC", judge.RUBRIC + "\nBe lenient.")
+    out = a.get_assert("Not in evidence.", ctx)
+    assert out["pass"] is False and "rubric" in out["reason"], "a changed rubric is refused"
+    monkeypatch.setattr(judge, "SETTINGS", {**judge.SETTINGS, "temperature": 1})
+    assert judge.stale(fresh_calibration(rubric_sha="old")), "a changed setting is a new judge"
+
+
+def test_assertion_refuses_a_calibration_made_on_other_labels(monkeypatch, tmp_path):
+    """Editing labels.jsonl after calibrating means the kappa describes other labels."""
+    import assert_no_speculation as a
+
+    monkeypatch.setattr(a, "judge", lambda *x, **k: (True, "kept the rule"))
+    cal = fresh_calibration()
+    monkeypatch.setattr(a, "calibration", lambda: cal)
+    edited = tmp_path / "labels.jsonl"
+    edited.write_bytes(judge.LABELS.read_bytes().replace(b'"fail"', b'"pass"', 1))
+    monkeypatch.setattr(judge, "LABELS", edited)
+    out = a.get_assert("Not in evidence.", {"vars": {"question": "Who?"}})
+    assert out["pass"] is False and "labels.jsonl changed" in out["reason"], out["reason"]
+
+
+def test_the_committed_calibration_matches_the_committed_judge_and_labels():
+    """calibration.json must have been made with this rubric and these labels."""
+    cal = judge.calibration()
+    assert cal and judge.stale(cal) is None, "run `make judge-calibrate` and commit the result"
