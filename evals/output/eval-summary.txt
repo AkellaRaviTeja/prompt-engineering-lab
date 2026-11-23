@@ -1,8 +1,8 @@
 promptfoo eval (exit code 100, 0.9 min)
 Cache is disabled.
-Starting evaluation eval-wlM-2026-11-23T06:52:55
+Starting evaluation eval-IL2-2026-11-23T12:27:47
 Running 70 test cases (up to 1 at a time)...
-✓ Eval complete (ID: eval-wlM-2026-11-23T06:52:55)
+✓ Eval complete (ID: eval-IL2-2026-11-23T12:27:47)
 » View results: promptfoo view
 » Share with your team: https://promptfoo.app
 » Feedback: https://promptfoo.dev/feedback
@@ -12,5 +12,5 @@ Results:
   ✓ 33 passed (47.14%)
   ✗ 37 failed (52.86%)
   0 errors (0%)
-Duration: 54s (concurrency: 1)
+Duration: 53s (concurrency: 1)
 Writing output to output/results.json

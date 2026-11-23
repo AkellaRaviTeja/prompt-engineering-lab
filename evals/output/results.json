@@ -1,8 +1,8 @@
 {
-  "evalId": "eval-wlM-2026-11-23T06:52:55",
+  "evalId": "eval-IL2-2026-11-23T12:27:47",
   "results": {
     "version": 3,
-    "timestamp": "2026-11-23T06:52:55.340Z",
+    "timestamp": "2026-11-23T12:27:47.136Z",
     "prompts": [
       {
         "raw": "[{\"role\":\"system\",\"content\":\"You extract fields from supplier invoices for a police financial inquiry. Reply with JSON only, no prose and no code fences.\"},{\"role\":\"user\",\"content\":\"Extract these fields from the invoice:\\n- invoice_id: string, the code printed after the word INVOICE, without the word itself (for example NW-0001)\\n- vendor: string, the supplier's name from the letterhead at the top\\n- date: string, YYYY-MM-DD\\n- total: number, the total due, without currency or thousands separators\\n\\n<invoice>\\n{{invoice}}\\n</invoice>\\n\\nReply with the JSON object only.\"}]",
@@ -16,7 +16,7 @@
           "testErrorCount": 0,
           "assertPassCount": 23,
           "assertFailCount": 1,
-          "totalLatencyMs": 8333,
+          "totalLatencyMs": 8453,
           "tokenUsage": {
             "prompt": 2429,
             "completion": 473,
@@ -75,7 +75,7 @@
           "testErrorCount": 0,
           "assertPassCount": 0,
           "assertFailCount": 12,
-          "totalLatencyMs": 23376,
+          "totalLatencyMs": 23491,
           "tokenUsage": {
             "prompt": 514,
             "completion": 2121,
@@ -128,7 +128,7 @@
           "testErrorCount": 0,
           "assertPassCount": 8,
           "assertFailCount": 4,
-          "totalLatencyMs": 1193,
+          "totalLatencyMs": 1239,
           "tokenUsage": {
             "prompt": 2401,
             "completion": 32,
@@ -181,7 +181,7 @@
           "testErrorCount": 0,
           "assertPassCount": 4,
           "assertFailCount": 0,
-          "totalLatencyMs": 765,
+          "totalLatencyMs": 786,
           "tokenUsage": {
             "prompt": 1383,
             "completion": 24,
@@ -240,7 +240,7 @@
           "testErrorCount": 0,
           "assertPassCount": 23,
           "assertFailCount": 1,
-          "totalLatencyMs": 4407,
+          "totalLatencyMs": 4134,
           "tokenUsage": {
             "prompt": 2429,
             "completion": 449,
@@ -299,7 +299,7 @@
           "testErrorCount": 0,
           "assertPassCount": 0,
           "assertFailCount": 12,
-          "totalLatencyMs": 3814,
+          "totalLatencyMs": 3948,
           "tokenUsage": {
             "prompt": 514,
             "completion": 618,
@@ -352,7 +352,7 @@
           "testErrorCount": 0,
           "assertPassCount": 6,
           "assertFailCount": 6,
-          "totalLatencyMs": 582,
+          "totalLatencyMs": 586,
           "tokenUsage": {
             "prompt": 2401,
             "completion": 26,
@@ -405,7 +405,7 @@
           "testErrorCount": 0,
           "assertPassCount": 3,
           "assertFailCount": 1,
-          "totalLatencyMs": 377,
+          "totalLatencyMs": 350,
           "tokenUsage": {
             "prompt": 1383,
             "completion": 15,
@@ -509,8 +509,8 @@
             }
           ]
         },
-        "id": "e02dcefb-2dad-47dd-a573-79cd4cf46844",
-        "latencyMs": 2433,
+        "id": "143a5235-9281-41c8-abeb-c9ee4836ca41",
+        "latencyMs": 2477,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -558,7 +558,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 2433,
+          "latencyMs": 2477,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -694,8 +694,8 @@
             }
           ]
         },
-        "id": "5aa691f4-0a65-4cf8-9875-603d8be8e6fa",
-        "latencyMs": 1613,
+        "id": "3a30d67f-cc2e-4ed6-8aa2-d2e2b1a471d9",
+        "latencyMs": 1275,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -743,7 +743,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 1613,
+          "latencyMs": 1275,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -879,8 +879,8 @@
             }
           ]
         },
-        "id": "4f188af5-d190-4930-85dc-a246027f619a",
-        "latencyMs": 942,
+        "id": "d3e56f5d-b48b-49bf-886e-2c39e70f579d",
+        "latencyMs": 978,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -928,7 +928,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 942,
+          "latencyMs": 978,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -1064,8 +1064,8 @@
             }
           ]
         },
-        "id": "922edb23-eb86-42d5-bc42-95339cb9339e",
-        "latencyMs": 405,
+        "id": "b9450663-150c-4103-bf6e-d567f938c090",
+        "latencyMs": 424,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -1113,7 +1113,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 405,
+          "latencyMs": 424,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -1249,8 +1249,8 @@
             }
           ]
         },
-        "id": "9c74d0e7-4158-4a60-99f6-bec9b99a1c70",
-        "latencyMs": 923,
+        "id": "2c9d1a25-cda4-4f7f-8a9d-d655c6a5418c",
+        "latencyMs": 876,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -1298,7 +1298,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 923,
+          "latencyMs": 876,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -1434,8 +1434,8 @@
             }
           ]
         },
-        "id": "0e6fc3a2-b6f8-4d0c-a9d6-d05138f7ae89",
-        "latencyMs": 394,
+        "id": "8c83af75-ee19-4d0e-bc2f-5b049ed4d790",
+        "latencyMs": 406,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -1483,7 +1483,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 394,
+          "latencyMs": 406,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -1619,8 +1619,8 @@
             }
           ]
         },
-        "id": "7edd6fb9-3786-4f4e-9a3c-fafd0a3d7b61",
-        "latencyMs": 828,
+        "id": "0480bf6b-eb83-4e39-8c5e-f0a710bdc6dd",
+        "latencyMs": 847,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -1668,7 +1668,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 828,
+          "latencyMs": 847,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -1804,8 +1804,8 @@
             }
           ]
         },
-        "id": "13b56cb1-5c86-4005-bf28-a24dd70262f0",
-        "latencyMs": 420,
+        "id": "7a28f4f9-63e4-4373-8dc6-46a3744bb107",
+        "latencyMs": 433,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -1853,7 +1853,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 420,
+          "latencyMs": 433,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -1989,8 +1989,8 @@
             }
           ]
         },
-        "id": "5e559830-34a2-4fcc-9a24-e7c2235ddfba",
-        "latencyMs": 907,
+        "id": "5ab0cd66-3cf6-4d04-89eb-ba035a88bd35",
+        "latencyMs": 921,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -2038,7 +2038,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 907,
+          "latencyMs": 921,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -2174,8 +2174,8 @@
             }
           ]
         },
-        "id": "cdd62dfb-b8ec-4ac7-8cb7-3a894567bce1",
-        "latencyMs": 419,
+        "id": "229dad24-7a4c-4796-ba06-fa2e7b7a09a5",
+        "latencyMs": 417,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -2223,7 +2223,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 419,
+          "latencyMs": 417,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -2359,8 +2359,8 @@
             }
           ]
         },
-        "id": "4a801314-7ff5-4c93-a7d6-99babf1b7d36",
-        "latencyMs": 786,
+        "id": "6d8460a4-5920-4ffb-8d72-7e8eb179388d",
+        "latencyMs": 806,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -2408,7 +2408,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 786,
+          "latencyMs": 806,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -2544,8 +2544,8 @@
             }
           ]
         },
-        "id": "1a296d27-95b1-42c5-a143-cd7223ea8e45",
-        "latencyMs": 390,
+        "id": "dc303f41-8600-4147-8e3f-b4c21d8b93f9",
+        "latencyMs": 399,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -2593,7 +2593,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 390,
+          "latencyMs": 399,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -2729,8 +2729,8 @@
             }
           ]
         },
-        "id": "2cd5c98e-bf0e-48f2-959c-6ba815a05c92",
-        "latencyMs": 753,
+        "id": "0ffb8f97-4b4a-4e29-9836-a89ed5c4181d",
+        "latencyMs": 773,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -2778,7 +2778,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 753,
+          "latencyMs": 773,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -2914,8 +2914,8 @@
             }
           ]
         },
-        "id": "12f28e27-807a-4fc1-9108-24d734a02933",
-        "latencyMs": 381,
+        "id": "c35f68f8-cd14-4ca4-b63b-deede17d00ea",
+        "latencyMs": 386,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -2963,7 +2963,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 381,
+          "latencyMs": 386,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -3100,8 +3100,8 @@
             }
           ]
         },
-        "id": "14e6ebad-d613-4b3a-80c9-d6ef2d4eda7c",
-        "latencyMs": 761,
+        "id": "e5ac9089-a495-4c60-aecc-7d33fba90a10",
+        "latencyMs": 775,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -3149,7 +3149,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 761,
+          "latencyMs": 775,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -3286,8 +3286,8 @@
             }
           ]
         },
-        "id": "ff4efe80-c9b6-460a-af06-f9ba55acd2d7",
-        "latencyMs": 385,
+        "id": "830d197a-7b23-456a-9799-8aa1f1782230",
+        "latencyMs": 394,
         "namedScores": {
           "valid_json": 1,
           "invoice_id": 1,
@@ -3335,7 +3335,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 385,
+          "latencyMs": 394,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -3449,8 +3449,8 @@
             }
           ]
         },
-        "id": "839bc38e-26c5-4f46-bc7f-1929cf9d985b",
-        "latencyMs": 1594,
+        "id": "5076ff66-5d86-4bb6-9e60-5bab4062d505",
+        "latencyMs": 1619,
         "namedScores": {
           "label_correct": 0
         },
@@ -3496,7 +3496,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 1594,
+          "latencyMs": 1619,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -3600,8 +3600,8 @@
             }
           ]
         },
-        "id": "ba7125c9-6a04-419d-8bc2-c9bfc29ecf35",
-        "latencyMs": 229,
+        "id": "a0a87a1f-fe11-4dcf-be88-75561ce7902d",
+        "latencyMs": 236,
         "namedScores": {
           "label_correct": 0
         },
@@ -3647,7 +3647,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 229,
+          "latencyMs": 236,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -3751,8 +3751,8 @@
             }
           ]
         },
-        "id": "ae445b90-6063-4a45-b49b-08c5ddd76f2c",
-        "latencyMs": 367,
+        "id": "75953dc3-d377-4f6a-a1da-bcd603837339",
+        "latencyMs": 354,
         "namedScores": {
           "label_correct": 0
         },
@@ -3798,7 +3798,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 367,
+          "latencyMs": 354,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -3902,8 +3902,8 @@
             }
           ]
         },
-        "id": "f9433fda-49a6-4464-8d9e-8674c47d405e",
-        "latencyMs": 87,
+        "id": "fb26548c-fbaa-4d25-9293-d7584919b40e",
+        "latencyMs": 89,
         "namedScores": {
           "label_correct": 0
         },
@@ -3949,7 +3949,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 87,
+          "latencyMs": 89,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -4053,8 +4053,8 @@
             }
           ]
         },
-        "id": "97ff45b7-6010-49e9-8d4e-3ef2e6e33ab8",
-        "latencyMs": 2303,
+        "id": "0bb8ccea-c8c7-4763-819d-d74bd774cde9",
+        "latencyMs": 2308,
         "namedScores": {
           "label_correct": 0
         },
@@ -4100,7 +4100,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 2303,
+          "latencyMs": 2308,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -4204,8 +4204,8 @@
             }
           ]
         },
-        "id": "c52a3739-257d-4d56-990f-47e4f0c1477c",
-        "latencyMs": 100,
+        "id": "844a6f31-9e47-4389-817d-0646b2b6fd0f",
+        "latencyMs": 104,
         "namedScores": {
           "label_correct": 0
         },
@@ -4251,7 +4251,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 100,
+          "latencyMs": 104,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -4355,8 +4355,8 @@
             }
           ]
         },
-        "id": "92426351-dd13-4e48-8b9b-a5bad426a282",
-        "latencyMs": 362,
+        "id": "14ac28ed-d414-44a8-a76d-cc4cd085584b",
+        "latencyMs": 411,
         "namedScores": {
           "label_correct": 0
         },
@@ -4402,7 +4402,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 362,
+          "latencyMs": 411,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -4506,8 +4506,8 @@
             }
           ]
         },
-        "id": "8fa191a8-074e-4702-b3e8-d3c50a6d0204",
-        "latencyMs": 43,
+        "id": "ed79cd6c-1e93-49d4-9f0d-6a0c3ca383eb",
+        "latencyMs": 56,
         "namedScores": {
           "label_correct": 0
         },
@@ -4553,7 +4553,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 43,
+          "latencyMs": 56,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -4657,8 +4657,8 @@
             }
           ]
         },
-        "id": "d663588b-0082-4b02-a994-2c346cb0aa06",
-        "latencyMs": 2525,
+        "id": "747bbb24-1261-42ed-85d9-ef805925e205",
+        "latencyMs": 2516,
         "namedScores": {
           "label_correct": 0
         },
@@ -4704,7 +4704,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 2525,
+          "latencyMs": 2516,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -4808,8 +4808,8 @@
             }
           ]
         },
-        "id": "ef3c9f20-bfc3-445f-90d0-11a2aebfa9be",
-        "latencyMs": 96,
+        "id": "3b5b43b1-4a18-4ee0-95a5-f336672ff786",
+        "latencyMs": 102,
         "namedScores": {
           "label_correct": 0
         },
@@ -4855,7 +4855,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 96,
+          "latencyMs": 102,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -4959,8 +4959,8 @@
             }
           ]
         },
-        "id": "bc66f7f8-06b2-47d3-b881-e520867fb3c1",
-        "latencyMs": 347,
+        "id": "0975ea51-15ea-4f8f-8b28-0bc274c26dde",
+        "latencyMs": 356,
         "namedScores": {
           "label_correct": 0
         },
@@ -5006,7 +5006,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 347,
+          "latencyMs": 356,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -5110,8 +5110,8 @@
             }
           ]
         },
-        "id": "8e7ecd8f-2ee0-4b66-a384-dc0ba83a3938",
-        "latencyMs": 42,
+        "id": "b23249cd-fa2a-474d-8581-f26f503af807",
+        "latencyMs": 44,
         "namedScores": {
           "label_correct": 0
         },
@@ -5157,7 +5157,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 42,
+          "latencyMs": 44,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -5261,8 +5261,8 @@
             }
           ]
         },
-        "id": "f041c151-ee1e-43ed-8bd4-4af04dd71b12",
-        "latencyMs": 1389,
+        "id": "5bb7eaff-2aba-4787-b709-99bf79ad74ba",
+        "latencyMs": 1408,
         "namedScores": {
           "label_correct": 0
         },
@@ -5308,7 +5308,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 1389,
+          "latencyMs": 1408,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -5412,8 +5412,8 @@
             }
           ]
         },
-        "id": "bcf4c953-44ef-45b8-b06e-db33e5991562",
-        "latencyMs": 77,
+        "id": "c706922f-999e-44c7-b1de-12cc8bc0acca",
+        "latencyMs": 78,
         "namedScores": {
           "label_correct": 0
         },
@@ -5459,7 +5459,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 77,
+          "latencyMs": 78,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -5563,8 +5563,8 @@
             }
           ]
         },
-        "id": "e6d5838f-3d6b-4d96-89a3-6251b687e1f5",
-        "latencyMs": 346,
+        "id": "d94eb955-403c-4029-81bb-54132c77e2dd",
+        "latencyMs": 360,
         "namedScores": {
           "label_correct": 0
         },
@@ -5610,7 +5610,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 346,
+          "latencyMs": 360,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -5714,8 +5714,8 @@
             }
           ]
         },
-        "id": "eb654dbd-bd23-4a19-a28e-939d484210f1",
-        "latencyMs": 38,
+        "id": "e545cc7a-e229-4659-8cf6-b70109e0cb8b",
+        "latencyMs": 39,
         "namedScores": {
           "label_correct": 0
         },
@@ -5761,7 +5761,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 38,
+          "latencyMs": 39,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -5865,8 +5865,8 @@
             }
           ]
         },
-        "id": "83d5a9ed-69bf-4883-ad03-1eb91ea7b00c",
-        "latencyMs": 2151,
+        "id": "09ec7224-da18-417b-829a-704addf12ed0",
+        "latencyMs": 2168,
         "namedScores": {
           "label_correct": 0
         },
@@ -5912,7 +5912,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 2151,
+          "latencyMs": 2168,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -6016,8 +6016,8 @@
             }
           ]
         },
-        "id": "1a2e3c00-5cb8-4f3e-ac12-f4c3070f4359",
-        "latencyMs": 383,
+        "id": "d46d8902-0352-472f-acc6-67f9e42971e1",
+        "latencyMs": 369,
         "namedScores": {
           "label_correct": 0
         },
@@ -6063,7 +6063,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 383,
+          "latencyMs": 369,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -6167,8 +6167,8 @@
             }
           ]
         },
-        "id": "a4e1e592-0d7a-4d3e-97be-f3f27aa047d1",
-        "latencyMs": 67,
+        "id": "a6342c1c-90c3-4db8-94dc-b78c50797b59",
+        "latencyMs": 43,
         "namedScores": {
           "label_correct": 0
         },
@@ -6214,7 +6214,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 67,
+          "latencyMs": 43,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -6317,8 +6317,8 @@
             }
           ]
         },
-        "id": "1b8bcc27-e21b-42f9-a07f-43de72f5ea2b",
-        "latencyMs": 101,
+        "id": "2afe9ba8-7ce9-499b-9d54-0da715119018",
+        "latencyMs": 98,
         "namedScores": {
           "label_correct": 1
         },
@@ -6364,7 +6364,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 101,
+          "latencyMs": 98,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -6468,8 +6468,8 @@
             }
           ]
         },
-        "id": "8354c0f4-37ff-4e24-806c-7f27940f281d",
-        "latencyMs": 1976,
+        "id": "10d8bd91-bc3e-4dc3-8fd7-cf541cff5fd1",
+        "latencyMs": 1983,
         "namedScores": {
           "label_correct": 0
         },
@@ -6515,7 +6515,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 1976,
+          "latencyMs": 1983,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -6619,8 +6619,8 @@
             }
           ]
         },
-        "id": "24719ea1-5773-49d5-bb4d-d52b45d230c9",
-        "latencyMs": 226,
+        "id": "16e84094-d3a4-48cb-872f-15d39c044d7a",
+        "latencyMs": 250,
         "namedScores": {
           "label_correct": 0
         },
@@ -6666,7 +6666,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 226,
+          "latencyMs": 250,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -6769,8 +6769,8 @@
             }
           ]
         },
-        "id": "6911bb0f-7aef-4b82-90b3-dc661a70cd31",
-        "latencyMs": 98,
+        "id": "3ae36e73-fde9-4bac-af8a-aa743c291930",
+        "latencyMs": 99,
         "namedScores": {
           "label_correct": 1
         },
@@ -6816,7 +6816,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 98,
+          "latencyMs": 99,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -6919,8 +6919,8 @@
             }
           ]
         },
-        "id": "33e589f9-b3c1-4b10-a6f3-04ce591978a1",
-        "latencyMs": 49,
+        "id": "91d3a55d-f459-4bdd-be67-539cc2f83913",
+        "latencyMs": 50,
         "namedScores": {
           "label_correct": 1
         },
@@ -6966,7 +6966,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 49,
+          "latencyMs": 50,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -7070,8 +7070,8 @@
             }
           ]
         },
-        "id": "24db5495-90c0-4fb6-b785-26505ccc47bb",
-        "latencyMs": 852,
+        "id": "23b2ab88-ea1f-4388-bd45-d717eee7a80a",
+        "latencyMs": 860,
         "namedScores": {
           "label_correct": 0
         },
@@ -7117,7 +7117,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 852,
+          "latencyMs": 860,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -7221,8 +7221,8 @@
             }
           ]
         },
-        "id": "f3562174-0770-4707-b099-4ad65924dd34",
-        "latencyMs": 299,
+        "id": "0f86d8c6-cd9b-4314-a91e-ce174ffcab2c",
+        "latencyMs": 312,
         "namedScores": {
           "label_correct": 0
         },
@@ -7268,7 +7268,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 299,
+          "latencyMs": 312,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -7372,8 +7372,8 @@
             }
           ]
         },
-        "id": "f4bda934-91f5-4727-91f9-13f6ceb1d950",
-        "latencyMs": 42,
+        "id": "b6389580-e348-4b5a-80d0-1bed4fc64288",
+        "latencyMs": 44,
         "namedScores": {
           "label_correct": 0
         },
@@ -7419,7 +7419,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 42,
+          "latencyMs": 44,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -7522,8 +7522,8 @@
             }
           ]
         },
-        "id": "9bc2d213-949a-41e7-987b-0e0e18bdb352",
-        "latencyMs": 94,
+        "id": "83cf6cbd-fb0c-4894-bf36-d8f2ec90b178",
+        "latencyMs": 100,
         "namedScores": {
           "label_correct": 1
         },
@@ -7569,7 +7569,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 94,
+          "latencyMs": 100,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -7673,8 +7673,8 @@
             }
           ]
         },
-        "id": "0081fc86-8580-4dd8-8a96-d12c796eb15a",
-        "latencyMs": 1623,
+        "id": "15b4d273-6d93-47fb-8e72-7f9c1adf175c",
+        "latencyMs": 1649,
         "namedScores": {
           "label_correct": 0
         },
@@ -7720,7 +7720,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 1623,
+          "latencyMs": 1649,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -7824,8 +7824,8 @@
             }
           ]
         },
-        "id": "d0232f23-2acb-4ef6-bee6-055207cff734",
-        "latencyMs": 163,
+        "id": "7ca9599a-ee1f-4780-a965-99e2c8c3a373",
+        "latencyMs": 177,
         "namedScores": {
           "label_correct": 0
         },
@@ -7871,7 +7871,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 163,
+          "latencyMs": 177,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -7974,8 +7974,8 @@
             }
           ]
         },
-        "id": "bec782ff-8433-41b2-84c3-216970e8bd14",
-        "latencyMs": 97,
+        "id": "4b4a97d5-add4-4d86-b898-7069c30ca1d1",
+        "latencyMs": 102,
         "namedScores": {
           "label_correct": 1
         },
@@ -8021,7 +8021,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 97,
+          "latencyMs": 102,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -8124,8 +8124,8 @@
             }
           ]
         },
-        "id": "abf6d0b4-0fae-4bdf-92fe-7d145108ca53",
-        "latencyMs": 47,
+        "id": "fee6b7d4-ee90-48a8-9a71-af4caf75b6b9",
+        "latencyMs": 52,
         "namedScores": {
           "label_correct": 1
         },
@@ -8171,7 +8171,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 47,
+          "latencyMs": 52,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -8275,8 +8275,8 @@
             }
           ]
         },
-        "id": "11023f7f-2ac2-4736-a09f-d31248db7bda",
-        "latencyMs": 2418,
+        "id": "f067aa7c-763c-4525-b6e9-93f5074fc849",
+        "latencyMs": 2444,
         "namedScores": {
           "label_correct": 0
         },
@@ -8322,7 +8322,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 2418,
+          "latencyMs": 2444,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -8426,8 +8426,8 @@
             }
           ]
         },
-        "id": "1e7f1142-2173-4bf8-99a7-f15d15453901",
-        "latencyMs": 286,
+        "id": "ff314296-2257-4738-b974-8c20d4cce9c4",
+        "latencyMs": 299,
         "namedScores": {
           "label_correct": 0
         },
@@ -8473,7 +8473,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 286,
+          "latencyMs": 299,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -8576,8 +8576,8 @@
             }
           ]
         },
-        "id": "94529107-033f-4713-b422-567e253de18a",
-        "latencyMs": 86,
+        "id": "a0f0c6c6-7d93-404a-a304-c960ad179c63",
+        "latencyMs": 92,
         "namedScores": {
           "label_correct": 1
         },
@@ -8623,7 +8623,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 86,
+          "latencyMs": 92,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -8726,8 +8726,8 @@
             }
           ]
         },
-        "id": "1f33da5f-bf0d-4874-a97d-ad3456758f3e",
-        "latencyMs": 43,
+        "id": "f2de5b34-1368-42f7-93d0-447a48ef4b6a",
+        "latencyMs": 45,
         "namedScores": {
           "label_correct": 1
         },
@@ -8773,7 +8773,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 43,
+          "latencyMs": 45,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -8877,8 +8877,8 @@
             }
           ]
         },
-        "id": "7e6f11c9-db90-40ec-affd-bc9cddb46062",
-        "latencyMs": 2045,
+        "id": "700b701c-ccbf-4b59-8346-52226cb53c49",
+        "latencyMs": 2016,
         "namedScores": {
           "label_correct": 0
         },
@@ -8924,7 +8924,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 2045,
+          "latencyMs": 2016,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -9028,8 +9028,8 @@
             }
           ]
         },
-        "id": "9af6a413-bd76-4c42-9d15-c4ff5f04f2cb",
-        "latencyMs": 396,
+        "id": "938f6228-f99b-4ef4-b69f-aa1967292db6",
+        "latencyMs": 416,
         "namedScores": {
           "label_correct": 0
         },
@@ -9075,7 +9075,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 396,
+          "latencyMs": 416,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -9178,8 +9178,8 @@
             }
           ]
         },
-        "id": "df73f305-ec1d-4c33-847c-21e80655763d",
-        "latencyMs": 62,
+        "id": "f6732075-9c0b-497e-86d1-027866d636dc",
+        "latencyMs": 67,
         "namedScores": {
           "label_correct": 1
         },
@@ -9225,7 +9225,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 62,
+          "latencyMs": 67,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -9328,8 +9328,8 @@
             }
           ]
         },
-        "id": "334b1c5f-cb7e-41d2-967b-0ed8a181e815",
-        "latencyMs": 36,
+        "id": "242bd064-f1c1-4cb1-b867-aba6eaaa3c74",
+        "latencyMs": 40,
         "namedScores": {
           "label_correct": 1
         },
@@ -9375,7 +9375,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 36,
+          "latencyMs": 40,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -9479,8 +9479,8 @@
             }
           ]
         },
-        "id": "10b8324c-d5aa-423e-85f8-121d8c2f6809",
-        "latencyMs": 2156,
+        "id": "0b2a38a5-0e83-45dc-8271-92ee3dd5c280",
+        "latencyMs": 2195,
         "namedScores": {
           "label_correct": 0
         },
@@ -9526,7 +9526,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 2156,
+          "latencyMs": 2195,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -9630,8 +9630,8 @@
             }
           ]
         },
-        "id": "4dab51e9-7331-4484-b352-d2b75a2b3670",
-        "latencyMs": 298,
+        "id": "caedfecf-2863-414d-aa92-1756d5e54bf2",
+        "latencyMs": 302,
         "namedScores": {
           "label_correct": 0
         },
@@ -9677,7 +9677,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 298,
+          "latencyMs": 302,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -9780,8 +9780,8 @@
             }
           ]
         },
-        "id": "c934dad7-e14b-4dd6-86a2-590a969782d1",
-        "latencyMs": 86,
+        "id": "7e00bcbe-2e9f-4324-a661-a78b5798cdbe",
+        "latencyMs": 90,
         "namedScores": {
           "label_correct": 1
         },
@@ -9827,7 +9827,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 86,
+          "latencyMs": 90,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -9930,8 +9930,8 @@
             }
           ]
         },
-        "id": "56221a11-49fb-48b0-a726-53d510232045",
-        "latencyMs": 43,
+        "id": "9d7ba981-ceb9-4521-80bd-0d45d37f58eb",
+        "latencyMs": 44,
         "namedScores": {
           "label_correct": 1
         },
@@ -9977,7 +9977,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 43,
+          "latencyMs": 44,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -10081,8 +10081,8 @@
             }
           ]
         },
-        "id": "47d2ab95-41df-49f0-ac4a-7ab6fca5a637",
-        "latencyMs": 2344,
+        "id": "7e8c7aa9-b184-4303-86d1-ce5bb242ab3c",
+        "latencyMs": 2325,
         "namedScores": {
           "label_correct": 0
         },
@@ -10128,7 +10128,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 2344,
+          "latencyMs": 2325,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -10232,8 +10232,8 @@
             }
           ]
         },
-        "id": "f779212d-027b-4356-ab68-8bbcccc17eda",
-        "latencyMs": 341,
+        "id": "3fdd603a-37b1-484d-9d6d-dffaad3504de",
+        "latencyMs": 342,
         "namedScores": {
           "label_correct": 0
         },
@@ -10279,7 +10279,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 341,
+          "latencyMs": 342,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -10382,8 +10382,8 @@
             }
           ]
         },
-        "id": "28838ac6-f1ec-4b65-9065-986376b0c7d4",
-        "latencyMs": 67,
+        "id": "1e8bb647-38b5-4c74-82d2-007a6095a84d",
+        "latencyMs": 71,
         "namedScores": {
           "label_correct": 1
         },
@@ -10429,7 +10429,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 67,
+          "latencyMs": 71,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -10532,8 +10532,8 @@
             }
           ]
         },
-        "id": "c746bb9c-88f0-40ed-b41a-974b013b674d",
-        "latencyMs": 45,
+        "id": "0595f3db-6f2d-4e53-9445-de4fcd9667a6",
+        "latencyMs": 40,
         "namedScores": {
           "label_correct": 1
         },
@@ -10579,7 +10579,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 45,
+          "latencyMs": 40,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -10683,8 +10683,8 @@
             }
           ]
         },
-        "id": "d5de7558-1492-4c7d-92b3-1a98bbee94f3",
-        "latencyMs": 185,
+        "id": "50f7cd36-4e48-435c-994b-39e0a9958a0b",
+        "latencyMs": 197,
         "namedScores": {
           "grounded": 0
         },
@@ -10730,7 +10730,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 185,
+          "latencyMs": 197,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -10830,8 +10830,8 @@
             }
           ]
         },
-        "id": "ab5b7527-00cd-4a25-95a1-5d60a85217fa",
-        "latencyMs": 569,
+        "id": "0db2f21d-d237-4082-a185-2b0d1b43c7e7",
+        "latencyMs": 575,
         "namedScores": {
           "grounded": 1
         },
@@ -10877,7 +10877,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 569,
+          "latencyMs": 575,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -10977,8 +10977,8 @@
             }
           ]
         },
-        "id": "9d92d5ea-fb4e-42cd-934c-8fff8696e501",
-        "latencyMs": 95,
+        "id": "b945e172-22cc-47fe-a7aa-d7ae967f4559",
+        "latencyMs": 107,
         "namedScores": {
           "refuses": 1
         },
@@ -11024,7 +11024,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 95,
+          "latencyMs": 107,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -11124,8 +11124,8 @@
             }
           ]
         },
-        "id": "f1d3cbd7-9db0-4459-8ee7-f532ded62fe6",
-        "latencyMs": 56,
+        "id": "4d41e2c2-412f-4c18-9d32-acd7f70f96c2",
+        "latencyMs": 68,
         "namedScores": {
           "refuses": 1
         },
@@ -11171,7 +11171,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 56,
+          "latencyMs": 68,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -11283,8 +11283,8 @@
             }
           ]
         },
-        "id": "3557e6d9-28a9-46f4-b521-2ead9d8ce275",
-        "latencyMs": 101,
+        "id": "4a85508a-5963-4563-a8d3-97b37ad73168",
+        "latencyMs": 104,
         "namedScores": {
           "refuses": 1,
           "no_speculation": 1
@@ -11331,7 +11331,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 101,
+          "latencyMs": 104,
           "metadata": {
             "model": "qwen3:1.7b",
             "unsupported": []
@@ -11448,8 +11448,8 @@
             }
           ]
         },
-        "id": "811cfbc4-3364-4d6b-a119-3e4dc054d1b5",
-        "latencyMs": 136,
+        "id": "2ff2524f-ee87-46b0-80ee-031ab1fceb37",
+        "latencyMs": 85,
         "namedScores": {
           "refuses": 1,
           "no_speculation": 1
@@ -11496,7 +11496,7 @@
             }
           },
           "cost": 0,
-          "latencyMs": 136,
+          "latencyMs": 85,
           "metadata": {
             "model": "qwen3:0.6b",
             "unsupported": []
@@ -11602,8 +11602,8 @@
           }
         }
       },
-      "durationMs": 53472,
-      "evaluationDurationMs": 53472
+      "durationMs": 53148,
+      "evaluationDurationMs": 53148
     }
   },
   "config": {
@@ -12186,8 +12186,8 @@
     "nodeVersion": "v26.13.0",
     "platform": "darwin",
     "arch": "arm64",
-    "exportedAt": "2026-11-23T06:53:48.905Z",
-    "evaluationCreatedAt": "2026-11-23T06:52:55.340Z"
+    "exportedAt": "2026-11-23T12:28:40.356Z",
+    "evaluationCreatedAt": "2026-11-23T12:27:47.136Z"
   },
   "vars": [
     "invoice",

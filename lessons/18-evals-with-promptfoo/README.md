@@ -222,7 +222,7 @@ it.
 ![Chapter 18 terminal output](../../docs/screenshots/18-evals-with-promptfoo.png)
 
 A real run of the current suite: local tier, Apple M1 Pro 16 GB, 54 seconds of promptfoo, eval
-`eval-wlM-2026-11-23T06:52:55`, every prompt through `lantern.chat`, the judge calibrated:
+`eval-IL2-2026-11-23T12:27:47`, every prompt through `lantern.chat`, the judge calibrated:
 
 | Prompt | qwen3-1.7b | qwen3-0.6b |
 |---|---|---|
